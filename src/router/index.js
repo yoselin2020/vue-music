@@ -1,25 +1,61 @@
-import { createRouter, createWebHashHistory } from 'vue-router'
-import HomeView from '../views/HomeView.vue'
+import { createRouter, createWebHashHistory } from "vue-router";
+import Home from "@/views/Home.vue";
+import Recommend from "@/views/recommend/recommend";
 
 const routes = [
   {
-    path: '/',
-    name: 'home',
-    component: HomeView
+    path: "/",
+    redirect: "/recommend",
+    name: "home",
+    component: Home,
+    children: [
+      {
+        path: "recommend",
+        name: "Recommend",
+        component: Recommend,
+        meta: {
+          title: "推荐",
+        },
+      },
+      {
+        path: "singer",
+        name: "Singer",
+        component: () => import("@/views/singer/singer"),
+        meta: {
+          title: "歌手",
+        },
+      },
+      {
+        path: "top-list",
+        name: "TopList",
+        component: () => import("@/views/top-list/top-list"),
+        meta: {
+          title: "排行",
+        },
+      },
+      {
+        path: "search",
+        name: "Search",
+        component: () => import("@/views/search/search"),
+        meta: {
+          title: "搜索",
+        },
+      },
+    ],
   },
   {
-    path: '/about',
-    name: 'about',
-    // route level code-splitting
-    // this generates a separate chunk (about.[hash].js) for this route
-    // which is lazy-loaded when the route is visited.
-    component: () => import(/* webpackChunkName: "about" */ '../views/AboutView.vue')
-  }
-]
+    path: "/singer-detail",
+    name: "SingerDetail",
+    component: () => import("@/views/singer-detail/singer-detail"),
+    meta: {
+      title: "歌手详情",
+    },
+  },
+];
 
 const router = createRouter({
   history: createWebHashHistory(),
-  routes
-})
+  routes,
+});
 
-export default router
+export default router;
