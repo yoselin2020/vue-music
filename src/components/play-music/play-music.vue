@@ -83,9 +83,9 @@
       <i class="iconfont icon-next" @click="nextSong" :style="disableStyle"></i>
       <i
         class="iconfont"
-        @click.stop="favoriteIconClick"
-        :class="isFavorite()"
-        :style="{ color: favoriteColor }"
+        @click.stop="favoriteIconClick(currentSong)"
+        :class="isFavorite(currentSong)"
+        :style="{ color: favoriteColor(currentSong) }"
       ></i>
     </div>
   </div>
@@ -120,7 +120,7 @@
         <div class="middle-box">
           <span class="text">{{ playModeText }}</span>
         </div>
-        <div class="right-box">
+        <div class="right-box" @click.stop="clearPlayList">
           <span class="clear-icon-wrapper">
             <i class="iconfont icon-clear"></i>
           </span>
@@ -134,6 +134,7 @@
             :key="song.id"
           >
             <div class="play-list-item" v-if="!song.isDel">
+              <span>{{ song.isDel }}</span>
               <div
                 class="playing-icon-wrapper"
                 v-if="currentSong.id === song.id"
@@ -146,10 +147,14 @@
               <div class="right-control">
                 <span class="icon-wrapper">
                   <i
-                    :class="['iconfont', 'favorite-btn', isFavorite()]"
-                    :style="{ color: favoriteColor }"
+                    @click.stop="favoriteIconClick(song)"
+                    :class="['iconfont', 'favorite-btn', isFavorite(song)]"
+                    :style="{ color: favoriteColor(song) }"
                   ></i>
-                  <i class="iconfont icon-close close-btn"></i>
+                  <i
+                    class="iconfont icon-close close-btn"
+                    @click.stop="delSong(song)"
+                  ></i>
                 </span>
               </div>
             </div>
@@ -189,12 +194,24 @@ import { getLyric } from "@/service/song";
 import Lyric from "lyric-parser";
 import BScroll from "better-scroll";
 import storage from "storejs";
-import { Toast } from "vant";
+import { Dialog, Toast } from "vant";
 // 音乐标签对应ref
 const audioRef = ref(null);
 // vuex store
 const store = useStore();
 const isShowMask = ref(false);
+
+watch(isShowMask, async (newVal) => {
+  if (!newVal) {
+    return;
+  }
+  await nextTick();
+  playListScrollInstance.value = new BScroll(playListScrollRef.value, {
+    observeDOM: true,
+    click: true,
+  });
+});
+
 function showMask() {
   isShowMask.value = true;
 }
@@ -261,13 +278,19 @@ const favoriteSongList = computed(() => {
   return store.state.favoriteSongList;
 });
 
+// const favoriteColor = computed(() => {
+//   const findItem = favoriteSongList.value.find((item) => {
+//     return item.id === currentSong.value.id;
+//   });
+//   return findItem ? "#d93f30" : "";
+// });
 // 喜欢的歌曲icon颜色
-const favoriteColor = computed(() => {
+function favoriteColor(song) {
   const findItem = favoriteSongList.value.find((item) => {
-    return item.id === currentSong.value.id;
+    return item.id === song.id;
   });
   return findItem ? "#d93f30" : "";
-});
+}
 
 const playModeIcon = computed(() => {
   const _playModeIcon = {
@@ -279,10 +302,7 @@ const playModeIcon = computed(() => {
 });
 
 const playList = computed(() => {
-  return store.state.playList.map((song) => {
-    song.isDel = false;
-    return song;
-  });
+  return store.getters.playList;
 });
 
 const playModeText = computed(() => {
@@ -334,11 +354,13 @@ function handler({ lineNum, txt }) {
 onUnmounted(() => {
   store.commit("setCurrentIndex", -1);
   store.commit("setPlaying", false);
+  console.log("清空");
 });
 // 监听当前歌曲的变化
 watch(
   currentSong,
   async (newSong) => {
+    console.log("watch-currentSong");
     stopLyric();
     currentLyricText.value = "";
     scrollWrapper.value = null;
@@ -412,14 +434,27 @@ watch(
 watch(
   currentTime,
   (newTime) => {
-    // console.log(newTime, "newTime");
-    if (!isPlaying.value) {
-      store.commit("setPlaying", true);
-    }
     progressBarWidth.value = (newTime / currentSong.value.duration) * 100;
   },
   { immediate: false }
 );
+// 隐藏一首歌曲
+function delSong(song) {
+  song.isDel = true;
+}
+// 清空mask中播放列表中的歌曲
+async function clearPlayList() {
+  try {
+    const result = await Dialog.confirm({
+      title: "提示",
+      message: "确认清空播放列表?",
+    });
+    playList.value.forEach((item) => {
+      item.isDel = true;
+    });
+    //   store.commit("setPlayList", playList.value);
+  } catch (err) {}
+}
 
 // swiper 索引值改变
 function onChange(event) {
@@ -544,16 +579,6 @@ function touchend(event) {
 }
 const playListScrollRef = ref(null);
 const playListScrollInstance = ref(null);
-onMounted(async () => {
-  await nextTick();
-  if (!playListScrollRef.value) {
-    return;
-  }
-  playListScrollInstance.value = new BScroll(playListScrollRef.value, {
-    observeDOM: true,
-    click: true,
-  });
-});
 
 function timeupdate(event) {
   if (!isPlaying.value) {
@@ -605,9 +630,9 @@ function durationchange(event) {
   // console.log(event, "event...");
 }
 
-function favoriteIconClick() {
+function favoriteIconClick(song) {
   //console.log(currentSong.value, "currentSong.value");
-  store.commit("toggleFavorite", currentSong.value);
+  store.commit("toggleFavorite", song);
 }
 
 // 歌曲缓冲完毕
@@ -627,9 +652,10 @@ function canplay() {
 }
 
 // 歌曲是否喜欢
-function isFavorite() {
+function isFavorite(song) {
+  // debugger;
   const findItem = favoriteSongList.value.find((item) => {
-    return item.id === currentSong.value.id;
+    return item.id === song.id;
   });
   return findItem ? "icon-favorite" : "icon-not-favorite";
 }
@@ -687,7 +713,7 @@ defineExpose({
   width: 100%;
   height: 100%;
   background-color: $color-background;
-  z-index: 90;
+  z-index: 150;
 
   .my-swipe {
     padding-top: 20px;
@@ -840,7 +866,7 @@ defineExpose({
       height: 300px;
       overflow: hidden;
       border: 10px solid #4e5649;
-      background-color: pink;
+      //background-color: pink;
       border-radius: 50%;
       img {
         width: 100%;
@@ -985,6 +1011,7 @@ defineExpose({
   width: 100%;
   height: 60px;
   background-color: #333333;
+  z-index: 160;
   .mini-play-content {
     padding: 0 10px;
     box-sizing: border-box;

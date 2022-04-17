@@ -23,7 +23,7 @@
           class="songs-item"
           v-for="(item, index) of songs"
           :key="index"
-          @click="selectMusic(index)"
+          @click="selectMusic(item)"
         >
           <div class="songs-name">{{ item.name }}</div>
           <div class="songs-desc">{{ item.singer }}·{{ item.album }}</div>
@@ -72,7 +72,7 @@ export default {
     } catch (err) {}
   },
   mounted() {
-    console.log(this.fullScreen);
+    //console.log(this.fullScreen);
     this.scrollEl = new BScroll(this.$refs.scrollWrapperRef, {
       observeDOM: true,
       click: true,
@@ -83,8 +83,9 @@ export default {
   methods: {
     ...mapMutations(["setPlayList", "setSequenceList"]),
     ...mapActions(["selectSong"]),
-    selectMusic(index) {
-      this.selectSong(index);
+    selectMusic(item) {
+      //debugger;
+      this.selectSong(item);
     },
     scroll({ x, y }) {
       this.scrollY = -y;

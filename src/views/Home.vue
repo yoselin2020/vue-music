@@ -2,7 +2,7 @@
   <div class="home">
     <my-header></my-header>
     <tabbar></tabbar>
-    <div class="scroll-wrapper">
+    <div class="scroll-wrapper" :style="isPaddingBottom">
       <router-view></router-view>
     </div>
   </div>

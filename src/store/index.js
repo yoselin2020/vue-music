@@ -25,6 +25,7 @@ export default createStore({
     favoriteSongList: storage.get(FAVORITE_SONG_KEY) || [],
   },
   getters: {
+    playList: (state) => state.playList,
     // 当前播放的歌曲
     currentSong: (state) => state.playList[state.currentIndex] || {},
     // 是否全屏
@@ -44,10 +45,16 @@ export default createStore({
     },
     // 播放器列表
     setPlayList(state, list) {
+      list.forEach((item) => {
+        item.isDel = false;
+      });
       state.playList = list;
     },
     // 顺序播放列表
     setSequenceList(state, list) {
+      list.forEach((item) => {
+        item.isDel = false;
+      });
       state.sequenceList = list;
     },
     // 播放器是否全屏状态
@@ -80,7 +87,11 @@ export default createStore({
   },
   actions: {
     // 用户点击了一首歌曲
-    async selectSong({ commit, state }, index) {
+    async selectSong({ commit, state }, song) {
+      let index = state.playList.findIndex((item) => item.id === song.id);
+      if (index === -1) {
+        index = 0;
+      }
       commit("setPlaying", true);
       commit("setFullScreen", true);
       commit("setPlayMode", PLAY_MODE.sequence);

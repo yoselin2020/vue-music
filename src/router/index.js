@@ -32,6 +32,16 @@ const routes = [
         meta: {
           title: "排行",
         },
+        children: [
+          {
+            path: ":id",
+            component: () => import("@/views/top-list/top-list-detail"),
+            props: true,
+            meta: {
+              title: "排行详情",
+            },
+          },
+        ],
       },
       {
         path: "search",
