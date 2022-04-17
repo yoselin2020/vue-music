@@ -5,6 +5,7 @@ const debug = process.env.NODE_ENV !== "production";
 
 import { PLAY_MODE } from "@/assets/js/constant";
 import { shuffle } from "@/assets/js/util";
+import { Toast } from "vant";
 export default createStore({
   plugins: debug ? [createLogger()] : [],
   state: {
@@ -17,7 +18,7 @@ export default createStore({
     // 播放模式
     playMode: PLAY_MODE.sequence,
     // 当前播放歌曲的索引
-    currentIndex: 0,
+    currentIndex: -1,
     // 播放的状态
     isPlaying: false,
     // 喜欢的歌曲
@@ -98,13 +99,35 @@ export default createStore({
       // 随机播放
       if (PLAY_MODE.random === mode) {
         commit("setPlayList", shuffle(state.sequenceList));
-      } else {
-        // 循序播放
+        Toast({
+          type: "success",
+          message: "已切换到随机播放",
+        });
+        console.log("随机播放");
+      } else if (PLAY_MODE.sequence === mode) {
+        // 顺序播放
+        Toast({
+          type: "success",
+          message: "已切换到顺序播放",
+        });
+        console.log("顺序播放");
         commit("setPlayList", state.sequenceList);
+      } else {
+        // 单曲循环
+        Toast({
+          type: "success",
+          message: "已切换到单曲循环",
+        });
+        console.log("单曲循环");
+        // Toast.success("已切换到单曲循环");
       }
       let index = state.playList.findIndex((song) => {
         return song.id === currentSongId;
       });
+      // 如果没有找到默认就是第一手歌曲
+      if (index === -1) {
+        index = 0;
+      }
       commit("setCurrentIndex", index);
       commit("setPlayMode", mode);
     },

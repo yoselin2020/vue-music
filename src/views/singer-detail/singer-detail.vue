@@ -13,20 +13,23 @@
         <span class="text">随机播放全部</span>
       </div>
     </div>
-    <div class="scroll-wrapper">
-      <scroll @scroll="scroll">
-        <div class="songs-wrapper">
-          <div
-            class="songs-item"
-            v-for="(item, index) of songs"
-            :key="index"
-            @click="selectMusic(index)"
-          >
-            <div class="songs-name">{{ item.name }}</div>
-            <div class="songs-desc">{{ item.singer }}·{{ item.album }}</div>
-          </div>
+    <div class="scroll-wrapper" ref="scrollWrapperRef">
+      <!--      <scroll @scroll="scroll">-->
+      <div
+        class="songs-wrapper"
+        :style="{ paddingBottom: fullScreen ? '' : '60px' }"
+      >
+        <div
+          class="songs-item"
+          v-for="(item, index) of songs"
+          :key="index"
+          @click="selectMusic(index)"
+        >
+          <div class="songs-name">{{ item.name }}</div>
+          <div class="songs-desc">{{ item.singer }}·{{ item.album }}</div>
         </div>
-      </scroll>
+      </div>
+      <!--      </scroll>-->
     </div>
   </div>
 </template>
@@ -34,35 +37,25 @@
 <script>
 import { getSingerDetail } from "@/service/singer";
 import { processSongs } from "@/service/song";
-import scroll from "@/components/scroll/scroll";
+import BScroll from "better-scroll";
 import store from "storejs";
-import { mapMutations, mapActions } from "vuex";
+import { mapMutations, mapActions, mapState, mapGetters } from "vuex";
 export default {
   name: "singer-detail",
   data() {
     return {
       songs: [],
       scrollY: 0,
+      scrollEl: null,
     };
   },
-  components: {
-    scroll,
-  },
+  components: {},
   computed: {
+    ...mapGetters(["fullScreen"]),
     singer() {
       let singer = store.get("singer");
       //console.log(singer, "singer55");
       return singer || {};
-    },
-  },
-  methods: {
-    ...mapMutations(["setPlayList", "setSequenceList"]),
-    ...mapActions(["selectSong"]),
-    selectMusic(index) {
-      this.selectSong(index);
-    },
-    scroll({ x, y }) {
-      this.scrollY = -y;
     },
   },
   async created() {
@@ -77,6 +70,25 @@ export default {
       //  console.log(songs, "songs");
       // this.songs = ;
     } catch (err) {}
+  },
+  mounted() {
+    console.log(this.fullScreen);
+    this.scrollEl = new BScroll(this.$refs.scrollWrapperRef, {
+      observeDOM: true,
+      click: true,
+      probeType: 3,
+    });
+    this.scrollEl.on("scroll", this.scroll);
+  },
+  methods: {
+    ...mapMutations(["setPlayList", "setSequenceList"]),
+    ...mapActions(["selectSong"]),
+    selectMusic(index) {
+      this.selectSong(index);
+    },
+    scroll({ x, y }) {
+      this.scrollY = -y;
+    },
   },
 };
 </script>
@@ -125,7 +137,9 @@ export default {
     }
   }
   .scroll-wrapper {
+    box-sizing: border-box;
     flex: 1;
+    // padding-bottom: 200px;
     overflow: hidden;
     .songs-wrapper {
       box-sizing: border-box;
