@@ -4,6 +4,7 @@ import storage from "storejs";
 const debug = process.env.NODE_ENV !== "production";
 
 import { PLAY_MODE } from "@/assets/js/constant";
+import { shuffle } from "@/assets/js/util";
 export default createStore({
   plugins: debug ? [createLogger()] : [],
   state: {
@@ -89,6 +90,23 @@ export default createStore({
       commit("setPlayMode", PLAY_MODE.random);
       commit("setPlaying", true);
       commit("");
+    },
+
+    // 播放模式的修改
+    changeMode({ commit, state, getters }, mode) {
+      const currentSongId = getters.currentSong.id;
+      // 随机播放
+      if (PLAY_MODE.random === mode) {
+        commit("setPlayList", shuffle(state.sequenceList));
+      } else {
+        // 循序播放
+        commit("setPlayList", state.sequenceList);
+      }
+      let index = state.playList.findIndex((song) => {
+        return song.id === currentSongId;
+      });
+      commit("setCurrentIndex", index);
+      commit("setPlayMode", mode);
     },
   },
   modules: {},

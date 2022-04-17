@@ -4,13 +4,44 @@
       <i class="iconfont icon-back" @click="noFullScreen"></i>
       <span class="song-name">{{ currentSong.name }}</span>
     </header>
-    <div class="singer-pic-wrapper">
-      <div class="singer-name">{{ currentSong.singer }}</div>
-      <div class="pic-box">
-        <img :src="currentSong.pic" alt="" />
-      </div>
-    </div>
-
+    <div class="singer-name">{{ currentSong.singer }}</div>
+    <van-swipe
+      class="my-swipe"
+      indicator-color="white"
+      :loop="false"
+      @change="onChange"
+    >
+      <van-swipe-item>
+        <div class="singer-pic-wrapper">
+          <div class="pic-box" ref="picBoxRef">
+            <img
+              ref="picBoxImgRef"
+              :class="isPlaying ? 'turn' : ''"
+              :src="currentSong.pic"
+              alt=""
+            />
+          </div>
+        </div>
+        <div class="currentLyric-wrapper">
+          <span class="text">{{ currentLyricText }}</span>
+        </div>
+      </van-swipe-item>
+      <van-swipe-item>
+        <div class="scroll-wrapper" ref="scrollRef">
+          <!--          {{ currentLyric }}- -->
+          <div class="lyric-wrapper" v-if="currentLyric">
+            <p
+              class="lyric-text"
+              v-for="(line, index) of currentLyric.lines"
+              :style="{ color: currentLyricNum === index ? '#ffcd32' : '' }"
+              :key="index"
+            >
+              {{ line.txt }}
+            </p>
+          </div>
+        </div>
+      </van-swipe-item>
+    </van-swipe>
     <!--  歌曲播放时长区域   -->
     <div class="song-play-time-wrapper">
       <span class="play-time">{{
@@ -78,6 +109,7 @@ import { useStore } from "vuex";
 import { PLAY_MODE } from "@/assets/js/constant";
 import { getLyric } from "@/service/song";
 import Lyric from "lyric-parser";
+import BScroll from "better-scroll";
 // 音乐标签对应ref
 const audioRef = ref(null);
 // vuex store
@@ -90,7 +122,19 @@ const songReady = ref(true);
 const isUserPause = ref(false);
 // 用户手指是否移动 progress
 const isMove = ref(false);
-let currentLyric = reactive({});
+
+const scrollRef = ref(null);
+
+const progressChange = ref(false);
+const scrollWrapper = ref(null);
+let currentLyric = ref(null);
+let currentLyricText = ref("");
+
+const currentLyricNum = ref(0);
+
+const picBoxRef = ref(null);
+const picBoxImgRef = ref(null);
+
 // 进度条对应的宽度
 const progressBarWidth = ref(0);
 // 音乐当前播放的时间
@@ -118,6 +162,18 @@ const playMode = computed(() => {
   return store.state.playMode;
 });
 
+const favoriteSongList = computed(() => {
+  return store.state.favoriteSongList;
+});
+
+// 喜欢的歌曲icon颜色
+const favoriteColor = computed(() => {
+  const findItem = favoriteSongList.value.find((item) => {
+    return item.id === currentSong.value.id;
+  });
+  return findItem ? "#d93f30" : "";
+});
+
 const playModeIcon = computed(() => {
   const playModeIcon = {
     [PLAY_MODE.sequence]: "icon-sequence",
@@ -127,14 +183,147 @@ const playModeIcon = computed(() => {
   return playModeIcon[playMode.value];
 });
 
+// 不可点击样式
+const disableStyle = computed(() => {
+  if (!songReady.value) {
+    return {
+      opacity: 0.3,
+    };
+  }
+  return {};
+});
+
+const fullScreen = computed(() => {
+  return store.getters.fullScreen;
+});
+function handler({ lineNum, txt }) {
+  console.log(lineNum, txt);
+  currentLyricText.value = txt;
+  currentLyricNum.value = lineNum;
+}
+// 监听当前歌曲的变化
+watch(
+  currentSong,
+  async (newSong) => {
+    currentLyricText.value = "";
+    currentLyricNum.value = 0;
+    try {
+      songReady.value = false;
+      const lyric = await getLyric(newSong);
+      newSong.lyric = lyric;
+      if (newSong.lyric !== lyric) {
+        return;
+      }
+      currentLyric.value = new Lyric(newSong.lyric, handler);
+      if (audioRef.value) {
+        audioRef.value.src = newSong.url;
+      }
+      nextTick(() => {
+        scrollWrapper.value = new BScroll(
+          document.querySelector(".scroll-wrapper"),
+          {
+            observeDOM: true,
+            click: true,
+          }
+        );
+      });
+    } catch (err) {
+      console.log(err, "报错了///");
+    }
+  },
+  {
+    immediate: false,
+  }
+);
+// 监视音乐是否播放状态
+watch(
+  isPlaying,
+  (newVal) => {
+    // 歌曲播放的时候也是需要 给一个 src
+    audioRef.value.src = currentSong.value.url;
+    // 避免暂停后再次播放从头开始播放
+    audioRef.value.currentTime = currentTime.value;
+    if (newVal) {
+      if (currentLyric.value) {
+        currentLyric.value.seek(Math.floor(currentTime.value * 1000));
+      }
+      // currentLyric.value.play();
+      // playLyric();
+      //currentLyric.value.seek(Math.floor(currentTime.value * 1000));
+    } else {
+      // 暂停播放歌词
+      currentLyric.value.seek(Math.floor(currentTime.value * 1000));
+      // 歌曲暂停了
+      const style = getComputedStyle(picBoxImgRef.value);
+      const picBoxImgRefTransform = style.transform;
+      const picBoxRefTransform = getComputedStyle(picBoxRef.value).transform;
+      picBoxRef.value.style.transform =
+        picBoxRefTransform === "none"
+          ? picBoxImgRefTransform
+          : picBoxRefTransform.concat(" ", picBoxImgRefTransform);
+    }
+  },
+  {
+    immediate: false,
+  }
+);
+//  currentTime值发生了变化
+watch(
+  currentTime,
+  async (newTime) => {
+    seekLyric();
+    progressBarWidth.value = (newTime / currentSong.value.duration) * 100;
+  },
+  { immediate: false }
+);
+
+// swiper 索引值改变
+function onChange(event) {
+  //console.log(event, "index");
+}
+
 // 切换播放的模式
 function togglePlayMode() {
-  store.commit("setPlayMode", (playMode.value + 1) % 3);
+  const mode = (playMode.value + 1) % 3;
+  store.dispatch("changeMode", mode);
+  // store.commit("setPlayMode", (playMode.value + 1) % 3);
+}
+
+// 播放歌词
+function playLyric() {
+  const currentLyricVal = currentLyric.value;
+  if (currentLyricVal) {
+    currentLyricVal.play && currentLyricVal.play();
+  }
+}
+
+// 暂停播放歌词
+function stopLyric() {
+  const currentLyricVal = currentLyric.value;
+  if (currentLyricVal) {
+    currentLyricVal.stop && currentLyricVal.stop();
+  }
+}
+
+function seekLyric() {
+  //console.log(currentTime.value * 1000, "currentTime.value * 1000");
+  let val = Math.floor(currentTime.value * 1000);
+  //console.log(val, "vvvvvv");
+  currentLyric.value.seek && currentLyric.value.seek(val);
 }
 
 // 歌曲播放结束
 function ended() {
   //console.log("歌曲播放结束了");
+  if (playMode.value === PLAY_MODE.loop) {
+    //如果是单曲循环
+    currentTime.value = 0;
+    audioRef.value.currentTime = 0;
+    if (!isPlaying.value) {
+      store.commit("setPlaying", true);
+    }
+    return;
+  }
   // 歌曲自然播放结束调用下一首歌曲进行播放
   nextSong();
 }
@@ -183,7 +372,7 @@ function touchend(event) {
     value * currentSong.value.duration,
     currentSong.value.duration
   );
-  console.log(currentTime.value, "currentTime.value");
+  // console.log(currentTime.value, "currentTime.value");
   if (!isPlaying.value) {
     store.commit("setPlaying", true);
   }
@@ -193,6 +382,19 @@ function touchend(event) {
   //console.log(currentTime, "currentTime////33");
   progressBarWidth.value = value;
 }
+
+function timeupdate(event) {
+  if (!isPlaying.value) {
+    // 暂停状态
+    return;
+  }
+  // 用户手指在拖动
+  if (isMove.value) {
+    return;
+  }
+  currentTime.value = event.target.currentTime;
+}
+
 // audio 暂停事件
 function pause() {
   store.commit("setPlaying", false);
@@ -227,25 +429,6 @@ function nextSong() {
   store.commit("setCurrentIndex", index);
 }
 
-const favoriteSongList = computed(() => {
-  return store.state.favoriteSongList;
-});
-
-function timeupdate(event) {
-  if (!isPlaying.value) {
-    // 暂停状态
-    return;
-  }
-
-  // 用户手指在拖动
-  if (isMove.value) {
-    return;
-  }
-  currentTime.value = event.target.currentTime;
-  progressBarWidth.value =
-    (currentTime.value / currentSong.value.duration) * 100;
-}
-
 function durationchange(event) {
   // console.log(event, "event...");
 }
@@ -255,25 +438,19 @@ function favoriteIconClick() {
   store.commit("toggleFavorite", currentSong.value);
 }
 
+// 歌曲缓冲完毕
 function canplay() {
   songReady.value = true;
-  //console.log("缓冲好了");
   if (isPlaying.value) {
     audioRef.value.play();
-    currentLyric.play();
+    console.log("开始播放");
+    currentLyric.value.play();
   } else {
     audioRef.value.pause();
-    currentLyric.stop();
+    console.log("播放暂停");
+    currentLyric.value.stop();
   }
 }
-
-// 喜欢的歌曲icon颜色
-const favoriteColor = computed(() => {
-  const findItem = favoriteSongList.value.find((item) => {
-    return item.id === currentSong.value.id;
-  });
-  return findItem ? "#d93f30" : "";
-});
 
 // 歌曲是否喜欢
 function isFavorite() {
@@ -283,36 +460,10 @@ function isFavorite() {
   return findItem ? "icon-favorite" : "icon-not-favorite";
 }
 
-// 暴露数据给外部 父组件可以通过ref 获取到组件拿到数据
-defineExpose({
-  audioRef,
-});
-
 // 不是全屏播放
 function noFullScreen() {
   store.commit("setFullScreen", false);
 }
-// console.log(currentSong, "currentSong");
-// 监视音乐是否播放状态
-watch(isPlaying, (newVal) => {
-  // if (!audioRef.value) {
-  //   return;
-  // }
-  // 歌曲播放的时候也是需要 给一个 src
-  audioRef.value.src = currentSong.value.url;
-  // 避免暂停后再次播放从头开始播放
-  audioRef.value.currentTime = currentTime.value;
-});
-
-// 不可点击样式
-const disableStyle = computed(() => {
-  if (!songReady.value) {
-    return {
-      opacity: 0.3,
-    };
-  }
-  return {};
-});
 
 // 格式化音乐时长
 function formatDuration(time) {
@@ -342,34 +493,15 @@ function formatDuration(time) {
   //return time.substring(i + 1);
 }
 
-// 监听当前歌曲的变化
-watch(currentSong, async (newSong) => {
-  console.log(newSong, "newSong");
-  try {
-    songReady.value = false;
-    newSong.lyric = await getLyric(newSong);
-    currentLyric = new Lyric(newSong.lyric, handler);
-    // 播放歌词
-    function handler({ lineNum, txt }) {
-      console.log(lineNum, txt);
-    }
-    //console.log(currentLyric, "currentLyric");
-    //console.log(result, "result");
-    // audioRef.value不为空
-    if (audioRef.value) {
-      audioRef.value.src = newSong.url;
-    }
-  } catch (err) {}
-});
-
 function toggleSongPlay() {
   songReady.value = false;
   isUserPause.value = true;
   store.commit("setPlaying", !isPlaying.value);
 }
 
-const fullScreen = computed(() => {
-  return store.getters.fullScreen;
+// 暴露数据给外部 父组件可以通过ref 获取到组件拿到数据
+defineExpose({
+  audioRef,
 });
 </script>
 
@@ -382,6 +514,75 @@ const fullScreen = computed(() => {
   height: 100%;
   background-color: $color-background;
   z-index: 99999;
+
+  .my-swipe {
+    padding-top: 20px;
+    padding-bottom: 40px;
+    ::v-deep(.van-swipe__indicators) {
+      bottom: 10px;
+
+      .van-swipe__indicator--active {
+        width: 10px;
+        border-radius: 3px;
+      }
+    }
+
+    .scroll-wrapper {
+      height: 340px;
+      overflow: hidden;
+      //background-color: pink;
+      .lyric-wrapper {
+        text-align: center;
+        .lyric-text {
+          font-size: 10px;
+          margin: 5px 0;
+        }
+      }
+    }
+  }
+  //::v-deep(.van-swipe__indicators) {
+  //  bottom: -20px;
+  //}
+
+  /* 旋转动画 指定class为trun即可使用*/
+  .turn {
+    animation: turn 10s linear infinite;
+  }
+
+  /*
+  turn : 定义的动画名称
+  10s : 动画时间
+  linear : 动画平滑
+  infinite :使动画无限循环
+  transform:rotate(旋转角度)
+  %0:动画开始
+  %100:动画结束
+  */
+  @keyframes turn {
+    0% {
+      transform: rotate(0deg);
+    }
+
+    20% {
+      transform: rotate(72deg);
+    }
+
+    40% {
+      transform: rotate(144deg);
+    }
+
+    60% {
+      transform: rotate(216deg);
+    }
+
+    80% {
+      transform: rotate(288deg);
+    }
+
+    100% {
+      transform: rotate(360deg);
+    }
+  }
 
   .song-play-time-wrapper {
     box-sizing: border-box;
@@ -452,12 +653,12 @@ const fullScreen = computed(() => {
       color: $color-theme;
     }
   }
-
+  .singer-name {
+    margin-bottom: 20px;
+    text-align: center;
+    font-size: 11px;
+  }
   .singer-pic-wrapper {
-    .singer-name {
-      margin-bottom: 20px;
-      text-align: center;
-    }
     .pic-box {
       margin: 0 auto;
       width: 300px;
@@ -470,6 +671,15 @@ const fullScreen = computed(() => {
         width: 100%;
         height: 100%;
       }
+    }
+  }
+
+  .currentLyric-wrapper {
+    margin-top: 15px;
+    text-align: center;
+    .text {
+      font-size: 10px;
+      color: $color-text-d;
     }
   }
 }
