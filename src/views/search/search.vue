@@ -9,27 +9,56 @@
     <div class="hot-search-wrapper">
       <header class="header">
         <span class="title">热门搜索</span>
+      </header>
+      <div class="hot-search-record">
+        <template v-for="(item, index) of hotSearchList" :key="item.txt">
+          <span class="text" @click="hotSearchItemClick(item)">{{
+            item.txt
+          }}</span>
+        </template>
+      </div>
+    </div>
+    <template v-if="searchHistoryList.length">
+      <header class="search-history-title">
+        <span class="text">搜索历史</span>
         <span class="icon-wrapper" @click.stop="clearSearchRecord"
           ><i class="iconfont icon-clear"></i
         ></span>
       </header>
-      <div class="hot-search-record">
-        <template v-for="(record, index) of searchRecord" :key="record.txt">
-          <span class="text">{{ record.txt }}</span>
-        </template>
+      <div class="scroll-wrapper" ref="scrollRef">
+        <div class="search-history-wrapper">
+          <div class="search-history-content">
+            <div
+              class="search-history-item"
+              v-for="(searchHistory, index) of searchHistoryList"
+              :key="searchHistory.txt"
+            >
+              <span class="search-txt">{{ searchHistory.txt }}</span>
+              <span class="icon-container">
+                <i
+                  class="iconfont icon-close"
+                  @click.stop="delSearchHistoryItem(index)"
+                >
+                </i>
+              </span>
+            </div>
+          </div>
+        </div>
       </div>
-    </div>
+    </template>
   </div>
 </template>
 
 <script>
 import { debounce } from "throttle-debounce";
+import BScroll from "better-scroll";
+import { nextTick } from "vue";
 export default {
   name: "Search",
   data() {
     return {
       keyword: "",
-      searchRecord: [
+      hotSearchList: [
         { txt: "我们的歌" },
         { txt: "张杰" },
         { txt: "冰雪奇缘2" },
@@ -37,12 +66,68 @@ export default {
         { txt: "左手指月" },
         { txt: "星辰大海" },
       ],
+      searchHistoryList: [
+        { txt: "我们的歌" },
+        { txt: "张杰" },
+        { txt: "冰雪奇缘2" },
+        { txt: "桥边姑娘" },
+        { txt: "左手指月" },
+        { txt: "星辰大海" },
+        { txt: "我们的歌" },
+        { txt: "张杰" },
+        { txt: "冰雪奇缘2" },
+        { txt: "桥边姑娘" },
+        { txt: "左手指月" },
+        { txt: "星辰大海" },
+        { txt: "星辰大海" },
+        { txt: "我们的歌" },
+        { txt: "张杰" },
+        { txt: "冰雪奇缘2" },
+        { txt: "桥边姑娘" },
+        { txt: "左手指月" },
+        { txt: "星辰大海" },
+        { txt: "星辰大海" },
+        { txt: "我们的歌" },
+        { txt: "张杰" },
+        { txt: "冰雪奇缘2" },
+        { txt: "桥边姑娘" },
+        { txt: "左手指月" },
+        { txt: "星辰大海" },
+        { txt: "星辰大海" },
+        { txt: "我们的歌" },
+        { txt: "张杰" },
+        { txt: "冰雪奇缘2" },
+        { txt: "桥边姑娘" },
+        { txt: "左手指月" },
+        { txt: "星辰大海" },
+        { txt: "星辰大海" },
+        { txt: "我们的歌" },
+        { txt: "张杰" },
+        { txt: "冰雪奇缘2" },
+        { txt: "桥边姑娘" },
+        { txt: "左手指月" },
+        { txt: "星辰大海" },
+      ],
+      scrollInstance: null,
     };
   },
   mounted() {
     this.$watch("keyword", debounce(500, this.searchHandle));
+    this.$nextTick().then(() => {
+      this.scrollInstance = new BScroll(this.$refs.scrollRef, {
+        click: true,
+        observeDOM: true,
+      });
+    });
   },
   methods: {
+    // 热门搜索点击事件
+    hotSearchItemClick(item) {
+      console.log(item);
+    },
+    delSearchHistoryItem(index) {
+      this.searchHistoryList.splice(index, 1);
+    },
     // 清空搜索记录
     async clearSearchRecord() {
       try {
@@ -52,7 +137,7 @@ export default {
           confirmButtonColor: "#6d6d6d",
           cancelButtonColor: "#6d6d6d",
         });
-        this.searchRecord = [];
+        this.searchHistoryList = [];
       } catch (err) {}
     },
     searchHandle(newVal) {
@@ -60,11 +145,17 @@ export default {
         return;
       }
       console.log(newVal, "newVal");
-      const searchList = this.searchRecord;
-      searchList.unshift({
+      const searchHistoryList = this.searchHistoryList;
+      searchHistoryList.unshift({
         txt: newVal,
       });
-      this.searchRecord = [...new Set(searchList)];
+      this.searchHistoryList = [...new Set(searchHistoryList)];
+      this.$nextTick(() => {
+        this.scrollInstance = new BScroll(this.$refs.scrollRef, {
+          click: true,
+          observeDOM: true,
+        });
+      });
     },
   },
 };
@@ -72,6 +163,10 @@ export default {
 
 <style lang="scss" scoped>
 .search {
+  height: 100%;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
   padding: 10px;
   ::v-deep(.van-search__content) {
     background-color: #333333;
@@ -104,9 +199,8 @@ export default {
     .hot-search-record {
       display: flex;
       flex-wrap: wrap;
-
       .text {
-        margin-left: 10px;
+        margin-right: 10px;
         margin-bottom: 10px;
         background-color: #333333;
         border-radius: 2px;
@@ -114,6 +208,49 @@ export default {
         padding: 4px 8px;
         color: $color-text-d;
         font-size: 14px;
+      }
+    }
+  }
+
+  .scroll-wrapper {
+    flex: 0 0 1;
+    overflow: hidden;
+  }
+  .search-history-title {
+    padding: 4px 12px;
+    display: flex;
+    line-height: 40px;
+    justify-content: space-between;
+
+    .text {
+      font-size: 14px;
+      color: $color-text-d;
+    }
+
+    .icon-wrapper {
+      @include f-center;
+      i {
+        color: $color-text-d;
+      }
+    }
+  }
+  .search-history-wrapper {
+    .search-history-content {
+      .search-history-item {
+        display: flex;
+        justify-content: space-between;
+        line-height: 25px;
+        padding: 4px 12px;
+        .search-txt {
+          font-size: 14px;
+          color: $color-text-d;
+        }
+        .icon-container {
+          i {
+            font-size: 14px;
+            color: $color-text-d;
+          }
+        }
       }
     }
   }

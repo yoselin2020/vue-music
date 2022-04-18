@@ -1,7 +1,7 @@
 <template>
   <!--大的播放器-->
   <transition name="move">
-    <div class="play-music" v-if="fullScreen">
+    <div class="play-music" v-show="fullScreen">
       <header class="header">
         <i class="iconfont icon-back" @click="noFullScreen"></i>
         <span class="song-name">{{ currentSong.name }}</span>
@@ -107,7 +107,7 @@
   </transition>
   <!--迷你的播放器-->
   <!-- v-if="!fullScreen && currentSong.url"-->
-  <div class="mini-play-wrapper" v-if="!fullScreen && currentSong.url">
+  <div class="mini-play-wrapper" v-show="!fullScreen && currentSong.url">
     <div class="mini-play-content">
       <div class="img-wrapper">
         <img :src="currentSong.pic" alt="" />
@@ -419,16 +419,6 @@ watch(
         click: true,
         observeDOM: true,
       });
-    }
-
-    if (!newVal && isPlaying.value) {
-      if (!songNameSwipe.value) {
-        return;
-      }
-      // 不是全屏播放的状态
-      if (songNameSwipe.value) {
-        songNameSwipe.value.swipeTo(currentSongIndex.value);
-      }
     }
   },
   {

@@ -106,7 +106,8 @@ export default createStore({
       let num = Math.floor(getRandom(0, list.length));
       //  console.log(getters.currentIndex);
       commit("setCurrentIndex", num);
-      commit("setPlayList", shuffle(list));
+      // commit("setPlayList", shuffle(list));
+      commit("setPlayList", list);
       // 先获取到当前正在播放的歌曲
       commit("setPlayMode", PLAY_MODE.random);
 
