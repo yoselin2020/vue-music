@@ -16,6 +16,13 @@ const routes = [
         meta: {
           title: "推荐",
         },
+        children: [
+          {
+            path: ":id",
+            component: () => import("@/views/recommend/recommend-detail"),
+            props: true,
+          },
+        ],
       },
       {
         path: "singer",
@@ -24,6 +31,13 @@ const routes = [
         meta: {
           title: "歌手",
         },
+        children: [
+          {
+            path: ":id",
+            component: () => import("@/views/singer/singer-detail"),
+            props: true,
+          },
+        ],
       },
       {
         path: "top-list",
@@ -59,6 +73,13 @@ const routes = [
     component: () => import("@/views/singer-detail/singer-detail"),
     meta: {
       title: "歌手详情",
+    },
+  },
+  {
+    path: "/user",
+    component: () => import("@/views/user/user.vue"),
+    meta: {
+      title: "用户",
     },
   },
 ];

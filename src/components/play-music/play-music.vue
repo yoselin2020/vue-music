@@ -7,46 +7,50 @@
         <span class="song-name">{{ currentSong.name }}</span>
       </header>
       <div class="singer-name">{{ currentSong.singer }}</div>
-      <van-swipe
-        class="my-swipe"
-        indicator-color="white"
-        :loop="false"
-        @change="onChange"
-      >
-        <van-swipe-item>
-          <div class="singer-pic-wrapper">
-            <div class="pic-box" ref="picBoxRef">
-              <img
-                ref="picBoxImgRef"
-                :class="isPlaying ? 'turn' : ''"
-                :src="currentSong.pic"
-                alt=""
-              />
-            </div>
-          </div>
-          <div class="currentLyric-wrapper">
-            <span class="text">{{ currentLyricText }}</span>
-          </div>
-        </van-swipe-item>
-        <van-swipe-item>
-          <div class="scroll-wrapper" ref="scrollRef">
-            <!--          {{ currentLyric }}- -->
-            <div>
-              <div class="lyric-wrapper" v-if="currentLyric">
-                <p
-                  class="lyric-text"
-                  v-for="(line, index) of currentLyric.lines"
-                  :style="{ color: currentLyricNum === index ? '#ffcd32' : '' }"
-                  :key="index"
-                  @click.stop="lyricTextClick(line, index)"
-                >
-                  {{ line.txt }}
-                </p>
+      <div class="cd-swiper-wrapper">
+        <swiper
+          class="my-swipe"
+          :modules="modules"
+          :pagination="{ clickable: true }"
+        >
+          <swiper-slide class="slide">
+            <div class="singer-pic-wrapper">
+              <div class="pic-box" ref="picBoxRef">
+                <img
+                  ref="picBoxImgRef"
+                  :class="isPlaying ? 'turn' : ''"
+                  :src="currentSong.pic"
+                  alt=""
+                />
               </div>
             </div>
-          </div>
-        </van-swipe-item>
-      </van-swipe>
+            <div class="currentLyric-wrapper">
+              <span class="text">{{ currentLyricText }}</span>
+            </div>
+          </swiper-slide>
+          <swiper-slide class="slide">
+            <div class="_wrapper">
+              <div class="scroll-wrapper" ref="scrollRef">
+                <div>
+                  <div class="lyric-wrapper" v-if="currentLyric">
+                    <p
+                      class="lyric-text"
+                      v-for="(line, index) of currentLyric.lines"
+                      :style="{
+                        color: currentLyricNum === index ? '#ffcd32' : '',
+                      }"
+                      :key="index"
+                      @touchend="lyricTextClick(line, index)"
+                    >
+                      {{ line.txt }}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </swiper-slide>
+        </swiper>
+      </div>
       <!--  歌曲播放时长区域   -->
       <div class="song-play-time-wrapper">
         <span class="play-time">{{
@@ -106,7 +110,6 @@
     </div>
   </transition>
   <!--迷你的播放器-->
-  <!-- v-if="!fullScreen && currentSong.url"-->
   <div class="mini-play-wrapper" v-show="!fullScreen && currentSong.url">
     <div class="mini-play-content">
       <div class="img-wrapper">
@@ -122,21 +125,29 @@
         >
           <template v-for="(song, index) of playList" :key="index">
             <van-swipe-item class="van-swipe-item">
-              <!--              {{ song }}-->
               <span class="song-name">{{ song.name }}</span>
               <span class="singer-name">{{ song.singer }}</span>
-              <!--            <span class="song-name">{{ currentSong.name }}</span>-->
-              <!--            <span class="singer-name">{{ currentSong.singer }}</span>-->
             </van-swipe-item>
           </template>
         </van-swipe>
       </div>
       <div class="icon-control-wrapper">
-        <i
-          class="iconfont control-play"
-          @click.stop="miniPlay"
-          :class="isPlaying ? 'icon-pause-mini' : 'icon-play-mini'"
-        ></i>
+        <div class="icon-play-progress" @click.stop="miniPlay">
+          <van-circle
+            class="circle"
+            v-model:current-rate="progressBarWidth"
+            :stroke-width="150"
+            layer-color="#cca732"
+            :speed="100"
+            color="#ffcd32"
+            size="30px"
+          />
+          <!--           size="29.6px"-->
+          <i
+            class="iconfont control-play"
+            :class="isPlaying ? 'icon-pause-mini' : 'icon-play-mini'"
+          ></i>
+        </div>
         <i class="iconfont icon-playlist" @click.stop="showMask"></i>
       </div>
     </div>
@@ -166,8 +177,8 @@
             v-for="(song, index) of playList"
             :key="song.id"
           >
-            <div class="play-list-item" v-if="!song.isDel">
-              <!--              <span>{{ song.isDel }}</span>-->
+            <div class="play-list-item" v-show="!song.isDel">
+              <!--<span>{{ song.isDel }}</span>-->
               <div
                 class="playing-icon-wrapper"
                 v-if="currentSong.id === song.id"
@@ -222,6 +233,12 @@ import {
   reactive,
   onUnmounted,
 } from "vue";
+
+import { Pagination } from "swiper";
+import { Swiper, SwiperSlide } from "swiper/vue";
+import "swiper/css";
+import "swiper/css/pagination";
+
 import { useStore } from "vuex";
 import { PLAY_MODE } from "@/assets/js/constant";
 import { getLyric } from "@/service/song";
@@ -231,6 +248,7 @@ import storage from "storejs";
 import { Dialog, Toast } from "vant";
 // 音乐标签对应ref
 const audioRef = ref(null);
+const modules = [Pagination];
 // vuex store
 const store = useStore();
 const isShowMask = ref(false);
@@ -240,16 +258,21 @@ watch(isShowMask, async (newVal) => {
     return;
   }
   await nextTick();
+  // if (playListScrollInstance.value) {
+  //   playListScrollInstance.value.refresh();
+  //   return;
+  // }
   playListScrollInstance.value = new BScroll(playListScrollRef.value, {
     observeDOM: true,
     click: true,
   });
 });
+
 // 迷你播放器 滑动切歌
 function switchSong(index) {
-  console.log("执行了");
-  //获取到当前的歌曲
-  //console.log(index);
+  console.log(index, "switchSong", "执行了。。。");
+  // //获取到当前的歌曲
+  //  console.log(index);
   store.commit("setCurrentIndex", index);
   if (!isPlaying.value) {
     store.commit("setPlaying", true);
@@ -400,78 +423,90 @@ function handler({ lineNum, txt }) {
 onUnmounted(() => {
   store.commit("setCurrentIndex", -1);
   store.commit("setPlaying", false);
-  console.log("清空");
+  scrollWrapper.value = null;
+  if (audioRef.value) {
+    // 暂停播放
+    audioRef.value.pause();
+    audioRef.value.currentTime = 0;
+  }
+  audioRef.value = null;
+  stopLyric();
+  //  console.log("清空");
 });
 const currentSongIndex = computed(() => store.state.currentIndex);
-watch(
-  fullScreen,
-  async (newVal) => {
-    await nextTick();
-    //console.log(scrollRef.value, "scrollRef.valuescrollRef.value");
-    if (!scrollRef.value) {
+watch(fullScreen, async (newVal) => {
+  if (!scrollRef.value) {
+    return;
+  }
+  if (scrollWrapper.value) {
+    scrollWrapper.value.refresh();
+  } else {
+    scrollWrapper.value = new BScroll(scrollRef.value, {
+      probeType: 3,
+      click: true,
+      observeDOM: true,
+    });
+  }
+  await nextTick();
+  songNameSwipe.value.resize();
+  //  console.log(songNameSwipe.value, "songNameSwipe.value");
+  songNameSwipe.value.swipeTo(currentSongIndex.value);
+});
+// 歌曲缓冲完毕
+async function canplay() {
+  playLyric();
+  songReady.value = true;
+  if (isPlaying.value) {
+    audioRef.value.play();
+    console.log("开始播放");
+    playLyric();
+  } else {
+    audioRef.value.pause();
+    console.log("播放暂停");
+    stopLyric();
+  }
+  await nextTick();
+  songNameSwipe.value.resize();
+  // console.log(songNameSwipe.value, "songNameSwipe.value");
+  songNameSwipe.value.swipeTo(currentSongIndex.value);
+}
+
+// 监听当前歌曲的变化
+watch(currentSong, async (newSong) => {
+  stopLyric();
+  currentLyricText.value = "";
+  scrollWrapper.value = null;
+  currentLyricNum.value = 0;
+  currentLyric.value = null;
+  try {
+    songReady.value = false;
+    const lyric = await getLyric(newSong);
+    newSong.lyric = lyric;
+    if (currentSong.value.lyric !== lyric) {
       return;
     }
-    if (scrollWrapper.value) {
-      scrollWrapper.value.refresh();
-    } else {
-      scrollWrapper.value = new BScroll(scrollRef.value, {
-        probeType: 3,
-        click: true,
-        observeDOM: true,
-      });
+    currentLyric.value = new Lyric(newSong.lyric, handler);
+    if (audioRef.value && newSong.url) {
+      audioRef.value.src = newSong.url;
     }
-  },
-  {
-    immediate: false,
-  }
-);
-// 监听当前歌曲的变化
-watch(
-  currentSong,
-  async (newSong) => {
-    //console.log("watch-currentSong");
-    // console.log(currentSong, "currentSongcurrentSong");
-    //  console.log(playList, "playList");
-    //  debugger;
-    stopLyric();
-    currentLyricText.value = "";
-    scrollWrapper.value = null;
-    currentLyricNum.value = 0;
-    currentLyric.value = null;
-    try {
-      songReady.value = false;
-      const lyric = await getLyric(newSong);
-      newSong.lyric = lyric;
-      if (currentSong.value.lyric !== lyric) {
-        return;
-      }
-
-      // console.log(songNameSwipe.value, "songNameSwipe.value");
-      //  debugger;
-      if (songNameSwipe.value) {
-        songNameSwipe.value.swipeTo(currentSongIndex.value);
-      }
-      currentLyric.value = new Lyric(newSong.lyric, handler);
-      if (audioRef.value && newSong.url) {
-        //  console.log(newSong.url, "url");
-        audioRef.value.src = newSong.url;
-      }
-      if (songReady.value) {
-        playLyric();
-      }
-      //console.log(scrollWrapper.value, "scrollWrapper.value");
-    } catch (err) {
-      console.log(err, "报错了///");
+    if (songReady.value) {
+      playLyric();
     }
-  },
-  {
-    immediate: false,
+    if (currentSong.value !== newSong) {
+      return;
+    }
+    await nextTick();
+    songNameSwipe.value.resize();
+    // console.log(songNameSwipe.value, "songNameSwipe.value");
+    songNameSwipe.value.swipeTo(currentSongIndex.value);
+  } catch (err) {
+    console.log(err, "报错了///");
   }
-);
+});
 // 监视音乐是否播放状态
 watch(
   isPlaying,
-  (newVal) => {
+  async (newVal) => {
     // 歌曲播放的时候也是需要 给一个 src
     //console.log("isPlaying - watch");
     if (!currentSong.value.url) {
@@ -497,6 +532,10 @@ watch(
           ? picBoxImgRefTransform
           : picBoxRefTransform.concat(" ", picBoxImgRefTransform);
     }
+    await nextTick();
+    songNameSwipe.value.resize();
+    //console.log(songNameSwipe.value, "songNameSwipe.value");
+    songNameSwipe.value.swipeTo(currentSongIndex.value);
   },
   {
     immediate: false,
@@ -529,8 +568,9 @@ async function clearPlayList() {
 }
 
 // swiper 索引值改变
-function onChange(event) {
-  //console.log(event, "index");
+function onChange(index) {
+  // debugger;
+  console.log(index, "index");
 }
 
 // 全屏
@@ -707,22 +747,6 @@ function favoriteIconClick(song) {
   store.commit("toggleFavorite", song);
 }
 
-// 歌曲缓冲完毕
-function canplay() {
-  playLyric();
-  console.log("canplay方法执行了");
-  songReady.value = true;
-  if (isPlaying.value) {
-    audioRef.value.play();
-    console.log("开始播放");
-    playLyric();
-  } else {
-    audioRef.value.pause();
-    console.log("播放暂停");
-    stopLyric();
-  }
-}
-
 // 歌曲是否喜欢
 function isFavorite(song) {
   // debugger;
@@ -807,28 +831,41 @@ defineExpose({
   height: 100%;
   background-color: $color-background;
   z-index: 215;
-
+  //.swiper {
+  //  width: 100%;
+  //  height: 420px;
+  //}
   .my-swipe {
     padding-top: 20px;
     padding-bottom: 40px;
-    ::v-deep(.van-swipe__indicators) {
-      bottom: 10px;
-
-      .van-swipe__indicator--active {
-        width: 10px;
-        border-radius: 3px;
+    ::v-deep(.swiper-pagination) {
+      .swiper-pagination-bullet {
+        background-color: #fff;
+      }
+      .swiper-pagination-bullet-active {
+        width: 15px;
+        border-radius: 4px;
       }
     }
 
+    //::v-deep(.van-swipe__indicators) {
+    //  bottom: 10px;
+    //  .van-swipe__indicator--active {
+    //    width: 10px;
+    //    border-radius: 3px;
+    //  }
+    //}
     .scroll-wrapper {
-      height: 340px;
+      height: 380px;
       overflow: hidden;
-      //background-color: pink;
+      //  background-color: pink;
       .lyric-wrapper {
+        margin: 0 60px;
         text-align: center;
         .lyric-text {
-          margin: 5px 0;
-          font-size: 10px;
+          //background-color: red;
+          padding: 10px 0;
+          font-size: 14px;
           color: $color-text-d;
         }
       }
@@ -898,7 +935,8 @@ defineExpose({
     }
 
     .progress-wrapper {
-      box-sizing: border-box;
+      padding: 5px 0;
+      //box-sizing: border-box;
       margin: 0 10px;
       flex: 1;
       .van-progress {
@@ -969,10 +1007,10 @@ defineExpose({
   }
 
   .currentLyric-wrapper {
-    margin-top: 15px;
+    margin-top: 30px;
     text-align: center;
     .text {
-      font-size: 10px;
+      font-size: 14px;
       color: $color-text-d;
     }
   }
@@ -1158,6 +1196,18 @@ defineExpose({
       align-items: center;
       height: 100%;
       width: 100px;
+      .icon-play-progress {
+        position: relative;
+        .circle {
+          z-index: 999;
+          position: absolute;
+          right: 0;
+          top: -0;
+        }
+        i {
+          font-size: 28.5px;
+        }
+      }
       .control-play {
         font-size: 30px;
         color: $color-theme;

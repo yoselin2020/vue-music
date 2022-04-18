@@ -29,6 +29,7 @@
       </div>
     </div>
   </scroll>
+  <router-view :pic="pic" :title="title"></router-view>
 </template>
 
 <script>
@@ -46,6 +47,8 @@ export default {
       scrollY: 0,
       currentIndex: 0,
       fixedStyle: {},
+      pic: "",
+      title: "",
     };
   },
   computed: {
@@ -79,10 +82,14 @@ export default {
   },
   methods: {
     toSingerDetail(innerSinger) {
+      //   debugger;
+      this.pic = innerSinger.pic;
+      this.title = innerSinger.name;
       // console.log(innerSinger, "innerSinger");
       try {
-        store.set("singer", innerSinger);
-        this.$router.push("/singer-detail?mid=" + innerSinger.mid);
+        // store.set("singer", innerSinger);
+        this.$router.push(`/singer/${innerSinger.mid}`);
+        // this.$router.push("/singer-detail?mid=" + innerSinger.mid);
       } catch (err) {}
     },
     indexItemClick(index) {
@@ -117,7 +124,7 @@ export default {
   right: 0;
   background-color: #242424;
   transform: translateY(-50%);
-  z-index: 999;
+  z-index: 100;
   border-radius: 10px;
   .index-title {
     margin: 4px 0;

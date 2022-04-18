@@ -9,7 +9,7 @@
       >
         <van-swipe-item v-for="(slider, index) of sliders" :key="index">
           <a class="link" :href="slider.link">
-            <img class="img" :src="slider.pic" alt="" />
+            <img @error="imgLoadError" class="img" :src="slider.pic" alt="" />
           </a>
         </van-swipe-item>
       </van-swipe>
@@ -19,7 +19,10 @@
 
         <div class="hot-singer-recommend-content">
           <template v-for="(album, idx) of albums" :key="idx">
-            <div class="hot-singer-recommend-item">
+            <div
+              class="hot-singer-recommend-item"
+              @click="albumClickHandle(album)"
+            >
               <img
                 class="hot-singer-recommend-item-img"
                 v-lazy="album.pic"
@@ -35,11 +38,14 @@
       </div>
     </div>
   </scroll>
+  <router-view :pic="pic" :title="title" :songs="songs"></router-view>
 </template>
 
 <script>
-import { getRecommend } from "@/service/recommend";
+import { getAlbum, getRecommend } from "@/service/recommend";
+
 import Scroll from "@/components/scroll/scroll";
+import { processSongs } from "@/service/song";
 export default {
   name: "Recommend",
   data() {
@@ -47,6 +53,9 @@ export default {
       albums: [],
       // 轮播图数据
       sliders: [],
+      pic: "",
+      title: "",
+      songs: [],
     };
   },
   components: {
@@ -60,8 +69,25 @@ export default {
     } catch (err) {}
   },
   methods: {
+    imgLoadError() {
+      console.log("imgLoadError");
+    },
     change(event) {
-      //console.log(event, "event");
+      console.log(event, "event");
+    },
+    async albumClickHandle(album) {
+      console.log(album, "album");
+      const id = album.id;
+      this.pic = album.pic;
+      this.title = album.title;
+      const result = await getAlbum(album);
+      let songs = await processSongs(result.songs);
+      this.songs = songs;
+      // console.log(songs, "songs");
+      this.$router.push({
+        path: `/recommend/${id}`,
+      });
+      //debugger;
     },
     scroll(pos) {
       // console.log(pos, "pos");

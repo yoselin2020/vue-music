@@ -10,7 +10,7 @@
       </header>
       <div class="random-play">
         <i class="icon iconfont icon-play"></i>
-        <span class="text">随机播放全部</span>
+        <span class="text" @click.stop="randomPlay">随机播放全部</span>
       </div>
     </div>
     <div class="scroll-wrapper" ref="scrollWrapperRef">
@@ -81,6 +81,13 @@ export default {
   methods: {
     ...mapMutations(["setPlayList", "setSequenceList"]),
     ...mapActions(["selectSong"]),
+
+    // 随机播放全部
+    randomPlay() {
+      this.$store.dispatch("randomPlay", {
+        list: this.songs,
+      });
+    },
     selectMusic(item) {
       this.setPlayList(this.songs);
       this.setSequenceList(this.songs);

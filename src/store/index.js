@@ -2,7 +2,6 @@ import { createStore, createLogger } from "vuex";
 import { FAVORITE_SONG_KEY } from "@/assets/js/constant";
 import storage from "storejs";
 const debug = process.env.NODE_ENV !== "production";
-
 import { PLAY_MODE } from "@/assets/js/constant";
 import { shuffle } from "@/assets/js/util";
 import { Toast } from "vant";
@@ -110,7 +109,6 @@ export default createStore({
       commit("setPlayList", list);
       // 先获取到当前正在播放的歌曲
       commit("setPlayMode", PLAY_MODE.random);
-
       commit("setPlaying", true);
     },
 

@@ -11,7 +11,7 @@
         <span>随机播放全部</span>
       </div>
     </div>
-    <div class="play-list">
+    <div class="play-list" :style="isPaddingBottom">
       <div class="play-list-wrapper">
         <div class="scroll-wrapper" ref="scrollRef">
           <div class="list-content">
