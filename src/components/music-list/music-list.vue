@@ -6,7 +6,7 @@
         <i class="iconfont icon-back" @click="$router.back()"></i>
         <span class="title">{{ props.title }}</span>
       </header>
-      <div class="random-play-all">
+      <div class="random-play-all" @click.stop="randomPlay">
         <i class="iconfont icon-play"></i>
         <span>随机播放全部</span>
       </div>
@@ -55,13 +55,16 @@ import {
   onMounted,
   nextTick,
   onUnmounted,
+  computed,
 } from "vue";
+
 import BScroll from "better-scroll";
 import { useStore } from "vuex";
 const emits = defineEmits(["selectSong"]);
 const scrollInstance = ref(null);
 const scrollRef = ref(null);
 const store = useStore();
+
 const props = defineProps({
   pic: {
     type: String,
@@ -73,6 +76,12 @@ const props = defineProps({
     type: Array,
   },
 });
+// 随机播放全部
+function randomPlay() {
+  store.dispatch("randomPlay", {
+    list: props.songs,
+  });
+}
 function selectSong(song) {
   // console.log(song);
   // debugger;
@@ -152,6 +161,7 @@ onMounted(async () => {
           .list-item {
             display: flex;
             .icon-wrapper {
+              width: 40px;
               margin-right: 15px;
               display: flex;
               justify-content: center;

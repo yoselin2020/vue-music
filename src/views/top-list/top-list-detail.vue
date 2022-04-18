@@ -17,11 +17,12 @@ export default {
 
 <script setup>
 import { defineProps, onMounted, ref } from "vue";
-import { useRoute } from "vue-router";
+import { useRoute, useRouter } from "vue-router";
 import { getTopDetail } from "@/service/top-list";
 import { processSongs } from "@/service/song";
 import MusicList from "@/components/music-list/music-list";
 import { useStore } from "vuex";
+const router = useRouter();
 const store = useStore();
 const songs = ref([]);
 const props = defineProps({
@@ -37,13 +38,21 @@ const props = defineProps({
 });
 
 function selectSong(song) {
-  console.log(song);
+  // console.log(song);
   //debugger;
   // 选择歌曲进行播放
+  store.commit("setPlayList", songs.value);
   store.dispatch("selectSong", song);
 }
 //period
 onMounted(async () => {
+  if (!props.pic) {
+    let route = useRoute();
+    //console.log(route.matched[1].path, "route.matched[1].path");
+    router.push({
+      path: route.matched[1].path,
+    });
+  }
   const period = useRoute().query.period;
   const id = props.id;
   try {
@@ -52,9 +61,8 @@ onMounted(async () => {
       period,
     });
     songs.value = await processSongs(result.songs);
-    store.commit("setPlayList", songs.value);
     store.commit("setSequenceList", songs.value);
-    // console.log(songs.value, "songs.value");
+    //console.log(songs, "songs.value");
   } catch (err) {}
   // console.log(props.id, "props.id");
 });

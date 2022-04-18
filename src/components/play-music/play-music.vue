@@ -1,94 +1,110 @@
 <template>
   <!--大的播放器-->
-  <div class="play-music" v-if="fullScreen">
-    <header class="header">
-      <i class="iconfont icon-back" @click="noFullScreen"></i>
-      <span class="song-name">{{ currentSong.name }}</span>
-    </header>
-    <div class="singer-name">{{ currentSong.singer }}</div>
-    <van-swipe
-      class="my-swipe"
-      indicator-color="white"
-      :loop="false"
-      @change="onChange"
-    >
-      <van-swipe-item>
-        <div class="singer-pic-wrapper">
-          <div class="pic-box" ref="picBoxRef">
-            <img
-              ref="picBoxImgRef"
-              :class="isPlaying ? 'turn' : ''"
-              :src="currentSong.pic"
-              alt=""
-            />
-          </div>
-        </div>
-        <div class="currentLyric-wrapper">
-          <span class="text">{{ currentLyricText }}</span>
-        </div>
-      </van-swipe-item>
-      <van-swipe-item>
-        <div class="scroll-wrapper" ref="scrollRef">
-          <!--          {{ currentLyric }}- -->
-          <div>
-            <div class="lyric-wrapper" v-if="currentLyric">
-              <p
-                class="lyric-text"
-                v-for="(line, index) of currentLyric.lines"
-                :style="{ color: currentLyricNum === index ? '#ffcd32' : '' }"
-                :key="index"
-                @click.stop="lyricTextClick(line, index)"
-              >
-                {{ line.txt }}
-              </p>
+  <transition name="move">
+    <div class="play-music" v-if="fullScreen">
+      <header class="header">
+        <i class="iconfont icon-back" @click="noFullScreen"></i>
+        <span class="song-name">{{ currentSong.name }}</span>
+      </header>
+      <div class="singer-name">{{ currentSong.singer }}</div>
+      <van-swipe
+        class="my-swipe"
+        indicator-color="white"
+        :loop="false"
+        @change="onChange"
+      >
+        <van-swipe-item>
+          <div class="singer-pic-wrapper">
+            <div class="pic-box" ref="picBoxRef">
+              <img
+                ref="picBoxImgRef"
+                :class="isPlaying ? 'turn' : ''"
+                :src="currentSong.pic"
+                alt=""
+              />
             </div>
           </div>
+          <div class="currentLyric-wrapper">
+            <span class="text">{{ currentLyricText }}</span>
+          </div>
+        </van-swipe-item>
+        <van-swipe-item>
+          <div class="scroll-wrapper" ref="scrollRef">
+            <!--          {{ currentLyric }}- -->
+            <div>
+              <div class="lyric-wrapper" v-if="currentLyric">
+                <p
+                  class="lyric-text"
+                  v-for="(line, index) of currentLyric.lines"
+                  :style="{ color: currentLyricNum === index ? '#ffcd32' : '' }"
+                  :key="index"
+                  @click.stop="lyricTextClick(line, index)"
+                >
+                  {{ line.txt }}
+                </p>
+              </div>
+            </div>
+          </div>
+        </van-swipe-item>
+      </van-swipe>
+      <!--  歌曲播放时长区域   -->
+      <div class="song-play-time-wrapper">
+        <span class="play-time">{{
+          formatDuration(Math.floor(currentTime))
+        }}</span>
+        <div
+          class="progress-wrapper"
+          ref="barRef"
+          @touchstart="touchstart"
+          @touchmove="touchmove"
+          @touchend="touchend"
+        >
+          <van-progress
+            stroke-width="4px"
+            color="#ffcd32"
+            track-color="#363b32"
+            :show-pivot="false"
+            :percentage="progressBarWidth"
+          />
         </div>
-      </van-swipe-item>
-    </van-swipe>
-    <!--  歌曲播放时长区域   -->
-    <div class="song-play-time-wrapper">
-      <span class="play-time">{{
-        formatDuration(Math.floor(currentTime))
-      }}</span>
-      <div
-        class="progress-wrapper"
-        ref="barRef"
-        @touchstart="touchstart"
-        @touchmove="touchmove"
-        @touchend="touchend"
-      >
-        <van-progress
-          stroke-width="4px"
-          color="#ffcd32"
-          track-color="#363b32"
-          :show-pivot="false"
-          :percentage="progressBarWidth"
-        />
+        <span class="song-duration">{{
+          formatDuration(currentSong.duration)
+        }}</span>
       </div>
-      <span class="song-duration">{{
-        formatDuration(currentSong.duration)
-      }}</span>
+      <!--控制按钮区域-->
+      <div class="play-control-wrapper">
+        <span class="play-mode-icon-wrapper">
+          <i
+            :class="['iconfont', playModeIcon]"
+            @click.stop="togglePlayMode"
+          ></i>
+        </span>
+        <i
+          class="iconfont icon-prev"
+          @click="prevSong"
+          :style="disableStyle"
+        ></i>
+        <span class="is-playing" @click="toggleSongPlay" :style="disableStyle">
+          <!--播放时候显示的按钮-->
+          <i
+            class="iconfont"
+            :class="isPlaying ? 'icon-pause' : 'icon-play'"
+          ></i>
+        </span>
+        <i
+          class="iconfont icon-next"
+          @click="nextSong"
+          :style="disableStyle"
+        ></i>
+        <i
+          class="iconfont"
+          @click.stop="favoriteIconClick(currentSong)"
+          :class="isFavorite(currentSong)"
+          :style="{ color: favoriteColor(currentSong) }"
+        ></i>
+      </div>
     </div>
-    <!--控制按钮区域-->
-    <div class="play-control-wrapper">
-      <span class="play-mode-icon-wrapper">
-        <i :class="['iconfont', playModeIcon]" @click.stop="togglePlayMode"></i>
-      </span>
-      <i class="iconfont icon-prev" @click="prevSong" :style="disableStyle"></i>
-      <span class="is-playing" @click="toggleSongPlay" :style="disableStyle">
-        <!--播放时候显示的按钮-->
-        <i class="iconfont" :class="isPlaying ? 'icon-pause' : 'icon-play'"></i>
-      </span>
-      <i class="iconfont icon-next" @click="nextSong" :style="disableStyle"></i>
-      <i
-        class="iconfont"
-        @click.stop="favoriteIconClick(currentSong)"
-        :class="isFavorite(currentSong)"
-        :style="{ color: favoriteColor(currentSong) }"
-      ></i>
-    </div>
-  </div>
+  </transition>
   <!--迷你的播放器-->
   <!-- v-if="!fullScreen && currentSong.url"-->
   <div class="mini-play-wrapper" v-if="!fullScreen && currentSong.url">
@@ -97,8 +113,23 @@
         <img :src="currentSong.pic" alt="" />
       </div>
       <div class="song-name-wrapper" @click.stop="fullScreenHandle">
-        <span class="song-name">{{ currentSong.name }}</span>
-        <span class="singer-name">{{ currentSong.singer }}</span>
+        <van-swipe
+          class="song-name-swipe"
+          @change="switchSong"
+          :show-indicators="false"
+          :duration="300"
+          ref="songNameSwipe"
+        >
+          <template v-for="(song, index) of playList" :key="index">
+            <van-swipe-item class="van-swipe-item">
+              <!--              {{ song }}-->
+              <span class="song-name">{{ song.name }}</span>
+              <span class="singer-name">{{ song.singer }}</span>
+              <!--            <span class="song-name">{{ currentSong.name }}</span>-->
+              <!--            <span class="singer-name">{{ currentSong.singer }}</span>-->
+            </van-swipe-item>
+          </template>
+        </van-swipe>
       </div>
       <div class="icon-control-wrapper">
         <i
@@ -111,8 +142,10 @@
     </div>
   </div>
   <!-- -->
-  <div class="mask" @click.stop="hideMask" v-if="isShowMask">
-    <div class="play-list">
+  <div class="mask" @click.stop="hideMask" v-show="isShowMask"></div>
+  <!--  <div class="mask" @click.stop="hideMask" v-show="isShowMask">-->
+  <transition name="popup">
+    <div class="play-list" v-show="isShowMask">
       <header class="header">
         <div class="left-box" @click.stop="togglePlayMode">
           <i :class="['iconfont', playModeIcon]"></i>
@@ -134,7 +167,7 @@
             :key="song.id"
           >
             <div class="play-list-item" v-if="!song.isDel">
-              <span>{{ song.isDel }}</span>
+              <!--              <span>{{ song.isDel }}</span>-->
               <div
                 class="playing-icon-wrapper"
                 v-if="currentSong.id === song.id"
@@ -166,7 +199,8 @@
       </div>
       <div class="button-close" @click.stop="hideMask">关闭</div>
     </div>
-  </div>
+  </transition>
+  <!--  </div>-->
   <audio
     ref="audioRef"
     @canplay="canplay"
@@ -211,7 +245,17 @@ watch(isShowMask, async (newVal) => {
     click: true,
   });
 });
-
+// 迷你播放器 滑动切歌
+function switchSong(index) {
+  console.log("执行了");
+  //获取到当前的歌曲
+  //console.log(index);
+  store.commit("setCurrentIndex", index);
+  if (!isPlaying.value) {
+    store.commit("setPlaying", true);
+  }
+  //console.log(index, "switchSong");
+}
 function showMask() {
   isShowMask.value = true;
 }
@@ -237,6 +281,8 @@ const currentLyricNum = ref(0);
 
 const picBoxRef = ref(null);
 const picBoxImgRef = ref(null);
+
+const songNameSwipe = ref(null);
 
 // 进度条对应的宽度
 const progressBarWidth = ref(0);
@@ -356,11 +402,47 @@ onUnmounted(() => {
   store.commit("setPlaying", false);
   console.log("清空");
 });
+const currentSongIndex = computed(() => store.state.currentIndex);
+watch(
+  fullScreen,
+  async (newVal) => {
+    await nextTick();
+    //console.log(scrollRef.value, "scrollRef.valuescrollRef.value");
+    if (!scrollRef.value) {
+      return;
+    }
+    if (scrollWrapper.value) {
+      scrollWrapper.value.refresh();
+    } else {
+      scrollWrapper.value = new BScroll(scrollRef.value, {
+        probeType: 3,
+        click: true,
+        observeDOM: true,
+      });
+    }
+
+    if (!newVal && isPlaying.value) {
+      if (!songNameSwipe.value) {
+        return;
+      }
+      // 不是全屏播放的状态
+      if (songNameSwipe.value) {
+        songNameSwipe.value.swipeTo(currentSongIndex.value);
+      }
+    }
+  },
+  {
+    immediate: false,
+  }
+);
 // 监听当前歌曲的变化
 watch(
   currentSong,
   async (newSong) => {
-    console.log("watch-currentSong");
+    //console.log("watch-currentSong");
+    // console.log(currentSong, "currentSongcurrentSong");
+    //  console.log(playList, "playList");
+    //  debugger;
     stopLyric();
     currentLyricText.value = "";
     scrollWrapper.value = null;
@@ -373,6 +455,12 @@ watch(
       if (currentSong.value.lyric !== lyric) {
         return;
       }
+
+      // console.log(songNameSwipe.value, "songNameSwipe.value");
+      //  debugger;
+      if (songNameSwipe.value) {
+        songNameSwipe.value.swipeTo(currentSongIndex.value);
+      }
       currentLyric.value = new Lyric(newSong.lyric, handler);
       if (audioRef.value && newSong.url) {
         //  console.log(newSong.url, "url");
@@ -381,15 +469,6 @@ watch(
       if (songReady.value) {
         playLyric();
       }
-      await nextTick();
-      if (!scrollRef.value) {
-        return;
-      }
-      scrollWrapper.value = new BScroll(scrollRef.value, {
-        probeType: 3,
-        click: true,
-        observeDOM: true,
-      });
       //console.log(scrollWrapper.value, "scrollWrapper.value");
     } catch (err) {
       console.log(err, "报错了///");
@@ -404,7 +483,10 @@ watch(
   isPlaying,
   (newVal) => {
     // 歌曲播放的时候也是需要 给一个 src
-    console.log("isPlaying - watch");
+    //console.log("isPlaying - watch");
+    if (!currentSong.value.url) {
+      return;
+    }
     audioRef.value.src = currentSong.value.url;
     // 避免暂停后再次播放从头开始播放
     audioRef.value.currentTime = currentTime.value;
@@ -706,6 +788,27 @@ defineExpose({
 </script>
 
 <style lang="scss" scoped>
+// 动画
+.popup-enter-active,
+.popup-leave-active {
+  transition: all 0.5s ease;
+}
+
+.popup-enter-from,
+.popup-leave-to {
+  transform: translateY(100%);
+}
+
+// 动画
+.move-enter-active,
+.move-leave-active {
+  transition: all 0.5s ease;
+}
+
+.move-enter-from,
+.move-leave-to {
+  transform: translateX(100%);
+}
 .play-music {
   position: fixed;
   left: 0;
@@ -713,7 +816,7 @@ defineExpose({
   width: 100%;
   height: 100%;
   background-color: $color-background;
-  z-index: 150;
+  z-index: 215;
 
   .my-swipe {
     padding-top: 20px;
@@ -891,119 +994,124 @@ defineExpose({
   bottom: 0;
   right: 0;
   top: 0;
+  //background-color: red;
   background-color: rgba(0, 0, 0, 0.3);
-  z-index: 99;
-  .play-list {
+  z-index: 280;
+}
+
+.play-list {
+  position: fixed;
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
+  padding: 20px;
+  left: 0;
+  bottom: 0;
+  width: 100%;
+  height: 400px;
+  background-color: #333333;
+  z-index: 302;
+
+  .header {
     display: flex;
-    flex-direction: column;
-    box-sizing: border-box;
-    padding: 20px;
-    position: absolute;
-    left: 0;
-    bottom: 0;
-    width: 100%;
-    height: 400px;
-    background-color: #333333;
-    .header {
-      display: flex;
-      height: 40px;
-      align-items: center;
-      .left-box {
-        i {
-          font-size: 20px;
-          color: $color-theme;
-        }
+    height: 40px;
+    align-items: center;
+    .left-box {
+      i {
+        font-size: 20px;
+        color: $color-theme;
       }
-      .middle-box {
-        margin-left: 10px;
-        flex: 1;
-        .text {
-          font-size: $font-size-medium;
+    }
+    .middle-box {
+      margin-left: 10px;
+      flex: 1;
+      .text {
+        font-size: $font-size-medium;
+        color: $color-text-d;
+      }
+    }
+    .right-box {
+      .clear-icon-wrapper {
+        i {
           color: $color-text-d;
         }
       }
-      .right-box {
-        .clear-icon-wrapper {
-          i {
-            color: $color-text-d;
+    }
+  }
+  .play-list-scroll-wrapper {
+    flex: 1;
+    overflow: hidden;
+    .play-list-item-wrapper {
+      .play-list-item {
+        position: relative;
+        box-sizing: border-box;
+        padding-left: 15px;
+        display: flex;
+        align-items: center;
+        height: 30px;
+
+        .playing-icon-wrapper {
+          position: absolute;
+          top: 50%;
+          transform: translateY(-50%);
+          left: 0;
+          .icon-play {
+            font-size: 12px;
+            color: $color-theme;
           }
         }
-      }
-    }
-    .play-list-scroll-wrapper {
-      flex: 1;
-      overflow: hidden;
-      .play-list-item-wrapper {
-        .play-list-item {
-          position: relative;
-          box-sizing: border-box;
-          padding-left: 15px;
-          display: flex;
-          align-items: center;
-          height: 30px;
 
-          .playing-icon-wrapper {
-            position: absolute;
-            top: 50%;
-            transform: translateY(-50%);
-            left: 0;
-            .icon-play {
-              font-size: 12px;
+        .song-name {
+          padding-left: 6px;
+          flex: 1;
+          font-size: $font-size-medium;
+          color: $color-text-d;
+        }
+        .right-control {
+          .icon-wrapper {
+            box-sizing: border-box;
+            padding-left: 10px;
+            display: flex;
+            justify-content: space-between;
+            width: 60px;
+            .favorite-btn {
+              color: $color-theme;
+            }
+            .close-btn {
               color: $color-theme;
             }
           }
-
-          .song-name {
-            padding-left: 6px;
-            flex: 1;
-            font-size: $font-size-medium;
-            color: $color-text-d;
-          }
-          .right-control {
-            .icon-wrapper {
-              box-sizing: border-box;
-              padding-left: 10px;
-              display: flex;
-              justify-content: space-between;
-              width: 60px;
-              .favorite-btn {
-                color: $color-theme;
-              }
-              .close-btn {
-                color: $color-theme;
-              }
-            }
-          }
         }
       }
     }
+  }
 
-    .add-song {
-      padding: 20px;
-      margin: 0 auto;
-      span {
-        display: inline-block;
-        padding: 8px 20px;
-        font-size: 12px;
-        color: $color-text-d;
-        border: 1px solid $color-text-d;
-        border-radius: 10px;
-      }
-    }
-
-    .button-close {
-      position: fixed;
-      left: 0;
-      width: 100%;
-      bottom: 0;
-      text-align: center;
-      line-height: 30px;
-      background-color: #222222;
+  .add-song {
+    padding: 20px;
+    margin: 0 auto;
+    span {
+      display: inline-block;
+      padding: 8px 20px;
       font-size: 12px;
       color: $color-text-d;
+      border: 1px solid $color-text-d;
+      border-radius: 10px;
     }
   }
+
+  .button-close {
+    position: fixed;
+    left: 0;
+    width: 100%;
+    bottom: 0;
+    text-align: center;
+    line-height: 30px;
+    background-color: #222222;
+    font-size: 12px;
+    color: $color-text-d;
+  }
 }
+
 .mini-play-wrapper {
   position: fixed;
   left: 0;
@@ -1011,7 +1119,7 @@ defineExpose({
   width: 100%;
   height: 60px;
   background-color: #333333;
-  z-index: 160;
+  z-index: 210;
   .mini-play-content {
     padding: 0 10px;
     box-sizing: border-box;
@@ -1029,11 +1137,22 @@ defineExpose({
       }
     }
     .song-name-wrapper {
+      height: 100%;
       margin-left: 15px;
+      overflow: hidden;
       flex: 1;
       display: flex;
       flex-direction: column;
       justify-content: space-evenly;
+      .song-name-swipe {
+        width: 100%;
+        height: 100%;
+        .van-swipe-item {
+          display: flex;
+          flex-direction: column;
+          justify-content: space-evenly;
+        }
+      }
       .song-name {
         font-size: $font-size-medium;
       }

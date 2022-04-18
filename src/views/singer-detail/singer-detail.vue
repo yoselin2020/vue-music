@@ -65,8 +65,6 @@ export default {
       //   console.log(result, "getSingerDetail");
       let songs = await processSongs(result.songs);
       this.songs = songs;
-      this.setPlayList(songs);
-      this.setSequenceList(songs);
       //  console.log(songs, "songs");
       // this.songs = ;
     } catch (err) {}
@@ -84,6 +82,8 @@ export default {
     ...mapMutations(["setPlayList", "setSequenceList"]),
     ...mapActions(["selectSong"]),
     selectMusic(item) {
+      this.setPlayList(this.songs);
+      this.setSequenceList(this.songs);
       //debugger;
       this.selectSong(item);
     },

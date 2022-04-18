@@ -97,11 +97,20 @@ export default createStore({
       commit("setPlayMode", PLAY_MODE.sequence);
       commit("setCurrentIndex", index);
     },
-    // 随机播放歌曲
-    async randomPlay({ commit }, { list, index }) {
+    // 随机播放全部
+    async randomPlay({ commit, state, getters }, { list, index }) {
+      // 生成一个随机数
+      function getRandom(min, max) {
+        return Math.random() * (max - min) + min;
+      }
+      let num = Math.floor(getRandom(0, list.length));
+      //  console.log(getters.currentIndex);
+      commit("setCurrentIndex", num);
+      commit("setPlayList", shuffle(list));
+      // 先获取到当前正在播放的歌曲
       commit("setPlayMode", PLAY_MODE.random);
+
       commit("setPlaying", true);
-      commit("");
     },
 
     // 播放模式的修改
