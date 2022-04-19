@@ -11,9 +11,9 @@
         <span class="title">热门搜索</span>
       </header>
       <div class="hot-search-record">
-        <template v-for="(item, index) of hotSearchList" :key="item.txt">
+        <template v-for="item of hotKeys" :key="item.id">
           <span class="text" @click="hotSearchItemClick(item)">{{
-            item.txt
+            item.key
           }}</span>
         </template>
       </div>
@@ -50,6 +50,7 @@
 </template>
 
 <script>
+import { getHotKeys, search } from "@/service/search";
 import { debounce } from "throttle-debounce";
 import BScroll from "better-scroll";
 import { nextTick } from "vue";
@@ -58,58 +59,24 @@ export default {
   data() {
     return {
       keyword: "",
-      hotSearchList: [
-        { txt: "我们的歌" },
-        { txt: "张杰" },
-        { txt: "冰雪奇缘2" },
-        { txt: "桥边姑娘" },
-        { txt: "左手指月" },
-        { txt: "星辰大海" },
-      ],
+      hotKeys: [],
+      showSinger: true,
+      page: 1,
       searchHistoryList: [
         { txt: "我们的歌" },
         { txt: "张杰" },
         { txt: "冰雪奇缘2" },
         { txt: "桥边姑娘" },
-        { txt: "左手指月" },
-        { txt: "星辰大海" },
-        { txt: "我们的歌" },
-        { txt: "张杰" },
-        { txt: "冰雪奇缘2" },
-        { txt: "桥边姑娘" },
-        { txt: "左手指月" },
-        { txt: "星辰大海" },
-        { txt: "星辰大海" },
-        { txt: "我们的歌" },
-        { txt: "张杰" },
-        { txt: "冰雪奇缘2" },
-        { txt: "桥边姑娘" },
-        { txt: "左手指月" },
-        { txt: "星辰大海" },
-        { txt: "星辰大海" },
-        { txt: "我们的歌" },
-        { txt: "张杰" },
-        { txt: "冰雪奇缘2" },
-        { txt: "桥边姑娘" },
-        { txt: "左手指月" },
-        { txt: "星辰大海" },
-        { txt: "星辰大海" },
-        { txt: "我们的歌" },
-        { txt: "张杰" },
-        { txt: "冰雪奇缘2" },
-        { txt: "桥边姑娘" },
-        { txt: "左手指月" },
-        { txt: "星辰大海" },
-        { txt: "星辰大海" },
-        { txt: "我们的歌" },
-        { txt: "张杰" },
-        { txt: "冰雪奇缘2" },
-        { txt: "桥边姑娘" },
-        { txt: "左手指月" },
-        { txt: "星辰大海" },
       ],
       scrollInstance: null,
     };
+  },
+  async created() {
+    try {
+      const result = await getHotKeys();
+      //console.log(result, "result");
+      this.hotKeys = result.hotKeys;
+    } catch (err) {}
   },
   mounted() {
     this.$watch("keyword", debounce(500, this.searchHandle));
@@ -123,7 +90,17 @@ export default {
   methods: {
     // 热门搜索点击事件
     hotSearchItemClick(item) {
-      console.log(item);
+      this.keyword = item.key;
+      console.log(this.keyword, "this.keyword");
+      //  this.reqSearch(item.key);
+    },
+    async reqSearch() {
+      try {
+        const result = await search(this.keyword, this.page, this.showSinger);
+        console.log(result, "result");
+      } catch (err) {
+        console.log(err, "请求出错了！");
+      }
     },
     delSearchHistoryItem(index) {
       this.searchHistoryList.splice(index, 1);
@@ -144,6 +121,7 @@ export default {
       if (newVal.trim() === "") {
         return;
       }
+      this.reqSearch();
       console.log(newVal, "newVal");
       const searchHistoryList = this.searchHistoryList;
       searchHistoryList.unshift({

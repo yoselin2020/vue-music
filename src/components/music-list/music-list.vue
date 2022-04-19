@@ -85,6 +85,7 @@ function randomPlay() {
 function selectSong(song) {
   // console.log(song);
   // debugger;
+  store.commit("addRecentlyPlaySong", song);
   emits("selectSong", song);
 }
 onUnmounted(() => {

@@ -26,6 +26,7 @@ export default {
     selectSong(song) {
       // 选择歌曲进行播放
       this.$store.commit("setPlayList", this.songs);
+      this.$store.commit("setSequenceList", this.songs);
       this.$store.dispatch("selectSong", song);
     },
   },

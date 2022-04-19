@@ -1,5 +1,5 @@
 import { createStore, createLogger } from "vuex";
-import { FAVORITE_SONG_KEY } from "@/assets/js/constant";
+import { FAVORITE_SONG_KEY, recentlyPlayListKEY } from "@/assets/js/constant";
 import storage from "storejs";
 const debug = process.env.NODE_ENV !== "production";
 import { PLAY_MODE } from "@/assets/js/constant";
@@ -22,6 +22,8 @@ export default createStore({
     isPlaying: false,
     // 喜欢的歌曲
     favoriteSongList: storage.get(FAVORITE_SONG_KEY) || [],
+    // 最近播放的歌曲
+    recentlyPlayList: storage.get(recentlyPlayListKEY) || [],
   },
   getters: {
     playList: (state) => state.playList,
@@ -38,6 +40,39 @@ export default createStore({
     //喜欢的歌曲
   },
   mutations: {
+    // 添加一条歌曲到playList中
+    addSongToPlayList(state, song) {
+      let findSong = state.playList.find((item) => item.id === song.id);
+      if (!findSong) {
+        state.playList.push(song);
+        state.sequenceList.push(song);
+      }
+    },
+    // 设置最近播放的歌曲
+    recentlyPlayList(state, list) {
+      state.recentlyPlayList = list;
+      storage.set(recentlyPlayListKEY, list);
+    },
+    // 添加一首歌曲到最近播放
+    addRecentlyPlaySong(state, song) {
+      const findItem = state.recentlyPlayList.find(
+        (item) => item.id === song.id
+      );
+      if (!findItem) {
+        state.recentlyPlayList.unshift(song);
+        state.sequenceList.unshift(song);
+      }
+      storage.set(recentlyPlayListKEY, state.recentlyPlayList);
+    },
+    // 删除一首歌曲到最近播放
+    delRecentlyPlaySong(state, song) {
+      let index = state.recentlyPlayList.findIndex(
+        (item) => item.id === song.id
+      );
+      state.recentlyPlayList.splice(index, 1);
+      state.sequenceList.splice(index, 1);
+      storage.set(recentlyPlayListKEY, state.recentlyPlayList);
+    },
     // 是否正在播放
     setPlaying(state, isPlaying) {
       state.isPlaying = isPlaying;
@@ -117,7 +152,8 @@ export default createStore({
       const currentSongId = getters.currentSong.id;
       // 随机播放
       if (PLAY_MODE.random === mode) {
-        commit("setPlayList", shuffle(state.sequenceList));
+        //  commit("setPlayList", shuffle(state.sequenceList));
+        commit("setPlayList", shuffle(state.playList));
         Toast({
           type: "success",
           message: "已切换到随机播放",
@@ -129,8 +165,9 @@ export default createStore({
           type: "success",
           message: "已切换到顺序播放",
         });
-        console.log("顺序播放");
-        commit("setPlayList", state.sequenceList);
+        //console.log("顺序播放");
+        //  commit("setPlayList", state.sequenceList);
+        commit("setPlayList", state.playList);
       } else {
         // 单曲循环
         Toast({

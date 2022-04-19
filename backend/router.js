@@ -661,9 +661,12 @@ function registerHotKeys(app) {
 function registerSearch(app) {
   app.get("/api/search", (req, res) => {
     const url = "https://c.y.qq.com/soso/fcgi-bin/search_for_qq_cp";
-
+    //debugger
     const { query, page, showSinger } = req.query;
-
+    //console.log(query, "query");
+    //  console.log(page, "page");
+    // console.log(showSinger, "showSinger");
+    //console.log(typeof showSinger);
     const data = {
       _: getRandomVal(),
       g_tk_new_20200303: token,

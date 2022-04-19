@@ -81,7 +81,6 @@ export default {
   methods: {
     ...mapMutations(["setPlayList", "setSequenceList"]),
     ...mapActions(["selectSong"]),
-
     // 随机播放全部
     randomPlay() {
       this.$store.dispatch("randomPlay", {

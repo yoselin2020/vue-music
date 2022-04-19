@@ -42,6 +42,7 @@ function selectSong(song) {
   //debugger;
   // 选择歌曲进行播放
   store.commit("setPlayList", songs.value);
+  store.commit("setSequenceList", songs.value);
   store.dispatch("selectSong", song);
 }
 //period

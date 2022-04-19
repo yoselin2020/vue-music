@@ -137,9 +137,9 @@
             class="circle"
             v-model:current-rate="progressBarWidth"
             :stroke-width="150"
-            layer-color="#cca732"
+            layer-color="#5b5b5b"
             :speed="100"
-            color="#ffcd32"
+            color="#cca732"
             size="30px"
           />
           <!--           size="29.6px"-->
@@ -473,6 +473,10 @@ async function canplay() {
 
 // 监听当前歌曲的变化
 watch(currentSong, async (newSong) => {
+  currentTime.value = 0;
+  // if (audioRef.value) {
+  //
+  // }
   stopLyric();
   currentLyricText.value = "";
   scrollWrapper.value = null;
@@ -496,6 +500,7 @@ watch(currentSong, async (newSong) => {
       return;
     }
     await nextTick();
+    audioRef.value.currentTime = 0;
     songNameSwipe.value.resize();
     // console.log(songNameSwipe.value, "songNameSwipe.value");
     songNameSwipe.value.swipeTo(currentSongIndex.value);
@@ -545,6 +550,9 @@ watch(
 watch(
   currentTime,
   (newTime) => {
+    if (fullScreen.value && !isPlaying.value) {
+      store.commit("setPlaying", true);
+    }
     progressBarWidth.value = (newTime / currentSong.value.duration) * 100;
   },
   { immediate: false }
@@ -616,11 +624,11 @@ function stopLyric() {
 
 // 歌曲播放结束
 function ended() {
+  currentTime.value = 0;
+  audioRef.value.currentTime = 0;
   //console.log("歌曲播放结束了");
   if (playMode.value === PLAY_MODE.loop) {
     //如果是单曲循环
-    currentTime.value = 0;
-    audioRef.value.currentTime = 0;
     if (!isPlaying.value) {
       store.commit("setPlaying", true);
     }
@@ -864,7 +872,7 @@ defineExpose({
         text-align: center;
         .lyric-text {
           //background-color: red;
-          padding: 10px 0;
+          padding: 5px 0;
           font-size: 14px;
           color: $color-text-d;
         }
@@ -1197,15 +1205,27 @@ defineExpose({
       height: 100%;
       width: 100px;
       .icon-play-progress {
+        display: flex;
+        align-items: center;
+        justify-content: center;
         position: relative;
+        height: 100%;
+        width: 100px;
+        // background-color: red;
         .circle {
-          z-index: 999;
           position: absolute;
-          right: 0;
-          top: -0;
+          z-index: 400;
+          left: 50%;
+          top: 50%;
+          transform: translate3d(-50%, -50%, 0);
         }
         i {
-          font-size: 28.5px;
+          z-index: 399;
+          position: absolute;
+          left: 50%;
+          top: 50%;
+          transform: translate3d(-50%, -50%, 0);
+          font-size: 30px;
         }
       }
       .control-play {
