@@ -160,7 +160,9 @@
     </div>
   </transition>
   <!-- -->
-  <div class="mask" @click.stop="hideMask" v-show="isShowMask"></div>
+  <transition name="fade">
+    <div class="mask" @click.stop="hideMask" v-show="isShowMask"></div>
+  </transition>
   <!--  <div class="mask" @click.stop="hideMask" v-show="isShowMask">-->
   <transition name="popup">
     <div class="play-list" v-show="isShowMask">
@@ -179,13 +181,15 @@
       </header>
       <div class="play-list-scroll-wrapper" ref="playListScrollRef">
         <div>
-          <div
-            class="play-list-item-wrapper"
-            v-for="(song, index) of playList"
-            :key="song.id"
-          >
-            <transition name="list">
-              <div class="play-list-item" v-show="!song.isDel">
+          <transition-group name="leave">
+            <div
+              class="play-list-item-wrapper"
+              v-for="(song, index) of sequenceList"
+              :key="song.id"
+            >
+              <!--            <transition name="list">-->
+              <!--              v-show="!song.isDel"-->
+              <div class="play-list-item">
                 <!--<span>{{ song.isDel }}</span>-->
                 <div
                   class="playing-icon-wrapper"
@@ -210,8 +214,9 @@
                   </span>
                 </div>
               </div>
-            </transition>
-          </div>
+              <!--            </transition>-->
+            </div>
+          </transition-group>
         </div>
       </div>
       <div class="add-song">
@@ -261,21 +266,6 @@ const modules = [Pagination];
 // vuex store
 const store = useStore();
 const isShowMask = ref(false);
-
-watch(isShowMask, async (newVal) => {
-  if (!newVal) {
-    return;
-  }
-  await nextTick();
-  // if (playListScrollInstance.value) {
-  //   playListScrollInstance.value.refresh();
-  //   return;
-  // }
-  playListScrollInstance.value = new BScroll(playListScrollRef.value, {
-    observeDOM: true,
-    click: true,
-  });
-});
 
 // 迷你播放器 滑动切歌
 function switchSong(index) {
@@ -379,8 +369,45 @@ const playModeIcon = computed(() => {
   return _playModeIcon[playMode.value];
 });
 
+// 顺序播放数据
+const sequenceList = computed(() => store.state.sequenceList);
+
 const playList = computed(() => {
   return store.getters.playList;
+});
+
+watch(isShowMask, async () => {
+  await nextTick();
+  scrollToCurrentSongSection();
+  if (playListScrollInstance.value) {
+    playListScrollInstance.value.refresh();
+  }
+});
+async function scrollToCurrentSongSection() {
+  await nextTick();
+  const scroll = playListScrollInstance.value;
+  const children = playListScrollRef.value.querySelectorAll(
+    ".play-list-item-wrapper"
+  );
+  if (scroll) {
+    scroll.refresh();
+    scroll.scrollToElement(children[currentSongIndex.value], 100);
+  }
+}
+watch(playList, async () => {
+  await nextTick();
+  if (playListScrollInstance.value) {
+    playListScrollInstance.value.refresh();
+  } else {
+    playListScrollInstance.value = new BScroll(playListScrollRef.value, {
+      observeDOM: true,
+      click: true,
+    });
+  }
+  console.log(
+    playListScrollInstance.value,
+    "playListScrollInstance.valueplayListScrollInstance.value"
+  );
 });
 
 const playModeText = computed(() => {
@@ -417,6 +444,12 @@ function handler({ lineNum, txt }) {
   if (!scrollRef.value) {
     return;
   }
+  if (!scrollWrapper.value) {
+    scrollWrapper.value = new BScroll(scrollRef.value, {
+      observeDOM: true,
+      probeType: 2,
+    });
+  }
   const childrens = scrollRef.value
     .querySelector(".lyric-wrapper")
     .querySelectorAll(".lyric-text");
@@ -442,32 +475,9 @@ onUnmounted(() => {
   stopLyric();
   //  console.log("清空");
 });
+
 const currentSongIndex = computed(() => store.state.currentIndex);
 watch(fullScreen, async (newVal) => {
-  if (!scrollRef.value) {
-    return;
-  }
-  let lineNum = currentLyricNum.value;
-  if (lineNum > 5) {
-    lineNum -= 5;
-  }
-  await nextTick();
-  const childrens = scrollRef.value
-    .querySelector(".lyric-wrapper")
-    .querySelectorAll(".lyric-text");
-  const scrollWrapperValue = scrollWrapper.value;
-  if (scrollWrapper.value) {
-    scrollWrapperValue.scrollToElement(childrens[lineNum], 1000);
-    //scrollWrapper.value.refresh();
-  } else {
-    scrollWrapper.value = new BScroll(scrollRef.value, {
-      probeType: 3,
-      click: true,
-      observeDOM: true,
-    });
-    scrollWrapperValue.scrollToElement(childrens[lineNum], 1000);
-  }
-  await nextTick();
   songNameSwipe.value.resize();
   //  console.log(songNameSwipe.value, "songNameSwipe.value");
   songNameSwipe.value.swipeTo(currentSongIndex.value);
@@ -498,6 +508,7 @@ watch(currentSong, async (newSong) => {
   //
   // }
   stopLyric();
+  scrollToCurrentSongSection();
   currentLyricText.value = "";
   scrollWrapper.value = null;
   currentLyricNum.value = 0;
@@ -567,19 +578,17 @@ watch(
   }
 );
 //  currentTime值发生了变化
-watch(
-  currentTime,
-  (newTime) => {
-    if (fullScreen.value && !isPlaying.value) {
-      store.commit("setPlaying", true);
-    }
-    progressBarWidth.value = (newTime / currentSong.value.duration) * 100;
-  },
-  { immediate: false }
-);
+watch(currentTime, async (newTime) => {
+  if (fullScreen.value && !isPlaying.value) {
+    store.commit("setPlaying", true);
+  }
+  progressBarWidth.value = (newTime / currentSong.value.duration) * 100;
+});
 // 隐藏一首歌曲
-function delSong(song) {
-  song.isDel = true;
+async function delSong(song) {
+  // 删除一首歌曲
+  await store.dispatch("delSong", song);
+  // song.isDel = true;
 }
 // 清空mask中播放列表中的歌曲
 async function clearPlayList() {
@@ -999,7 +1008,7 @@ defineExpose({
       position: absolute;
       left: 15px;
       top: 50%;
-      transform: translateY(-50%) rotate(-90deg);
+      transform: translateY(-50%) rotate(180deg);
       color: $color-theme;
     }
   }

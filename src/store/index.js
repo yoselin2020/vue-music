@@ -42,13 +42,14 @@ export default createStore({
   mutations: {
     // 添加一条歌曲到playList中
     addSongToPlayList(state, song) {
-      debugger;
+      //debugger;
       let findSong = state.playList.find((item) => item.id === song.id);
       if (!findSong) {
         state.playList.push(song);
         state.sequenceList.push(song);
       }
     },
+
     // 设置最近播放的歌曲
     recentlyPlayList(state, list) {
       state.recentlyPlayList = list;
@@ -60,8 +61,8 @@ export default createStore({
         (item) => item.id === song.id
       );
       if (!findItem) {
-        state.recentlyPlayList.unshift(song);
-        state.sequenceList.unshift(song);
+        // state.recentlyPlayList.unshift(song);
+        // state.sequenceList.unshift(song);
       }
       storage.set(recentlyPlayListKEY, state.recentlyPlayList);
     },
@@ -121,6 +122,31 @@ export default createStore({
     },
   },
   actions: {
+    // 删除一首歌曲
+    delSong({ state, commit }, song) {
+      //debugger;
+      // 这里先拷贝一份, 不要直接修改, 直接修改会出问题, 直接修改会导致currentSong的变化
+      const playList = state.playList.slice();
+      const sequenceList = state.sequenceList.slice();
+      // 正在播放的歌曲索引
+      let playingSongIndex = state.currentIndex;
+      let playListIndex = playList.findIndex((item) => item.id === song.id);
+      let sequenceListIndex = sequenceList.findIndex(
+        (item) => item.id === song.id
+      );
+      playList.splice(playListIndex, 1);
+      sequenceList.splice(sequenceListIndex, 1);
+      // 如果删除的是之前的歌曲,那么就索引减1, 如果删除的是最后一项也需要减1
+      if (
+        playListIndex < playingSongIndex ||
+        playingSongIndex === state.playList.length
+      ) {
+        playingSongIndex--;
+      }
+      commit("setPlayList", playList);
+      commit("setSequenceList", sequenceList);
+      commit("setCurrentIndex", playingSongIndex);
+    },
     // 用户点击了一首歌曲
     async selectSong({ commit, state }, song) {
       let index = state.playList.findIndex((item) => item.id === song.id);

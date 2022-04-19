@@ -51,7 +51,8 @@ onMounted(async () => {
     let route = useRoute();
     //console.log(route.matched[1].path, "route.matched[1].path");
     router.push({
-      path: route.matched[1].path,
+      path: "/top-list",
+      //route.matched[1].path,
     });
   }
   const period = useRoute().query.period;

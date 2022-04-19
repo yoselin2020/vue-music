@@ -78,6 +78,8 @@ const props = defineProps({
 });
 // 随机播放全部
 function randomPlay() {
+  store.commit("setPlayList", props.songs);
+  store.commit("setSequenceList", props.songs);
   store.dispatch("randomPlay", {
     list: props.songs,
   });
@@ -85,7 +87,7 @@ function randomPlay() {
 function selectSong(song) {
   // console.log(song);
   // debugger;
-  store.commit("addRecentlyPlaySong", song);
+  // store.commit("addRecentlyPlaySong", song);
   emits("selectSong", song);
 }
 onUnmounted(() => {
