@@ -42,6 +42,7 @@ export default createStore({
   mutations: {
     // 添加一条歌曲到playList中
     addSongToPlayList(state, song) {
+      debugger;
       let findSong = state.playList.find((item) => item.id === song.id);
       if (!findSong) {
         state.playList.push(song);

@@ -1,5 +1,5 @@
 <template>
-  <router-view />
+  <router-view></router-view>
   <play-music></play-music>
 </template>
 

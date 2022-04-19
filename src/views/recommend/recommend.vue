@@ -8,8 +8,14 @@
         @change="change"
       >
         <van-swipe-item v-for="(slider, index) of sliders" :key="index">
-          <a class="link" :href="slider.link">
-            <img @error="imgLoadError" class="img" :src="slider.pic" alt="" />
+          <a class="link">
+            <img
+              @click.stop=""
+              @error="imgLoadError"
+              class="img"
+              :src="slider.pic"
+              alt=""
+            />
           </a>
         </van-swipe-item>
       </van-swipe>
@@ -38,7 +44,14 @@
       </div>
     </div>
   </scroll>
-  <router-view :pic="pic" :title="title" :songs="songs"></router-view>
+  <router-view v-slot="{ Component }">
+    <transition name="move">
+      <component :is="Component" :pic="pic" :title="title" :songs="songs" />
+    </transition>
+  </router-view>
+  <!--  <transition name="move">-->
+  <!--    <router-view :pic="pic" :title="title" :songs="songs"></router-view>-->
+  <!--  </transition>-->
 </template>
 
 <script>
@@ -99,6 +112,7 @@ export default {
 <style lang="scss" scoped>
 .recommend {
   .my-swipe {
+    margin-top: 2px;
     .van-swipe-item {
       height: 150px;
       .link {

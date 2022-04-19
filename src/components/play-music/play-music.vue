@@ -110,48 +110,55 @@
     </div>
   </transition>
   <!--迷你的播放器-->
-  <div class="mini-play-wrapper" v-show="!fullScreen && currentSong.url">
-    <div class="mini-play-content">
-      <div class="img-wrapper">
-        <img :src="currentSong.pic" alt="" />
-      </div>
-      <div class="song-name-wrapper" @click.stop="fullScreenHandle">
-        <van-swipe
-          class="song-name-swipe"
-          @change="switchSong"
-          :show-indicators="false"
-          :duration="300"
-          ref="songNameSwipe"
-        >
-          <template v-for="(song, index) of playList" :key="index">
-            <van-swipe-item class="van-swipe-item">
-              <span class="song-name">{{ song.name }}</span>
-              <span class="singer-name">{{ song.singer }}</span>
-            </van-swipe-item>
-          </template>
-        </van-swipe>
-      </div>
-      <div class="icon-control-wrapper">
-        <div class="icon-play-progress" @click.stop="miniPlay">
-          <van-circle
-            class="circle"
-            v-model:current-rate="progressBarWidth"
-            :stroke-width="150"
-            layer-color="#5b5b5b"
-            :speed="100"
-            color="#cca732"
-            size="30px"
-          />
-          <!--           size="29.6px"-->
-          <i
-            class="iconfont control-play"
-            :class="isPlaying ? 'icon-pause-mini' : 'icon-play-mini'"
-          ></i>
+  <transition name="popup">
+    <div class="mini-play-wrapper" v-show="!fullScreen && currentSong.url">
+      <div class="mini-play-content">
+        <div class="img-wrapper" @click.stop="fullScreenHandle">
+          <img :src="currentSong.pic" alt="" />
         </div>
-        <i class="iconfont icon-playlist" @click.stop="showMask"></i>
+        <div class="song-name-wrapper" @click.stop="fullScreenHandle">
+          <van-swipe
+            class="song-name-swipe"
+            @change="switchSong"
+            :show-indicators="false"
+            :duration="200"
+            ref="songNameSwipe"
+          >
+            <template v-for="(song, index) of playList" :key="index">
+              <van-swipe-item class="van-swipe-item">
+                <span class="song-name">{{ song.name }}</span>
+                <span class="singer-name">{{ song.singer }}</span>
+              </van-swipe-item>
+            </template>
+          </van-swipe>
+        </div>
+        <div class="icon-control-wrapper">
+          <div class="icon-play-progress" @click.stop="miniPlay">
+            <van-circle
+              class="circle"
+              v-model:current-rate="progressBarWidth"
+              :stroke-width="150"
+              layer-color="#5b5b5b"
+              :speed="100"
+              color="#cca732"
+              size="30px"
+            />
+            <img
+              class="control-play"
+              :src="
+                require(`@/assets/images/${isPlaying ? 'pause2' : 'play'}.png`)
+              "
+            />
+            <!--            <i-->
+            <!--              class="iconfont control-play"-->
+            <!--              :class="isPlaying ? 'icon-pause-mini' : 'icon-play-mini'"-->
+            <!--            ></i>-->
+          </div>
+          <i class="iconfont icon-playlist" @click.stop="showMask"></i>
+        </div>
       </div>
     </div>
-  </div>
+  </transition>
   <!-- -->
   <div class="mask" @click.stop="hideMask" v-show="isShowMask"></div>
   <!--  <div class="mask" @click.stop="hideMask" v-show="isShowMask">-->
@@ -177,31 +184,33 @@
             v-for="(song, index) of playList"
             :key="song.id"
           >
-            <div class="play-list-item" v-show="!song.isDel">
-              <!--<span>{{ song.isDel }}</span>-->
-              <div
-                class="playing-icon-wrapper"
-                v-if="currentSong.id === song.id"
-              >
-                <i class="iconfont icon-play"></i>
+            <transition name="list">
+              <div class="play-list-item" v-show="!song.isDel">
+                <!--<span>{{ song.isDel }}</span>-->
+                <div
+                  class="playing-icon-wrapper"
+                  v-if="currentSong.id === song.id"
+                >
+                  <i class="iconfont icon-play"></i>
+                </div>
+                <div class="song-name" @click.stop="playingSong(song)">
+                  {{ song.name }}
+                </div>
+                <div class="right-control">
+                  <span class="icon-wrapper">
+                    <i
+                      @click.stop="favoriteIconClick(song)"
+                      :class="['iconfont', 'favorite-btn', isFavorite(song)]"
+                      :style="{ color: favoriteColor(song) }"
+                    ></i>
+                    <i
+                      class="iconfont icon-close close-btn"
+                      @click.stop="delSong(song)"
+                    ></i>
+                  </span>
+                </div>
               </div>
-              <div class="song-name" @click.stop="playingSong(song)">
-                {{ song.name }}
-              </div>
-              <div class="right-control">
-                <span class="icon-wrapper">
-                  <i
-                    @click.stop="favoriteIconClick(song)"
-                    :class="['iconfont', 'favorite-btn', isFavorite(song)]"
-                    :style="{ color: favoriteColor(song) }"
-                  ></i>
-                  <i
-                    class="iconfont icon-close close-btn"
-                    @click.stop="delSong(song)"
-                  ></i>
-                </span>
-              </div>
-            </div>
+            </transition>
           </div>
         </div>
       </div>
@@ -438,14 +447,25 @@ watch(fullScreen, async (newVal) => {
   if (!scrollRef.value) {
     return;
   }
+  let lineNum = currentLyricNum.value;
+  if (lineNum > 5) {
+    lineNum -= 5;
+  }
+  await nextTick();
+  const childrens = scrollRef.value
+    .querySelector(".lyric-wrapper")
+    .querySelectorAll(".lyric-text");
+  const scrollWrapperValue = scrollWrapper.value;
   if (scrollWrapper.value) {
-    scrollWrapper.value.refresh();
+    scrollWrapperValue.scrollToElement(childrens[lineNum], 1000);
+    //scrollWrapper.value.refresh();
   } else {
     scrollWrapper.value = new BScroll(scrollRef.value, {
       probeType: 3,
       click: true,
       observeDOM: true,
     });
+    scrollWrapperValue.scrollToElement(childrens[lineNum], 1000);
   }
   await nextTick();
   songNameSwipe.value.resize();
@@ -821,16 +841,6 @@ defineExpose({
   transform: translateY(100%);
 }
 
-// 动画
-.move-enter-active,
-.move-leave-active {
-  transition: all 0.5s ease;
-}
-
-.move-enter-from,
-.move-leave-to {
-  transform: translateX(100%);
-}
 .play-music {
   position: fixed;
   left: 0;
@@ -1219,18 +1229,25 @@ defineExpose({
           top: 50%;
           transform: translate3d(-50%, -50%, 0);
         }
-        i {
-          z-index: 399;
-          position: absolute;
-          left: 50%;
-          top: 50%;
-          transform: translate3d(-50%, -50%, 0);
-          font-size: 30px;
-        }
+        //i {
+        //  z-index: 399;
+        //  position: absolute;
+        //  left: 50%;
+        //  top: 50%;
+        //  transform: translate3d(-50%, -50%, 0);
+        //  font-size: 30px;
+        //}
       }
       .control-play {
-        font-size: 30px;
-        color: $color-theme;
+        position: absolute;
+        z-index: 400;
+        left: 50%;
+        top: 50%;
+        width: 12px;
+        height: 12px;
+        transform: translate3d(-50%, -50%, 0);
+        //font-size: 30px;
+        //  color: $color-theme;
       }
       .icon-playlist {
         font-size: 30px;

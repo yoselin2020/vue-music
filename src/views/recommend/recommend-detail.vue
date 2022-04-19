@@ -22,6 +22,14 @@ export default {
     title: String,
     songs: Array,
   },
+  mounted() {
+    if (!this.pic) {
+      //   console.log(this.$route.matched);
+      this.$router.push({
+        path: this.$route.matched[1].path,
+      });
+    }
+  },
   methods: {
     selectSong(song) {
       // 选择歌曲进行播放

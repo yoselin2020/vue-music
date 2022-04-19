@@ -29,7 +29,13 @@
       </div>
     </div>
   </scroll>
-  <router-view :pic="pic" :title="title"></router-view>
+
+  <router-view v-slot="{ Component }">
+    <transition name="move">
+      <component :is="Component" :pic="pic" :title="title" />
+    </transition>
+  </router-view>
+  <!--  <router-view :pic="pic" :title="title"></router-view>-->
 </template>
 
 <script>

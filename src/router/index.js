@@ -76,6 +76,7 @@ const routes = [
     },
   },
   {
+    name: "user",
     path: "/user",
     component: () => import("@/views/user/user.vue"),
     meta: {
