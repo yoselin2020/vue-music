@@ -72,7 +72,7 @@
           />
         </div>
         <span class="song-duration">{{
-          formatDuration(currentSong.duration)
+          formatDuration(Math.floor(currentSong.duration))
         }}</span>
       </div>
       <!--控制按钮区域-->
@@ -219,13 +219,17 @@
           </transition-group>
         </div>
       </div>
-      <div class="add-song">
+      <div class="add-song" @click.stop="showAddSongSection">
         <span>添加歌曲到队列</span>
       </div>
       <div class="button-close" @click.stop="hideMask">关闭</div>
     </div>
   </transition>
   <!--  </div>-->
+  <div v-if="isShowAddSongSection">
+    <add-song @hide="hideAddSongSection"></add-song>
+  </div>
+
   <audio
     ref="audioRef"
     @canplay="canplay"
@@ -233,6 +237,7 @@
     @timeupdate="timeupdate"
     @ended="ended"
     @pause="pause"
+    @error="error"
   ></audio>
 </template>
 
@@ -260,12 +265,33 @@ import Lyric from "lyric-parser";
 import BScroll from "better-scroll";
 import storage from "storejs";
 import { Dialog, Toast } from "vant";
+import AddSong from "@/components/add-song/add-song";
 // 音乐标签对应ref
 const audioRef = ref(null);
 const modules = [Pagination];
 // vuex store
 const store = useStore();
 const isShowMask = ref(false);
+
+// 是否显示添加歌曲到列表区域
+const isShowAddSongSection = ref(false);
+function showAddSongSection() {
+  isShowAddSongSection.value = true;
+}
+
+function hideAddSongSection() {
+  isShowAddSongSection.value = false;
+}
+// 播放器 报错了
+function error() {
+  Toast({
+    type: "fail",
+    message: "对不起,该歌曲需要登录",
+  });
+  //console.log("error", "播放器报错了");
+  // 切换到下一首歌曲
+  nextSong();
+}
 
 // 迷你播放器 滑动切歌
 function switchSong(index) {
@@ -484,6 +510,7 @@ watch(fullScreen, async (newVal) => {
 });
 // 歌曲缓冲完毕
 async function canplay() {
+  console.log(isPlaying.value, "isPlaying.value");
   playLyric();
   songReady.value = true;
   if (isPlaying.value) {
@@ -507,6 +534,7 @@ watch(currentSong, async (newSong) => {
   // if (audioRef.value) {
   //
   // }
+  //debugger;
   stopLyric();
   scrollToCurrentSongSection();
   currentLyricText.value = "";
@@ -515,10 +543,16 @@ watch(currentSong, async (newSong) => {
   currentLyric.value = null;
   try {
     songReady.value = false;
-    const lyric = await getLyric(newSong);
-    newSong.lyric = lyric;
-    if (currentSong.value.lyric !== lyric) {
-      return;
+
+    if (!newSong.lyric) {
+      const lyric = await getLyric(newSong);
+      newSong.lyric = lyric;
+      if (newSong.lyric && newSong.url) {
+        store.commit("addRecentlyPlaySong", newSong);
+      }
+      if (currentSong.value.lyric !== lyric) {
+        return;
+      }
     }
     currentLyric.value = new Lyric(newSong.lyric, handler);
     if (audioRef.value && newSong.url) {
@@ -617,6 +651,7 @@ function fullScreenHandle() {
 
 // 迷你播放器按钮点击事件
 function miniPlay() {
+  console.log("miniPlay事件触发了");
   store.commit("setFullScreen", false);
   store.commit("setPlaying", !isPlaying.value);
 }
@@ -662,6 +697,9 @@ function ended() {
       store.commit("setPlaying", true);
     }
     return;
+  }
+  if (!isPlaying.value) {
+    store.commit("setPlaying", true);
   }
   // 歌曲自然播放结束调用下一首歌曲进行播放
   nextSong();
@@ -743,6 +781,14 @@ function timeupdate(event) {
 
 // audio 暂停事件
 function pause() {
+  // console.log(currentSong.value);
+  // console.log(currentTime.value);
+  //console.log("pause事件执行了");
+  if (currentSongIndex.value === playList.value.length) {
+    store.commit("setPlaying", true);
+    // store.commit("setCurrentIndex", 0);
+    return;
+  }
   store.commit("setPlaying", false);
 }
 
@@ -770,9 +816,10 @@ function nextSong() {
     // 如果越界了就播放到第一手歌曲进行播放
     index = 0;
   }
+  console.log(index, "index....结束了");
   // 获取当前所在歌曲的索引
-  store.commit("setPlaying", true);
   store.commit("setCurrentIndex", index);
+  store.commit("setPlaying", true);
 }
 
 function durationchange(event) {
@@ -801,7 +848,7 @@ function noFullScreen() {
 // 格式化音乐时长
 function formatDuration(time) {
   if (time > -1) {
-    //let hour = Math.floor(time / 3600);
+    // let hour = Math.floor(time / 3600);
     let min = Math.floor(time / 60) % 60;
     let sec = time % 60;
     time = "";

@@ -659,91 +659,92 @@ function registerHotKeys(app) {
 
 // 注册搜索查询接口
 function registerSearch(app) {
-  app.get("/api/search", (req, res) => {
-    const url = "https://c.y.qq.com/soso/fcgi-bin/search_for_qq_cp";
-    //debugger
-    const { query, page, showSinger } = req.query;
-    //console.log(query, "query");
-    //  console.log(page, "page");
-    // console.log(showSinger, "showSinger");
-    //console.log(typeof showSinger);
-    const data = {
-      _: getRandomVal(),
-      g_tk_new_20200303: token,
-      w: query,
-      p: page,
-      perpage: 20,
-      n: 20,
-      zhidaqu: 1,
-      catZhida: showSinger === "true" ? 1 : 0,
-      t: 0,
-      flag: 1,
-      ie: "utf-8",
-      sem: 1,
-      aggr: 0,
-      remoteplace: "txt.mqq.all",
-      uin: "0",
-      needNewCode: 1,
-      platform: "h5",
-      format: "json",
-    };
-
-    get(url, data).then((response) => {
-      const data = response.data;
-      if (data.code === ERR_OK) {
-        const songList = [];
-        const songData = data.data.song;
-        const list = songData.list;
-
-        list.forEach((item) => {
-          const info = item;
-          if (info.pay.payplay !== 0 || !info.interval) {
-            // 过滤付费歌曲
-            return;
-          }
-
-          const song = {
-            id: info.songid,
-            mid: info.songmid,
-            name: info.songname,
-            singer: mergeSinger(info.singer),
-            url: "",
-            duration: info.interval,
-            pic: info.albummid
-              ? `https://y.gtimg.cn/music/photo_new/T002R800x800M000${info.albummid}.jpg?max_age=2592000`
-              : fallbackPicUrl,
-            album: info.albumname,
-          };
-          songList.push(song);
-        });
-
-        let singer;
-        const zhida = data.data.zhida;
-        if (zhida && zhida.type === 2) {
-          singer = {
-            id: zhida.singerid,
-            mid: zhida.singermid,
-            name: zhida.singername,
-            pic: `https://y.gtimg.cn/music/photo_new/T001R800x800M000${zhida.singermid}.jpg?max_age=2592000`,
-          };
-        }
-
-        const { curnum, curpage, totalnum } = songData;
-        const hasMore = 20 * (curpage - 1) + curnum < totalnum;
-
-        res.json({
-          code: ERR_OK,
-          result: {
-            songs: songList,
-            singer,
-            hasMore,
-          },
-        });
-      } else {
-        res.json(data);
-      }
-    });
-  });
+  // app.get("/api/search",
+  // app.get("/api/search", (req, res) => {
+  //   const url = "https://c.y.qq.com/soso/fcgi-bin/search_for_qq_cp";
+  //   //debugger
+  //   const { query, page, showSinger } = req.query;
+  //   //console.log(query, "query");
+  //   //  console.log(page, "page");
+  //   // console.log(showSinger, "showSinger");
+  //   //console.log(typeof showSinger);
+  //   const data = {
+  //     _: getRandomVal(),
+  //     g_tk_new_20200303: token,
+  //     w: query,
+  //     p: page,
+  //     perpage: 20,
+  //     n: 20,
+  //     zhidaqu: 1,
+  //     catZhida: showSinger === "true" ? 1 : 0,
+  //     t: 0,
+  //     flag: 1,
+  //     ie: "utf-8",
+  //     sem: 1,
+  //     aggr: 0,
+  //     remoteplace: "txt.mqq.all",
+  //     uin: "0",
+  //     needNewCode: 1,
+  //     platform: "h5",
+  //     format: "json",
+  //   };
+  //
+  //   get(url, data).then((response) => {
+  //     const data = response.data;
+  //     if (data.code === ERR_OK) {
+  //       const songList = [];
+  //       const songData = data.data.song;
+  //       const list = songData.list;
+  //
+  //       list.forEach((item) => {
+  //         const info = item;
+  //         if (info.pay.payplay !== 0 || !info.interval) {
+  //           // 过滤付费歌曲
+  //           return;
+  //         }
+  //
+  //         const song = {
+  //           id: info.songid,
+  //           mid: info.songmid,
+  //           name: info.songname,
+  //           singer: mergeSinger(info.singer),
+  //           url: "",
+  //           duration: info.interval,
+  //           pic: info.albummid
+  //             ? `https://y.gtimg.cn/music/photo_new/T002R800x800M000${info.albummid}.jpg?max_age=2592000`
+  //             : fallbackPicUrl,
+  //           album: info.albumname,
+  //         };
+  //         songList.push(song);
+  //       });
+  //
+  //       let singer;
+  //       const zhida = data.data.zhida;
+  //       if (zhida && zhida.type === 2) {
+  //         singer = {
+  //           id: zhida.singerid,
+  //           mid: zhida.singermid,
+  //           name: zhida.singername,
+  //           pic: `https://y.gtimg.cn/music/photo_new/T001R800x800M000${zhida.singermid}.jpg?max_age=2592000`,
+  //         };
+  //       }
+  //
+  //       const { curnum, curpage, totalnum } = songData;
+  //       const hasMore = 20 * (curpage - 1) + curnum < totalnum;
+  //
+  //       res.json({
+  //         code: ERR_OK,
+  //         result: {
+  //           songs: songList,
+  //           singer,
+  //           hasMore,
+  //         },
+  //       });
+  //     } else {
+  //       res.json(data);
+  //     }
+  //   });
+  // });
 }
 
 module.exports = registerRouter;

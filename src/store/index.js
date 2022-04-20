@@ -1,5 +1,9 @@
 import { createStore, createLogger } from "vuex";
-import { FAVORITE_SONG_KEY, recentlyPlayListKEY } from "@/assets/js/constant";
+import {
+  FAVORITE_SONG_KEY,
+  recentlyPlayListKEY,
+  SearchHistoryListKEY,
+} from "@/assets/js/constant";
 import storage from "storejs";
 const debug = process.env.NODE_ENV !== "production";
 import { PLAY_MODE } from "@/assets/js/constant";
@@ -24,6 +28,32 @@ export default createStore({
     favoriteSongList: storage.get(FAVORITE_SONG_KEY) || [],
     // 最近播放的歌曲
     recentlyPlayList: storage.get(recentlyPlayListKEY) || [],
+    // 搜索历史
+    //searchHistoryList: storage.get(SearchHistoryListKEY) || [],
+    searchHistoryList: [
+      "许嵩",
+      "许嵩",
+      "许嵩",
+      "许嵩",
+      "许嵩",
+      "许嵩",
+      "许嵩",
+      "许嵩",
+      "许嵩",
+      "许嵩",
+      "张杰",
+      "周杰伦",
+      "周杰伦",
+      "周杰伦",
+      "周杰伦",
+      "周杰伦",
+      "周杰伦",
+      "周杰伦",
+      "周杰伦",
+      "周杰伦",
+      "周杰伦",
+      "周杰伦",
+    ],
   },
   getters: {
     playList: (state) => state.playList,
@@ -40,16 +70,29 @@ export default createStore({
     //喜欢的歌曲
   },
   mutations: {
-    // 添加一条歌曲到playList中
-    addSongToPlayList(state, song) {
-      //debugger;
-      let findSong = state.playList.find((item) => item.id === song.id);
-      if (!findSong) {
-        state.playList.push(song);
-        state.sequenceList.push(song);
+    // 设置搜索历史列表
+    setSearchHistoryList(state, list) {
+      state.searchHistoryList = list;
+      storage.set(SearchHistoryListKEY, list);
+    },
+    // 添加一个搜索记录
+    addTextToSearchHistoryList(state, text) {
+      const findItem = state.searchHistoryList.find((item) => item === text);
+      if (!findItem) {
+        state.searchHistoryList.unshift(text);
+      }
+      storage.set(SearchHistoryListKEY, state.searchHistoryList);
+    },
+    // 从历史记录中删除一个搜索记录
+    delTextFromSearchHistoryList(state, text) {
+      let findIndex = state.searchHistoryList.findIndex(
+        (item) => item === text
+      );
+      if (findIndex > -1) {
+        state.searchHistoryList.splice(findIndex, 1);
+        storage.set(SearchHistoryListKEY, state.searchHistoryList);
       }
     },
-
     // 设置最近播放的歌曲
     recentlyPlayList(state, list) {
       state.recentlyPlayList = list;
@@ -60,11 +103,19 @@ export default createStore({
       const findItem = state.recentlyPlayList.find(
         (item) => item.id === song.id
       );
-      if (!findItem) {
-        // state.recentlyPlayList.unshift(song);
-        // state.sequenceList.unshift(song);
+      // 如果存在这首歌曲的话,删除,然后添加到最前面去
+      if (findItem) {
+        const findIndex = state.recentlyPlayList.findIndex((item) => {
+          return item.id === song.id;
+        });
+        state.recentlyPlayList.splice(findIndex, 1);
+        state.recentlyPlayList.unshift(findItem);
       }
-      storage.set(recentlyPlayListKEY, state.recentlyPlayList);
+      if (!findItem) {
+        state.recentlyPlayList.unshift(song);
+        //state.playList.push(song);
+        storage.set(recentlyPlayListKEY, state.recentlyPlayList);
+      }
     },
     // 删除一首歌曲到最近播放
     delRecentlyPlaySong(state, song) {
@@ -122,6 +173,38 @@ export default createStore({
     },
   },
   actions: {
+    // 添加一条歌曲到playList中
+    addSongToPlayList({ state, commit }, song) {
+      //  debugger;
+      const playList = state.playList;
+      const sequenceList = state.sequenceList;
+      commit("addRecentlyPlaySong", song);
+      //debugger;
+      let findSong = playList.find((item) => item.id === song.id);
+      console.log(findSong, "findSong");
+      //debugger;
+      if (!findSong) {
+        playList.push(song);
+      }
+      let findSongSequenceList = sequenceList.find(
+        (item) => item.id === song.id
+      );
+      if (!findSongSequenceList) {
+        sequenceList.push(song);
+      }
+      commit("setPlayList", playList);
+      commit("setSequenceList", sequenceList);
+      if (!findSong) {
+        console.log(state.playList.length - 1, "state.playList.length - 1");
+        commit("setCurrentIndex", state.playList.length - 1);
+      }
+      let i = 0;
+      if (findSong) {
+        i = state.playList.findIndex((item) => item.id === song.id);
+        commit("setCurrentIndex", i);
+      }
+      commit("setPlaying", true);
+    },
     // 删除一首歌曲
     delSong({ state, commit }, song) {
       //debugger;

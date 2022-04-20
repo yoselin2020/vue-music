@@ -68,8 +68,8 @@ export default {
     this.itemWidth = this.$refs.itemWidthRef.clientWidth;
   },
   methods: {
-    ...mapMutations(["addSongToPlayList"]),
-    ...mapActions(["randomPlay"]),
+    ...mapMutations([""]),
+    ...mapActions(["randomPlay", "addSongToPlayList"]),
     // 随机播放按钮点击事件
     randomPlayHandle() {
       let list = [];
@@ -85,9 +85,10 @@ export default {
     },
     songClickHandle(song) {
       //console.log(song, "song");
-      this.songList.forEach((item) => {
-        this.addSongToPlayList(item);
-      });
+      this.addSongToPlayList(song);
+      // this.songList.forEach((item) => {
+      //
+      // });
       this.$store.dispatch("selectSong", song);
     },
     switchTab(index) {

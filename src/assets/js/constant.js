@@ -9,4 +9,6 @@ export const PLAY_MODE = {
   random: 2,
 };
 
+export const SearchHistoryListKEY = "__SearchHistoryList__";
+
 export const recentlyPlayListKEY = "__recentlyPlayListKEY__";

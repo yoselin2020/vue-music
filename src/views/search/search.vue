@@ -1,12 +1,16 @@
 <template>
-  <div class="search">
+  <div class="search" ref="searchRef">
     <van-search
+      ref="vanSearchCom"
       v-model="keyword"
       placeholder="请输入搜索关键词"
       background="#222222"
     />
     <!--  hot-search   -->
-    <div class="hot-search-wrapper">
+    <div
+      class="hot-search-wrapper"
+      v-show="hotKeys.length && songs.length === 0"
+    >
       <header class="header">
         <span class="title">热门搜索</span>
       </header>
@@ -18,7 +22,7 @@
         </template>
       </div>
     </div>
-    <template v-if="searchHistoryList.length">
+    <div v-show="searchHistoryList.length && songs.length === 0">
       <header class="search-history-title">
         <span class="text">搜索历史</span>
         <span class="icon-wrapper" @click.stop="clearSearchRecord"
@@ -45,7 +49,35 @@
           </div>
         </div>
       </div>
-    </template>
+    </div>
+    <!--搜索结果展示区域-->
+    <div class="search-songs-wrapper" v-show="songs.length > 0">
+      <div
+        class="search-songs-scroll-wrapper"
+        ref="searchSongsWrapperScrollRef"
+        :style="{ height: searchShowSectionHeight + 'px' }"
+      >
+        <div>
+          <div
+            class="song-item-wrapper"
+            v-for="(song, index) of songs"
+            :key="song.id"
+            @click.stop="selectSong(song)"
+          >
+            <div class="img-wrapper">
+              <img
+                :src="require('@/assets/images/music-logo-big.png')"
+                alt=""
+              />
+            </div>
+            <div class="song-info">
+              <span class="song-name">{{ song.name }}</span>
+              <span class="song-singer">{{ song.singer }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -54,6 +86,8 @@ import { getHotKeys, search } from "@/service/search";
 import { debounce } from "throttle-debounce";
 import BScroll from "better-scroll";
 import { nextTick } from "vue";
+import request from "@/request";
+import { mapActions, mapMutations } from "vuex";
 export default {
   name: "Search",
   data() {
@@ -68,7 +102,10 @@ export default {
         { txt: "冰雪奇缘2" },
         { txt: "桥边姑娘" },
       ],
+      searchShowSectionHeight: 0,
       scrollInstance: null,
+      songs: [],
+      searchSongsWrapperScrollInstance: null,
     };
   },
   async created() {
@@ -78,16 +115,71 @@ export default {
       this.hotKeys = result.hotKeys;
     } catch (err) {}
   },
-  mounted() {
+  watch: {
+    async searchShowSectionHeight() {
+      await nextTick();
+      if (this.searchSongsWrapperScrollInstance) {
+        this.searchSongsWrapperScrollInstance.refresh();
+      }
+    },
+    songs: {
+      async handler(newVal) {
+        await nextTick();
+        if (this.scrollInstance) {
+          this.scrollInstance.refresh();
+        }
+        if (this.searchSongsWrapperScrollInstance) {
+          this.searchSongsWrapperScrollInstance.refresh();
+        }
+      },
+    },
+  },
+  async mounted() {
+    const height =
+      this.$refs.searchRef.clientHeight -
+      this.$refs.vanSearchCom.$el.clientHeight;
+    this.searchShowSectionHeight = height;
+    // console.log(this.searchShowSectionHeight, "this.searchShowSectionHeight");
     this.$watch("keyword", debounce(500, this.searchHandle));
-    this.$nextTick().then(() => {
-      this.scrollInstance = new BScroll(this.$refs.scrollRef, {
+    await nextTick();
+    this.scrollInstance = new BScroll(this.$refs.scrollRef, {
+      click: true,
+      observeDOM: true,
+    });
+    this.searchSongsWrapperScrollInstance = new BScroll(
+      this.$refs.searchSongsWrapperScrollRef,
+      {
         click: true,
         observeDOM: true,
-      });
-    });
+        probeType: 2,
+        bounce: false,
+      }
+    );
   },
   methods: {
+    ...mapMutations(["addTextToSearchHistoryList"]),
+    ...mapActions(["addSongToPlayList"]),
+    // 用户点击了搜索到的歌曲
+    async selectSong(song) {
+      console.log(song);
+      if (
+        !song.hasOwnProperty("id") ||
+        !song.hasOwnProperty("url") ||
+        !song.hasOwnProperty("duration")
+      ) {
+        return;
+      }
+      // 获取歌词
+      let res = await request("/lyric", {
+        id: song.id,
+      });
+      song.lyric = res.lrc.lyric;
+      //  song.lyric = res.klyric.lyric;
+      console.log(res, "res");
+      this.addSongToPlayList(song);
+      console.log(song);
+    },
+
     // 热门搜索点击事件
     hotSearchItemClick(item) {
       this.keyword = item.key;
@@ -117,23 +209,59 @@ export default {
         this.searchHistoryList = [];
       } catch (err) {}
     },
-    searchHandle(newVal) {
+    async searchHandle(newVal) {
       if (newVal.trim() === "") {
+        this.songs = [];
         return;
       }
-      this.reqSearch();
-      console.log(newVal, "newVal");
-      const searchHistoryList = this.searchHistoryList;
-      searchHistoryList.unshift({
-        txt: newVal,
-      });
-      this.searchHistoryList = [...new Set(searchHistoryList)];
-      this.$nextTick(() => {
-        this.scrollInstance = new BScroll(this.$refs.scrollRef, {
-          click: true,
-          observeDOM: true,
+      try {
+        const result = await request("/cloudsearch", {
+          keywords: this.keyword,
+          limit: 100,
         });
-      });
+        this.addTextToSearchHistoryList(this.keyword);
+        console.log(result, "result");
+        if (result.code === 200) {
+          let songs = result.result.songs.slice();
+          let arrId = songs.map((song) => song.id).join(",");
+          const result2 = await request("/song/url", {
+            id: arrId,
+          });
+          let song2 = result2.data;
+          songs.forEach((item) => {
+            const findItem = song2.find((item2) => item2.id === item.id);
+            item.url = findItem.url;
+          });
+          //console.log(result2, "result2");
+          console.log(songs, "processSongs");
+          songs = songs.map((item) => ({
+            url: item.url,
+            name: item.name,
+            singer: item.ar[0].name,
+            pic: item.al.picUrl,
+            id: item.id,
+            duration: item.dt / 1000,
+            album: item.al.name,
+          }));
+          console.log(songs, "songssongssongssongs");
+          this.songs = songs;
+          await nextTick();
+          this.recentlyPlayListSectionScrollInstance.refresh();
+        }
+      } catch (err) {}
+      // this.reqSearch();
+      // console.log(newVal, "newVal");
+      // const searchHistoryList = this.searchHistoryList;
+      // searchHistoryList.unshift({
+      //   txt: newVal,
+      // });
+      // this.searchHistoryList = [...new Set(searchHistoryList)];
+      // this.$nextTick(() => {
+      //   this.scrollInstance = new BScroll(this.$refs.scrollRef, {
+      //     click: true,
+      //     observeDOM: true,
+      //   });
+      // });
     },
   },
 };
@@ -154,6 +282,35 @@ export default {
         color: $color-text-d;
       }
       caret-color: #ffffff;
+    }
+  }
+
+  .search-songs-wrapper {
+    //box-sizing: border-box;
+    padding: 10px 30px;
+    overflow: hidden;
+    .search-songs-scroll-wrapper {
+      padding-bottom: 100px;
+      .song-item-wrapper {
+        margin-bottom: 5px;
+        display: flex;
+        .img-wrapper {
+          margin-right: 5px;
+        }
+        .song-info {
+          flex: 1;
+
+          .song-name {
+            font-size: 14px;
+            color: $color-text-d;
+          }
+          .song-singer {
+            margin-left: 5px;
+            font-size: 14px;
+            color: $color-text-d;
+          }
+        }
+      }
     }
   }
 
