@@ -9,39 +9,49 @@
     <!--  hot-search   -->
     <div
       class="hot-search-wrapper"
+      ref="_hotSearchWrapperRef"
       v-show="hotKeys.length && songs.length === 0"
     >
-      <header class="header">
+      <header class="header" ref="hotSearchHeaderRef">
         <span class="title">热门搜索</span>
       </header>
-      <div class="hot-search-record">
+      <div class="hot-search-record" ref="hotSearchRecordRef">
         <template v-for="item of hotKeys" :key="item.id">
-          <span class="text" @click="hotSearchItemClick(item)">{{
-            item.key
+          <span class="text" @click.stop="hotSearchItemClick(item)">{{
+            item.searchWord
           }}</span>
         </template>
       </div>
     </div>
+    <!--搜索历史展示区域-->
     <div v-show="searchHistoryList.length && songs.length === 0">
-      <header class="search-history-title">
+      <header class="search-history-title" ref="searchHistoryTitle">
         <span class="text">搜索历史</span>
         <span class="icon-wrapper" @click.stop="clearSearchRecord"
           ><i class="iconfont icon-clear"></i
         ></span>
       </header>
-      <div class="scroll-wrapper" ref="scrollRef">
+      <div
+        class="scroll-wrapper"
+        ref="scrollRef"
+        :style="{
+          height: searchHistorySectionHeight + 'px',
+          ...isPaddingBottom,
+        }"
+      >
         <div class="search-history-wrapper">
           <div class="search-history-content">
             <div
               class="search-history-item"
               v-for="(searchHistory, index) of searchHistoryList"
-              :key="searchHistory.txt"
+              :key="searchHistory.searchWord"
+              @click.stop="searchHistoryClickHandle(searchHistory)"
             >
-              <span class="search-txt">{{ searchHistory.txt }}</span>
+              <span class="search-txt">{{ searchHistory.searchWord }}</span>
               <span class="icon-container">
                 <i
                   class="iconfont icon-close"
-                  @click.stop="delSearchHistoryItem(index)"
+                  @click.stop="delSearchHistoryItem(searchHistory)"
                 >
                 </i>
               </span>
@@ -87,7 +97,7 @@ import { debounce } from "throttle-debounce";
 import BScroll from "better-scroll";
 import { nextTick } from "vue";
 import request from "@/request";
-import { mapActions, mapMutations } from "vuex";
+import { mapActions, mapMutations, mapState } from "vuex";
 export default {
   name: "Search",
   data() {
@@ -96,26 +106,45 @@ export default {
       hotKeys: [],
       showSinger: true,
       page: 1,
-      searchHistoryList: [
-        { txt: "我们的歌" },
-        { txt: "张杰" },
-        { txt: "冰雪奇缘2" },
-        { txt: "桥边姑娘" },
-      ],
       searchShowSectionHeight: 0,
       scrollInstance: null,
       songs: [],
       searchSongsWrapperScrollInstance: null,
+      // 搜索历史展示区域高度
+      searchHistorySectionHeight: 0,
     };
+  },
+  computed: {
+    ...mapState(["searchHistoryList"]),
   },
   async created() {
     try {
-      const result = await getHotKeys();
+      //const result = await getHotKeys();
+      const result = await request("/search/hot/detail");
       //console.log(result, "result");
-      this.hotKeys = result.hotKeys;
+      this.hotKeys = result.data;
     } catch (err) {}
   },
   watch: {
+    searchHistoryList: {
+      async handler() {
+        await nextTick();
+        this.scrollInstance.refresh();
+        // console.log("searchHistoryList变化了searchHistoryList");
+      },
+      deep: true,
+    },
+    async hotKeys() {
+      await nextTick();
+      const height2 =
+        this.$refs.searchRef.clientHeight -
+        this.$refs.searchHistoryTitle.clientHeight -
+        this.$refs.vanSearchCom.$el.clientHeight -
+        this.$refs._hotSearchWrapperRef.clientHeight;
+      // console.log(height2, "height2height2height2height2height2");
+      // console.log(height2, "height2height2");
+      this.searchHistorySectionHeight = height2;
+    },
     async searchShowSectionHeight() {
       await nextTick();
       if (this.searchSongsWrapperScrollInstance) {
@@ -139,7 +168,6 @@ export default {
       this.$refs.searchRef.clientHeight -
       this.$refs.vanSearchCom.$el.clientHeight;
     this.searchShowSectionHeight = height;
-    // console.log(this.searchShowSectionHeight, "this.searchShowSectionHeight");
     this.$watch("keyword", debounce(500, this.searchHandle));
     await nextTick();
     this.scrollInstance = new BScroll(this.$refs.scrollRef, {
@@ -157,8 +185,15 @@ export default {
     );
   },
   methods: {
-    ...mapMutations(["addTextToSearchHistoryList"]),
+    ...mapMutations([
+      "addTextToSearchHistoryList",
+      "delTextFromSearchHistoryList",
+    ]),
     ...mapActions(["addSongToPlayList"]),
+    // 搜索历史item 点击事件
+    searchHistoryClickHandle(searchHistory) {
+      console.log(searchHistory, "searchHistory");
+    },
     // 用户点击了搜索到的歌曲
     async selectSong(song) {
       console.log(song);
@@ -179,10 +214,9 @@ export default {
       this.addSongToPlayList(song);
       console.log(song);
     },
-
     // 热门搜索点击事件
     hotSearchItemClick(item) {
-      this.keyword = item.key;
+      this.keyword = item.searchWord;
       console.log(this.keyword, "this.keyword");
       //  this.reqSearch(item.key);
     },
@@ -194,8 +228,9 @@ export default {
         console.log(err, "请求出错了！");
       }
     },
-    delSearchHistoryItem(index) {
-      this.searchHistoryList.splice(index, 1);
+    delSearchHistoryItem(history) {
+      this.delTextFromSearchHistoryList(history);
+      // this.searchHistoryList.splice(index, 1);
     },
     // 清空搜索记录
     async clearSearchRecord() {
@@ -240,28 +275,15 @@ export default {
             singer: item.ar[0].name,
             pic: item.al.picUrl,
             id: item.id,
-            duration: item.dt / 1000,
+            duration: Math.ceil(item.dt / 1000),
             album: item.al.name,
           }));
           console.log(songs, "songssongssongssongs");
           this.songs = songs;
           await nextTick();
-          this.recentlyPlayListSectionScrollInstance.refresh();
+          // this.recentlyPlayListSectionScrollInstance.refresh();
         }
       } catch (err) {}
-      // this.reqSearch();
-      // console.log(newVal, "newVal");
-      // const searchHistoryList = this.searchHistoryList;
-      // searchHistoryList.unshift({
-      //   txt: newVal,
-      // });
-      // this.searchHistoryList = [...new Set(searchHistoryList)];
-      // this.$nextTick(() => {
-      //   this.scrollInstance = new BScroll(this.$refs.scrollRef, {
-      //     click: true,
-      //     observeDOM: true,
-      //   });
-      // });
     },
   },
 };
@@ -317,6 +339,7 @@ export default {
   .hot-search-wrapper {
     padding: 0 12px;
     .header {
+      height: 40px;
       display: flex;
       justify-content: space-between;
       line-height: 40px;

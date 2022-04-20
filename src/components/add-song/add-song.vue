@@ -40,10 +40,13 @@
             <div
               class="search-record-item"
               v-for="(item, index) of searchHistoryList"
-              :key="item.text"
+              :key="item.searchWord"
             >
-              <span class="text">{{ item }}</span>
-              <i class="iconfont icon-close"></i>
+              <span class="text">{{ item.searchWord }}</span>
+              <i
+                class="iconfont icon-close"
+                @click.stop="delSearchHistory(item)"
+              ></i>
             </div>
           </div>
         </div>
@@ -105,6 +108,21 @@ export default {
     ...mapState(["recentlyPlayList", "searchHistoryList"]),
   },
   watch: {
+    currentIndex: {
+      async handler() {
+        await nextTick();
+        if (this.searchRecordSectionScrollInstance) {
+          this.searchRecordSectionScrollInstance.refresh();
+        }
+      },
+    },
+    searchHistoryList: {
+      async handler() {
+        await nextTick();
+        this.searchRecordSectionScrollInstance.refresh();
+      },
+      deep: true,
+    },
     songs: {
       async handler() {
         await nextTick();
@@ -126,8 +144,15 @@ export default {
     },
   },
   methods: {
-    ...mapMutations(["addTextToSearchHistoryList"]),
+    ...mapMutations([
+      "addTextToSearchHistoryList",
+      "delTextFromSearchHistoryList",
+    ]),
     ...mapActions(["addSongToPlayList"]),
+    // 删除一条搜索记录
+    delSearchHistory(item) {
+      this.delTextFromSearchHistoryList(item);
+    },
     // 用户点击了搜索到的歌曲
     async selectSong(song) {
       console.log(song);

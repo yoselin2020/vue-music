@@ -31,28 +31,49 @@ export default createStore({
     // 搜索历史
     //searchHistoryList: storage.get(SearchHistoryListKEY) || [],
     searchHistoryList: [
-      "许嵩",
-      "许嵩",
-      "许嵩",
-      "许嵩",
-      "许嵩",
-      "许嵩",
-      "许嵩",
-      "许嵩",
-      "许嵩",
-      "许嵩",
-      "张杰",
-      "周杰伦",
-      "周杰伦",
-      "周杰伦",
-      "周杰伦",
-      "周杰伦",
-      "周杰伦",
-      "周杰伦",
-      "周杰伦",
-      "周杰伦",
-      "周杰伦",
-      "周杰伦",
+      { searchWord: "我们的歌" },
+      { searchWord: "张杰" },
+      { searchWord: "冰雪奇缘2" },
+      { searchWord: "桥边姑娘" },
+      { searchWord: "我们的歌" },
+      { searchWord: "张杰" },
+      { searchWord: "冰雪奇缘2" },
+      { searchWord: "桥边姑娘" },
+      { searchWord: "我们的歌" },
+      { searchWord: "张杰" },
+      { searchWord: "冰雪奇缘2" },
+      { searchWord: "桥边姑娘" },
+      { searchWord: "我们的歌" },
+      { searchWord: "张杰" },
+      { searchWord: "冰雪奇缘2" },
+      { searchWord: "桥边姑娘" },
+      { searchWord: "桥边姑娘" },
+      { searchWord: "我们的歌" },
+      { searchWord: "张杰" },
+      { searchWord: "冰雪奇缘2" },
+      { searchWord: "桥边姑娘" },
+      { searchWord: "我们的歌" },
+      { searchWord: "张杰" },
+      { searchWord: "冰雪奇缘2" },
+      { searchWord: "桥边姑娘" },
+      { searchWord: "桥边姑娘" },
+      { searchWord: "我们的歌" },
+      { searchWord: "张杰" },
+      { searchWord: "冰雪奇缘2" },
+      { searchWord: "桥边姑娘" },
+      { searchWord: "我们的歌" },
+      { searchWord: "张杰" },
+      { searchWord: "冰雪奇缘2" },
+      { searchWord: "桥边姑娘" },
+      { searchWord: "桥边姑娘" },
+      { searchWord: "我们的歌" },
+      { searchWord: "张杰" },
+      { searchWord: "冰雪奇缘2" },
+      { searchWord: "桥边姑娘" },
+      { searchWord: "我们的歌" },
+      { searchWord: "张杰" },
+      { searchWord: "冰雪奇缘2" },
+      { searchWord: "桥边姑娘" },
     ],
   },
   getters: {
@@ -76,17 +97,21 @@ export default createStore({
       storage.set(SearchHistoryListKEY, list);
     },
     // 添加一个搜索记录
-    addTextToSearchHistoryList(state, text) {
-      const findItem = state.searchHistoryList.find((item) => item === text);
+    addTextToSearchHistoryList(state, history) {
+      const findItem = state.searchHistoryList.find(
+        (item) => item.searchWord === history.searchWord
+      );
       if (!findItem) {
-        state.searchHistoryList.unshift(text);
+        state.searchHistoryList.unshift({
+          searchWord: history.searchWord,
+        });
       }
       storage.set(SearchHistoryListKEY, state.searchHistoryList);
     },
     // 从历史记录中删除一个搜索记录
-    delTextFromSearchHistoryList(state, text) {
+    delTextFromSearchHistoryList(state, history) {
       let findIndex = state.searchHistoryList.findIndex(
-        (item) => item === text
+        (item) => item.searchWord === history.searchWord
       );
       if (findIndex > -1) {
         state.searchHistoryList.splice(findIndex, 1);

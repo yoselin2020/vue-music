@@ -1,7 +1,7 @@
 import axios from "axios";
 import { Toast } from "vant";
 const http = axios.create({
-  baseURL: "http://localhost:3000",
+  baseURL: "http://192.168.1.107:3000",
 });
 // 添加请求拦截器
 http.interceptors.request.use(

@@ -1,7 +1,7 @@
 <template>
-  <div class="user">
+  <div class="user" ref="userRef">
     <span class="iconfont icon-back back" @click="$router.back()"></span>
-    <div class="tab-wrapper">
+    <div class="tab-wrapper" ref="tabWrapperRef">
       <div
         class="tab-item"
         ref="itemWidthRef"
@@ -19,20 +19,29 @@
       </div>
       <div class="active" :style="transformStyle"></div>
     </div>
-    <div class="random-play" @click.stop="randomPlayHandle">
+    <div class="random-play" ref="randomPlayRef" @click.stop="randomPlayHandle">
       <i class="iconfont icon-play"></i>
       <span>随机播放全部</span>
     </div>
     <div class="tab-panel">
-      <div class="playlist-wrapper">
-        <div
-          class="playlist-item"
-          v-for="song of songList"
-          :key="song.id"
-          @click.stop="songClickHandle(song)"
-        >
-          <p class="song-name">{{ song.name }}</p>
-          <p class="song-singer">{{ song.singer }}</p>
+      <div
+        class="playlist-wrapper"
+        ref="playlistScrollRef"
+        :style="[
+          { height: playlistScrollSectionHeight + 'px' },
+          isPaddingBottom,
+        ]"
+      >
+        <div>
+          <div
+            class="playlist-item"
+            v-for="song of songList"
+            :key="song.id"
+            @click.stop="songClickHandle(song)"
+          >
+            <p class="song-name">{{ song.name }}</p>
+            <p class="song-singer">{{ song.singer }}</p>
+          </div>
         </div>
       </div>
     </div>
@@ -41,6 +50,8 @@
 
 <script>
 import { mapActions, mapMutations, mapState } from "vuex";
+import BScroll from "better-scroll";
+import { nextTick } from "vue";
 export default {
   name: "user",
   data() {
@@ -49,6 +60,8 @@ export default {
       itemWidth: 0,
       //我喜欢的
       songList: [],
+      playlistScrollInstance: null,
+      playlistScrollSectionHeight: 0,
     };
   },
   computed: {
@@ -60,12 +73,35 @@ export default {
       };
     },
   },
+  watch: {
+    async songList() {
+      await nextTick();
+      this.playlistScrollInstance.refresh();
+    },
+    currentIndex: {
+      async handler() {
+        await nextTick();
+        this.playlistScrollInstance.refresh();
+      },
+    },
+  },
   mounted() {
     if (this.currentIndex === 0) {
       this.songList = this.favoriteSongList;
     }
     // 获取一个 tab-item的宽度
     this.itemWidth = this.$refs.itemWidthRef.clientWidth;
+    this.playlistScrollInstance = new BScroll(this.$refs.playlistScrollRef, {
+      observeDOM: true,
+      click: true,
+      probeType: 3,
+    });
+    let height =
+      this.$refs.userRef.clientHeight -
+      this.$refs.tabWrapperRef.clientHeight -
+      this.$refs.randomPlayRef.clientHeight;
+    this.playlistScrollSectionHeight = height - 100;
+    console.log(height, "heightheightheight");
   },
   methods: {
     ...mapMutations([""]),
@@ -162,7 +198,9 @@ export default {
   .tab-panel {
     box-sizing: border-box;
     padding: 10px 40px;
+
     .playlist-wrapper {
+      overflow: hidden;
       .playlist-item {
         display: flex;
         height: 60px;

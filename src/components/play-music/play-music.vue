@@ -404,10 +404,10 @@ const playList = computed(() => {
 
 watch(isShowMask, async () => {
   await nextTick();
-  scrollToCurrentSongSection();
   if (playListScrollInstance.value) {
     playListScrollInstance.value.refresh();
   }
+  scrollToCurrentSongSection();
 });
 async function scrollToCurrentSongSection() {
   await nextTick();
@@ -507,6 +507,35 @@ watch(fullScreen, async (newVal) => {
   songNameSwipe.value.resize();
   //  console.log(songNameSwipe.value, "songNameSwipe.value");
   songNameSwipe.value.swipeTo(currentSongIndex.value);
+  if (!scrollRef.value) {
+    return;
+  }
+  let lineNum = currentLyricNum.value;
+  if (!scrollWrapper.value) {
+    scrollWrapper.value = new BScroll(scrollRef.value, {
+      observeDOM: true,
+      probeType: 2,
+    });
+  }
+  await nextTick();
+  scrollToCurrentSongSection();
+  await nextTick();
+  if (!scrollRef.value) {
+    return;
+  }
+
+  const childrens = scrollRef.value
+    .querySelector(".lyric-wrapper")
+    .querySelectorAll(".lyric-text");
+  const scrollWrapperValue = scrollWrapper.value;
+  if (scrollWrapperValue) {
+    if (lineNum > 5) {
+      lineNum -= 5;
+    }
+    scrollWrapperValue.scrollToElement(childrens[lineNum], 1000);
+  }
+  await nextTick();
+  scrollToCurrentSongSection();
 });
 // 歌曲缓冲完毕
 async function canplay() {
@@ -787,6 +816,16 @@ function pause() {
   if (currentSongIndex.value === playList.value.length) {
     store.commit("setPlaying", true);
     // store.commit("setCurrentIndex", 0);
+    nextSong();
+    return;
+  }
+  // 歌曲自然播放完毕结束了
+  if (
+    Math.floor(currentTime.value) === Math.floor(currentSong.value.duration)
+  ) {
+    store.commit("setPlaying", true);
+    // store.commit("setCurrentIndex", 0);
+    nextSong();
     return;
   }
   store.commit("setPlaying", false);
@@ -1062,7 +1101,7 @@ defineExpose({
   .singer-name {
     margin-bottom: 20px;
     text-align: center;
-    font-size: 11px;
+    font-size: 14px;
   }
   .singer-pic-wrapper {
     .pic-box {
