@@ -305,6 +305,7 @@ const slideChangeFull = ref(false);
 
 // cd 唱片部分swiper切换
 function cdSectionSwiperChange(event) {
+  // debugger;
   let activeIndex = event.activeIndex;
   //slideChangeFull.value = true;
   setTimeout(() => {
@@ -316,33 +317,55 @@ function cdSectionSwiperChange(event) {
 let cdStartPageX = 0,
   cdMovePageX = 0;
 function cdTouchstart(event) {
+  cdStartPageX = 0;
+  cdMovePageX = 0;
+  //debugger;
   cdStartPageX = event.touches[0].pageX;
   // console.log(event, "cdTouchstart");
+  // console.log(cdStartPageX, "cdStartPageXcdStartPageX");
 }
 function cdTouchmove(event) {
+  cdMovePageX = 0;
+  // debugger;
+  // console.log("cdTouchmove");
   cdMovePageX = event.touches[0].pageX;
+  //debugger;
+  //  console.log(cdMovePageX, "cdMovePageXcdMovePageX");
   //console.log(event, "cdTouchmove");
 }
 
 function cdTouchend(event) {
+  // console.log(event, "eventend");
+  // console.log("cdTouchend");
+  // debugger;
   //debugger;
   // if (!slideChangeFull.value) {
   //   return;
   // }
   const OFFSET = 80;
   let cdSwiperActiveIndexVal = cdSwiperActiveIndex.value;
+  // console.log();
+  if (cdMovePageX <= 0) {
+    return;
+  }
   let value = Math.floor(cdMovePageX) - Math.floor(cdStartPageX);
-  if (cdSwiperActiveIndexVal === 1 && value < 0) {
+  console.log("value=" + value);
+  if (Math.abs(value) < 100) {
+    return;
+  }
+  if (cdSwiperActiveIndexVal === 1 && value < 0 && cdMovePageX > 0) {
     // 向左边移动,切换下一首歌曲
     value = Math.abs(value);
-    // 判断距离是不是大于等于 50
-    //  console.log(value, "大于50吗?");
+    // 判断距离是不是大于等于 我们设置的数值 offset
+    // console.log(value, `大于${OFFSET}吗?`);
     if (value >= OFFSET) {
       nextSong();
     }
     slideChangeFull.value = false;
   }
-  if (cdSwiperActiveIndexVal === 0 && value > 0) {
+
+  if (cdSwiperActiveIndexVal === 0 && value > 0 && cdMovePageX > 0) {
+    // debugger;
     // 向右边移动,切换上一首歌曲
     value = Math.abs(value);
     if (value >= OFFSET) {
@@ -650,6 +673,10 @@ watch(fullScreen, async (newVal) => {
   // }
   await nextTick();
   scrollToCurrentSongSection();
+});
+// 监视playMode的变化
+watch(playMode, (mode) => {
+  audioRef.value.loop = mode === PLAY_MODE.loop;
 });
 // 歌曲缓冲完毕
 async function canplay() {

@@ -1,12 +1,12 @@
 <template>
   <router-view></router-view>
+  <!--音乐播放器组件-->
+  <play-music></play-music>
   <router-view name="user" v-slot="{ Component }">
     <transition name="move">
       <component :is="Component" />
     </transition>
   </router-view>
-  <!--音乐播放器组件-->
-  <play-music></play-music>
 </template>
 
 <style lang="scss">

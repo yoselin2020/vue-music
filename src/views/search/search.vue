@@ -190,6 +190,10 @@ export default {
       click: true,
       observeDOM: true,
     });
+    console.log(
+      this.scrollInstance,
+      "this.scrollInstancethis.scrollInstanceaa"
+    );
     this.searchSongsWrapperScrollInstance = new BScroll(
       this.$refs.searchSongsWrapperScrollRef,
       {

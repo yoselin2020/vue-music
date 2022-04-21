@@ -220,7 +220,9 @@ export default createStore({
       }
       commit("setPlayList", playList);
       commit("setSequenceList", sequenceList);
+      console.log("1.0");
       commit("setCurrentIndex", playingSongIndex);
+      console.log("2.0");
     },
     // 用户点击了一首歌曲
     async selectSong({ commit, state }, song) {
