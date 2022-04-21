@@ -66,6 +66,16 @@ html {
   transform: translateX(100%);
 }
 
+.pulldown-enter-active,
+.pulldown-leave-active {
+  transition: all 0.3s;
+}
+
+.pulldown-enter-from,
+.pulldown-leave-to {
+  transform: translate3d(0, -100%, 0);
+}
+
 @keyframes rotate {
   0% {
     transform: rotate(0);

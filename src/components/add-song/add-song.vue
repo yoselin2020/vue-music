@@ -77,6 +77,8 @@ import { mapActions, mapMutations, mapState } from "vuex";
 import BScroll from "better-scroll";
 import { debounce } from "throttle-debounce";
 import { nextTick } from "vue";
+import { myProcessSongs } from "@/api/song";
+
 export default {
   name: "add-song",
   components: { SwitchTab },
@@ -187,28 +189,7 @@ export default {
         console.log(result, "result");
         if (result.code === 200) {
           let songs = result.result.songs.slice();
-          let arrId = songs.map((song) => song.id).join(",");
-          const result2 = await request("/song/url", {
-            id: arrId,
-          });
-          let song2 = result2.data;
-          songs.forEach((item) => {
-            const findItem = song2.find((item2) => item2.id === item.id);
-            item.url = findItem.url;
-          });
-          //console.log(result2, "result2");
-          console.log(songs, "processSongs");
-          songs = songs.map((item) => ({
-            url: item.url,
-            name: item.name,
-            singer: item.ar[0].name,
-            pic: item.al.picUrl,
-            id: item.id,
-            duration: item.dt / 1000,
-            album: item.al.name,
-          }));
-          console.log(songs, "songssongssongssongs");
-          this.songs = songs;
+          this.songs = await myProcessSongs(songs);
           await nextTick();
           this.recentlyPlayListSectionScrollInstance.refresh();
         }

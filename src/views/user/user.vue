@@ -23,7 +23,7 @@
       <i class="iconfont icon-play"></i>
       <span>随机播放全部</span>
     </div>
-    <div class="tab-panel">
+    <div class="tab-panel" :style="isPaddingBottom">
       <div
         class="playlist-wrapper"
         ref="playlistScrollRef"
@@ -39,8 +39,12 @@
             :key="song.id"
             @click.stop="songClickHandle(song)"
           >
-            <p class="song-name">{{ song.name }}</p>
-            <p class="song-singer">{{ song.singer }}</p>
+            <p class="song-name">
+              <span>{{ song.name }}</span>
+            </p>
+            <p class="song-singer">
+              <span>{{ song.singer }}</span>
+            </p>
           </div>
         </div>
       </div>
@@ -100,8 +104,12 @@ export default {
       this.$refs.userRef.clientHeight -
       this.$refs.tabWrapperRef.clientHeight -
       this.$refs.randomPlayRef.clientHeight;
-    this.playlistScrollSectionHeight = height - 100;
-    console.log(height, "heightheightheight");
+    this.playlistScrollSectionHeight = height - 200;
+    // console.log(
+    //   this.$refs.randomPlayRef.clientHeight,
+    //   "this.$refs.tabWrapperRef.clientHeight"
+    // );
+    // console.log(height - 200, "heightheightheight");
   },
   methods: {
     ...mapMutations([""]),
@@ -207,11 +215,24 @@ export default {
         flex-direction: column;
         justify-content: space-evenly;
         .song-name {
+          white-space: nowrap;
+          text-overflow: ellipsis;
+          overflow: hidden;
+          width: 250px;
+          display: inline-block;
           font-size: 14px;
         }
         .song-singer {
-          font-size: 14px;
-          color: $color-text-d;
+          text-align: left;
+          span {
+            white-space: nowrap;
+            text-overflow: ellipsis;
+            overflow: hidden;
+            width: 250px;
+            display: inline-block;
+            font-size: 14px;
+            color: $color-text-d;
+          }
         }
       }
     }

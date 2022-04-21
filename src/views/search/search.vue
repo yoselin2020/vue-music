@@ -24,7 +24,10 @@
       </div>
     </div>
     <!--搜索历史展示区域-->
-    <div v-show="searchHistoryList.length && songs.length === 0">
+    <div
+      :style="isPaddingBottom"
+      v-show="searchHistoryList.length && songs.length === 0"
+    >
       <header class="search-history-title" ref="searchHistoryTitle">
         <span class="text">搜索历史</span>
         <span class="icon-wrapper" @click.stop="clearSearchRecord"
@@ -34,65 +37,72 @@
       <div
         class="scroll-wrapper"
         ref="scrollRef"
-        :style="{
-          height: searchHistorySectionHeight + 'px',
-          ...isPaddingBottom,
-        }"
+        :style="[
+          {
+            height: searchHistorySectionHeight + 'px',
+          },
+          isPaddingBottom,
+        ]"
       >
         <div class="search-history-wrapper">
           <div class="search-history-content">
-            <div
-              class="search-history-item"
-              v-for="(searchHistory, index) of searchHistoryList"
-              :key="searchHistory.searchWord"
-              @click.stop="searchHistoryClickHandle(searchHistory)"
-            >
-              <span class="search-txt">{{ searchHistory.searchWord }}</span>
-              <span class="icon-container">
-                <i
-                  class="iconfont icon-close"
-                  @click.stop="delSearchHistoryItem(searchHistory)"
-                >
-                </i>
-              </span>
-            </div>
+            <transition-group name="leave">
+              <div
+                class="search-history-item"
+                v-for="(searchHistory, index) of searchHistoryList"
+                :key="searchHistory.searchWord"
+                @click.stop="searchHistoryClickHandle(searchHistory)"
+              >
+                <span class="search-txt">{{ searchHistory.searchWord }}</span>
+                <span class="icon-container">
+                  <i
+                    class="iconfont icon-close"
+                    @click.stop="delSearchHistoryItem(searchHistory)"
+                  >
+                  </i>
+                </span>
+              </div>
+            </transition-group>
           </div>
         </div>
       </div>
     </div>
     <!--搜索结果展示区域-->
-    <div class="search-songs-wrapper" v-show="songs.length > 0">
-      <div
-        class="search-songs-scroll-wrapper"
-        ref="searchSongsWrapperScrollRef"
-        :style="{ height: searchShowSectionHeight + 'px' }"
-      >
-        <div>
-          <div
-            class="song-item-wrapper"
-            v-for="(song, index) of songs"
-            :key="song.id"
-            @click.stop="selectSong(song)"
-          >
-            <div class="img-wrapper">
-              <img
-                :src="require('@/assets/images/music-logo-big.png')"
-                alt=""
-              />
-            </div>
-            <div class="song-info">
-              <span class="song-name">{{ song.name }}</span>
-              <span class="song-singer">{{ song.singer }}</span>
+    <transition name="fade">
+      <div class="search-songs-wrapper" v-show="songs.length > 0">
+        <div
+          class="search-songs-scroll-wrapper"
+          ref="searchSongsWrapperScrollRef"
+          :style="{ height: searchShowSectionHeight + 'px' }"
+        >
+          <div>
+            <div
+              class="song-item-wrapper"
+              v-for="(song, index) of songs"
+              :key="song.id"
+              @click.stop="selectSong(song)"
+            >
+              <div class="img-wrapper">
+                <img
+                  :src="require('@/assets/images/music-logo-big.png')"
+                  alt=""
+                />
+              </div>
+              <div class="song-info">
+                <span class="song-name">{{ song.name }}</span>
+                <span class="song-singer">{{ song.singer }}</span>
+              </div>
             </div>
           </div>
         </div>
       </div>
-    </div>
+    </transition>
   </div>
 </template>
 
 <script>
 import { getHotKeys, search } from "@/service/search";
+import { myProcessSongs, searchSong } from "@/api/song";
 import { debounce } from "throttle-debounce";
 import BScroll from "better-scroll";
 import { nextTick } from "vue";
@@ -115,7 +125,7 @@ export default {
     };
   },
   computed: {
-    ...mapState(["searchHistoryList"]),
+    ...mapState(["searchHistoryList", "fullScreen"]),
   },
   async created() {
     try {
@@ -126,6 +136,12 @@ export default {
     } catch (err) {}
   },
   watch: {
+    fullScreen: {
+      async handler() {
+        await nextTick();
+        this.scrollInstance.refresh();
+      },
+    },
     searchHistoryList: {
       async handler() {
         await nextTick();
@@ -192,6 +208,7 @@ export default {
     ...mapActions(["addSongToPlayList"]),
     // 搜索历史item 点击事件
     searchHistoryClickHandle(searchHistory) {
+      this.keyword = searchHistory.searchWord;
       console.log(searchHistory, "searchHistory");
     },
     // 用户点击了搜索到的歌曲
@@ -250,39 +267,48 @@ export default {
         return;
       }
       try {
-        const result = await request("/cloudsearch", {
+        // const result = await request("/cloudsearch", {
+        //   keywords: this.keyword,
+        //   limit: 100,
+        // });
+        const result = await searchSong({
           keywords: this.keyword,
           limit: 100,
         });
-        this.addTextToSearchHistoryList(this.keyword);
-        console.log(result, "result");
-        if (result.code === 200) {
-          let songs = result.result.songs.slice();
-          let arrId = songs.map((song) => song.id).join(",");
-          const result2 = await request("/song/url", {
-            id: arrId,
-          });
-          let song2 = result2.data;
-          songs.forEach((item) => {
-            const findItem = song2.find((item2) => item2.id === item.id);
-            item.url = findItem.url;
-          });
-          //console.log(result2, "result2");
-          console.log(songs, "processSongs");
-          songs = songs.map((item) => ({
-            url: item.url,
-            name: item.name,
-            singer: item.ar[0].name,
-            pic: item.al.picUrl,
-            id: item.id,
-            duration: Math.ceil(item.dt / 1000),
-            album: item.al.name,
-          }));
-          console.log(songs, "songssongssongssongs");
-          this.songs = songs;
-          await nextTick();
-          // this.recentlyPlayListSectionScrollInstance.refresh();
-        }
+        // 处理 url
+        this.songs = await myProcessSongs(result);
+        console.log(this.songs, "this.songs//////////////////////////");
+        // debugger;
+        this.addTextToSearchHistoryList({ searchWord: this.keyword });
+        //console.log(result, "result");
+        //    if (result.code === 200) {
+        // let songs = result.result.songs.slice();
+        // songs = await myProcessSongs(songs);
+        // songs = songs.map((item) => ({
+        //   url: item.url,
+        //   name: item.name,
+        //   singer: item.ar[0].name,
+        //   pic: item.al.picUrl,
+        //   id: item.id,
+        //   duration: item.dt / 1000,
+        //   album: item.al.name,
+        //   isWY: true,
+        // }));
+        //  this.songs = songs;
+        //  console.log(this.songs, "this.songs");
+        // const result2 = await request("/song/url", {
+        //   id: arrId,
+        // });
+        // let song2 = result2.data;
+        // songs.forEach((item) => {
+        //   const findItem = song2.find((item2) => item2.id === item.id);
+        //   item.url = findItem.url;
+        // });
+        // //console.log(result2, "result2");
+        // console.log(songs, "processSongs");
+        //  }
+        await nextTick();
+        this.recentlyPlayListSectionScrollInstance.refresh();
       } catch (err) {}
     },
   },
@@ -372,6 +398,7 @@ export default {
 
   .scroll-wrapper {
     flex: 0 0 1;
+    box-sizing: border-box;
     overflow: hidden;
   }
   .search-history-title {

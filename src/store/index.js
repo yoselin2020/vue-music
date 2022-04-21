@@ -30,51 +30,7 @@ export default createStore({
     recentlyPlayList: storage.get(recentlyPlayListKEY) || [],
     // 搜索历史
     //searchHistoryList: storage.get(SearchHistoryListKEY) || [],
-    searchHistoryList: [
-      { searchWord: "我们的歌" },
-      { searchWord: "张杰" },
-      { searchWord: "冰雪奇缘2" },
-      { searchWord: "桥边姑娘" },
-      { searchWord: "我们的歌" },
-      { searchWord: "张杰" },
-      { searchWord: "冰雪奇缘2" },
-      { searchWord: "桥边姑娘" },
-      { searchWord: "我们的歌" },
-      { searchWord: "张杰" },
-      { searchWord: "冰雪奇缘2" },
-      { searchWord: "桥边姑娘" },
-      { searchWord: "我们的歌" },
-      { searchWord: "张杰" },
-      { searchWord: "冰雪奇缘2" },
-      { searchWord: "桥边姑娘" },
-      { searchWord: "桥边姑娘" },
-      { searchWord: "我们的歌" },
-      { searchWord: "张杰" },
-      { searchWord: "冰雪奇缘2" },
-      { searchWord: "桥边姑娘" },
-      { searchWord: "我们的歌" },
-      { searchWord: "张杰" },
-      { searchWord: "冰雪奇缘2" },
-      { searchWord: "桥边姑娘" },
-      { searchWord: "桥边姑娘" },
-      { searchWord: "我们的歌" },
-      { searchWord: "张杰" },
-      { searchWord: "冰雪奇缘2" },
-      { searchWord: "桥边姑娘" },
-      { searchWord: "我们的歌" },
-      { searchWord: "张杰" },
-      { searchWord: "冰雪奇缘2" },
-      { searchWord: "桥边姑娘" },
-      { searchWord: "桥边姑娘" },
-      { searchWord: "我们的歌" },
-      { searchWord: "张杰" },
-      { searchWord: "冰雪奇缘2" },
-      { searchWord: "桥边姑娘" },
-      { searchWord: "我们的歌" },
-      { searchWord: "张杰" },
-      { searchWord: "冰雪奇缘2" },
-      { searchWord: "桥边姑娘" },
-    ],
+    searchHistoryList: storage.get(SearchHistoryListKEY) || [],
   },
   getters: {
     playList: (state) => state.playList,
@@ -91,6 +47,10 @@ export default createStore({
     //喜欢的歌曲
   },
   mutations: {
+    // 设置我喜欢的歌曲列表
+    setFavoriteSongList(state, list) {
+      state.favoriteSongList = list;
+    },
     // 设置搜索历史列表
     setSearchHistoryList(state, list) {
       state.searchHistoryList = list;
@@ -105,6 +65,12 @@ export default createStore({
         state.searchHistoryList.unshift({
           searchWord: history.searchWord,
         });
+      } else {
+        let index = state.searchHistoryList.findIndex(
+          (item) => item.searchWord === findItem.searchWord
+        );
+        state.searchHistoryList.splice(index, 1);
+        state.searchHistoryList.unshift(findItem);
       }
       storage.set(SearchHistoryListKEY, state.searchHistoryList);
     },
@@ -119,7 +85,7 @@ export default createStore({
       }
     },
     // 设置最近播放的歌曲
-    recentlyPlayList(state, list) {
+    setRecentlyPlayList(state, list) {
       state.recentlyPlayList = list;
       storage.set(recentlyPlayListKEY, list);
     },
@@ -206,7 +172,7 @@ export default createStore({
       commit("addRecentlyPlaySong", song);
       //debugger;
       let findSong = playList.find((item) => item.id === song.id);
-      console.log(findSong, "findSong");
+      // console.log(findSong, "findSong");
       //debugger;
       if (!findSong) {
         playList.push(song);
@@ -228,6 +194,7 @@ export default createStore({
         i = state.playList.findIndex((item) => item.id === song.id);
         commit("setCurrentIndex", i);
       }
+      commit("setFullScreen", true);
       commit("setPlaying", true);
     },
     // 删除一首歌曲

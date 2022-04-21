@@ -16,6 +16,7 @@
     "express": "^4.17.3",
     "js-base64": "^3.7.2",
     "lyric-parser": "^1.0.1",
+    "nanoid": "^3.3.3",
     "pinyin": "^2.11.2",
     "postcss-px-to-viewport": "^1.1.1",
     "storejs": "^2.0.1",

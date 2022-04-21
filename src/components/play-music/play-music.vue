@@ -6,14 +6,25 @@
         <i class="iconfont icon-back" @click="noFullScreen"></i>
         <span class="song-name">{{ currentSong.name }}</span>
       </header>
-      <div class="singer-name">{{ currentSong.singer }}</div>
-      <div class="cd-swiper-wrapper">
+      <div class="singer-name">
+        <span>
+          {{ currentSong.singer }}
+        </span>
+      </div>
+      <div
+        class="cd-swiper-wrapper"
+        @touchstart="cdTouchstart"
+        @touchmove="cdTouchmove"
+        @touchend="cdTouchend"
+      >
         <swiper
+          ref="cdSwiperRef"
           class="my-swipe"
           :modules="modules"
           :pagination="{ clickable: true }"
+          @slideChange="cdSectionSwiperChange"
         >
-          <swiper-slide class="slide">
+          <swiper-slide class="slide" ref="cdSwiperSlideRef">
             <div class="singer-pic-wrapper">
               <div class="pic-box" ref="picBoxRef">
                 <img
@@ -266,6 +277,7 @@ import BScroll from "better-scroll";
 import storage from "storejs";
 import { Dialog, Toast } from "vant";
 import AddSong from "@/components/add-song/add-song";
+import { myProcessSongs } from "@/api/song";
 // 音乐标签对应ref
 const audioRef = ref(null);
 const modules = [Pagination];
@@ -282,15 +294,85 @@ function showAddSongSection() {
 function hideAddSongSection() {
   isShowAddSongSection.value = false;
 }
+const cdSwiperActiveIndex = ref(0);
+const cdSwiperSlideRef = ref(null);
+const slideChangeFull = ref(false);
+// onMounted(() => {
+//   console.log(cdSwiperRef.value, "cdSwiperRef.value");
+//   // debugger;
+// });
+
+// cd 唱片部分swiper切换
+function cdSectionSwiperChange(event) {
+  let activeIndex = event.activeIndex;
+  //slideChangeFull.value = true;
+  setTimeout(() => {
+    cdSwiperActiveIndex.value = activeIndex;
+    //   slideChangeFull.value = false;
+  }, 500);
+  //console.log(activeIndex, "activeIndexqq");
+}
+let cdStartPageX = 0,
+  cdMovePageX = 0;
+function cdTouchstart(event) {
+  cdStartPageX = event.touches[0].pageX;
+  // console.log(event, "cdTouchstart");
+}
+function cdTouchmove(event) {
+  cdMovePageX = event.touches[0].pageX;
+  //console.log(event, "cdTouchmove");
+}
+
+function cdTouchend(event) {
+  //debugger;
+  // if (!slideChangeFull.value) {
+  //   return;
+  // }
+  let cdSwiperActiveIndexVal = cdSwiperActiveIndex.value;
+  let value = Math.floor(cdMovePageX) - Math.floor(cdStartPageX);
+  if (cdSwiperActiveIndexVal === 1 && value < 0) {
+    // 向左边移动,切换下一首歌曲
+    value = Math.abs(value);
+    // 判断距离是不是大于等于 50
+    //  console.log(value, "大于50吗?");
+    if (value >= 50) {
+      nextSong();
+    }
+    slideChangeFull.value = false;
+  }
+  if (cdSwiperActiveIndexVal === 0 && value > 0) {
+    // 向右边移动,切换上一首歌曲
+    value = Math.abs(value);
+    if (value >= 50) {
+      prevSong();
+    }
+  }
+}
+
 // 播放器 报错了
-function error() {
-  Toast({
-    type: "fail",
-    message: "对不起,该歌曲需要登录",
-  });
+async function error() {
+  // 歌曲播放出错,有可能是歌曲url地址过期了
+  // Toast({
+  //   type: "fail",
+  //   message: "对不起,该歌曲需要登录",
+  // });
+  // 拿到歌曲我们直接去获取一个url
+  let song = currentSong.value;
+  if (song.isWY) {
+    //网易云音乐的路径
+    let [songObj] = await myProcessSongs([song]);
+    currentSong.value.url = songObj.url;
+    audioRef.value.src = songObj.url;
+  } else {
+    //qq音乐
+    let [songObj] = await myProcessSongs([song]);
+    currentSong.value.url = songObj.url;
+    audioRef.value.src = songObj.url;
+  }
+  store.commit("setPlaying", true);
   //console.log("error", "播放器报错了");
   // 切换到下一首歌曲
-  nextSong();
+  //nextSong();
 }
 
 // 迷你播放器 滑动切歌
@@ -340,6 +422,14 @@ const currentTime = ref(0);
 const currentSong = computed(() => {
   return store.getters.currentSong;
 });
+
+const cdSwiperRef = ref(null);
+
+// onMounted(() => {
+//   console.log(cdSwiperRef.value, "cdSwiperRef.valuecdSwiperRef.value");
+//   let activeIndex = cdSwiperRef.value.activeIndex;
+//   console.log(activeIndex, "activeIndexactiveIndex");
+// });
 
 //是否正在播放
 const isPlaying = computed(() => {
@@ -519,21 +609,24 @@ watch(fullScreen, async (newVal) => {
   }
   await nextTick();
   scrollToCurrentSongSection();
-  await nextTick();
   if (!scrollRef.value) {
     return;
   }
-
-  const childrens = scrollRef.value
-    .querySelector(".lyric-wrapper")
-    .querySelectorAll(".lyric-text");
-  const scrollWrapperValue = scrollWrapper.value;
-  if (scrollWrapperValue) {
-    if (lineNum > 5) {
-      lineNum -= 5;
-    }
-    scrollWrapperValue.scrollToElement(childrens[lineNum], 1000);
+  if (scrollWrapper.value) {
+    scrollWrapper.value.refresh();
   }
+  // if (newVal) {
+  //   const childrens = scrollRef.value
+  //     .querySelector(".lyric-wrapper")
+  //     .querySelectorAll(".lyric-text");
+  //   const scrollWrapperValue = scrollWrapper.value;
+  //   if (scrollWrapperValue) {
+  //     if (lineNum > 5) {
+  //       lineNum -= 5;
+  //     }
+  //     scrollWrapperValue.scrollToElement(childrens[lineNum], 1000);
+  //   }
+  // }
   await nextTick();
   scrollToCurrentSongSection();
 });
@@ -979,6 +1072,7 @@ defineExpose({
           //background-color: red;
           padding: 5px 0;
           font-size: 14px;
+          line-height: 15px;
           color: $color-text-d;
         }
       }
@@ -1102,6 +1196,13 @@ defineExpose({
     margin-bottom: 20px;
     text-align: center;
     font-size: 14px;
+    span {
+      display: inline-block;
+      width: 250px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
   }
   .singer-pic-wrapper {
     .pic-box {
@@ -1123,6 +1224,12 @@ defineExpose({
     margin-top: 30px;
     text-align: center;
     .text {
+      display: inline-block;
+      width: 300px;
+      overflow: hidden;
+      text-align: center;
+      text-overflow: ellipsis;
+      white-space: nowrap;
       font-size: 14px;
       color: $color-text-d;
     }

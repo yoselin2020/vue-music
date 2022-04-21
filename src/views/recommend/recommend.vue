@@ -1,5 +1,5 @@
 <template>
-  <scroll @scroll="scroll">
+  <scroll @scroll="scroll" ref="scrollRef">
     <div class="recommend">
       <van-swipe
         class="my-swipe"
@@ -59,6 +59,7 @@ import { getAlbum, getRecommend } from "@/service/recommend";
 
 import Scroll from "@/components/scroll/scroll";
 import { processSongs } from "@/service/song";
+import { nextTick } from "vue";
 export default {
   name: "Recommend",
   data() {
@@ -74,6 +75,22 @@ export default {
   components: {
     Scroll,
   },
+  watch: {
+    sliders: {
+      async handler() {
+        //console.log(this.$refs.scrollRef, "this.$refs.scrollRef");
+        await nextTick();
+        this.$refs.scrollRef.scroll.refresh();
+        // this.$refs.scrollRef.scroll.value.refresh();
+      },
+      albums: {
+        async handler() {
+          await nextTick();
+          this.$refs.scrollRef.scroll.refresh();
+        },
+      },
+    },
+  },
   async created() {
     try {
       const result = await getRecommend();
@@ -86,7 +103,7 @@ export default {
       console.log("imgLoadError");
     },
     change(event) {
-      console.log(event, "event");
+      //   console.log(event, "event");
     },
     async albumClickHandle(album) {
       console.log(album, "album");

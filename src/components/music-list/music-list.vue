@@ -31,7 +31,11 @@
               </div>
               <div class="song-desc">
                 <p class="song-name">{{ song.name }}</p>
-                <p class="song-singer">{{ song.singer }}</p>
+                <p class="song-singer">
+                  <span>
+                    {{ song.singer }}
+                  </span>
+                </p>
               </div>
             </div>
           </div>
@@ -56,6 +60,7 @@ import {
   nextTick,
   onUnmounted,
   computed,
+  watch,
 } from "vue";
 
 import BScroll from "better-scroll";
@@ -75,6 +80,12 @@ const props = defineProps({
   songs: {
     type: Array,
   },
+});
+watch(props.songs, async (newSongs) => {
+  if (newSongs && newSongs.length > 0) {
+    await nextTick();
+    scrollInstance.value.refresh();
+  }
 });
 // 随机播放全部
 function randomPlay() {
@@ -184,8 +195,16 @@ onMounted(async () => {
               flex-direction: column;
               justify-content: space-evenly;
               .song-singer {
-                font-size: 12px;
-                color: $color-text-d;
+                text-align: left;
+                span {
+                  font-size: 12px;
+                  display: inline-block;
+                  width: 250px;
+                  overflow: hidden;
+                  text-overflow: ellipsis;
+                  white-space: nowrap;
+                  color: $color-text-d;
+                }
               }
               .song-name {
                 font-size: 14px;
