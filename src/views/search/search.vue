@@ -7,68 +7,72 @@
       background="#222222"
     />
     <!--  hot-search   -->
-    <div
-      class="hot-search-wrapper"
-      ref="_hotSearchWrapperRef"
-      v-show="hotKeys.length && songs.length === 0"
-    >
-      <header class="header" ref="hotSearchHeaderRef">
-        <span class="title">热门搜索</span>
-      </header>
-      <div class="hot-search-record" ref="hotSearchRecordRef">
-        <template v-for="item of hotKeys" :key="item.id">
-          <span class="text" @click.stop="hotSearchItemClick(item)">{{
-            item.searchWord
-          }}</span>
-        </template>
-      </div>
-    </div>
-    <!--搜索历史展示区域-->
-    <div
-      :style="isPaddingBottom"
-      v-show="searchHistoryList.length && songs.length === 0"
-    >
-      <header class="search-history-title" ref="searchHistoryTitle">
-        <span class="text">搜索历史</span>
-        <span class="icon-wrapper" @click.stop="clearSearchRecord"
-          ><i class="iconfont icon-clear"></i
-        ></span>
-      </header>
+    <transition name="leave">
       <div
-        class="scroll-wrapper"
-        ref="scrollRef"
-        :style="[
-          {
-            height: searchHistorySectionHeight + 'px',
-          },
-          isPaddingBottom,
-        ]"
+        class="hot-search-wrapper"
+        ref="_hotSearchWrapperRef"
+        v-show="hotKeys.length && songs.length === 0"
       >
-        <div class="search-history-wrapper">
-          <div class="search-history-content">
-            <transition-group name="leave">
-              <div
-                class="search-history-item"
-                v-for="(searchHistory, index) of searchHistoryList"
-                :key="searchHistory.searchWord"
-                @click.stop="searchHistoryClickHandle(searchHistory)"
-              >
-                <span class="search-txt">{{ searchHistory.searchWord }}</span>
-                <span class="icon-container">
-                  <i
-                    class="iconfont icon-close"
-                    @click.stop="delSearchHistoryItem(searchHistory)"
-                  >
-                  </i>
-                </span>
-              </div>
-            </transition-group>
+        <header class="header" ref="hotSearchHeaderRef">
+          <span class="title">热门搜索</span>
+        </header>
+        <div class="hot-search-record" ref="hotSearchRecordRef">
+          <template v-for="item of hotKeys" :key="item.id">
+            <span class="text" @click.stop="hotSearchItemClick(item)">{{
+              item.searchWord
+            }}</span>
+          </template>
+        </div>
+      </div>
+    </transition>
+    <!--搜索历史展示区域-->
+    <transition name="leave">
+      <div
+        :style="isPaddingBottom"
+        v-show="searchHistoryList.length && songs.length === 0"
+      >
+        <header class="search-history-title" ref="searchHistoryTitle">
+          <span class="text">搜索历史</span>
+          <span class="icon-wrapper" @click.stop="clearSearchRecord"
+            ><i class="iconfont icon-clear"></i
+          ></span>
+        </header>
+        <div
+          class="scroll-wrapper"
+          ref="scrollRef"
+          :style="[
+            {
+              height: searchHistorySectionHeight + 'px',
+            },
+            isPaddingBottom,
+          ]"
+        >
+          <div class="search-history-wrapper">
+            <div class="search-history-content">
+              <transition-group name="leave">
+                <div
+                  class="search-history-item"
+                  v-for="(searchHistory, index) of searchHistoryList"
+                  :key="searchHistory.searchWord"
+                  @click.stop="searchHistoryClickHandle(searchHistory)"
+                >
+                  <span class="search-txt">{{ searchHistory.searchWord }}</span>
+                  <span class="icon-container">
+                    <i
+                      class="iconfont icon-close"
+                      @click.stop="delSearchHistoryItem(searchHistory)"
+                    >
+                    </i>
+                  </span>
+                </div>
+              </transition-group>
+            </div>
           </div>
         </div>
       </div>
-    </div>
+    </transition>
     <!--搜索结果展示区域-->
-    <transition name="fade">
+    <transition name="leave-left">
       <div class="search-songs-wrapper" v-show="songs.length > 0">
         <div
           class="search-songs-scroll-wrapper"

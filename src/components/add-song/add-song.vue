@@ -23,6 +23,7 @@
           <div class="playlist-wrapper">
             <div
               class="playlist-item"
+              :class="song.id === currentSong.id ? 'active' : ''"
               v-for="song of recentlyPlayList"
               :key="song.id"
               @click.stop="songClickHandle(song)"
@@ -37,17 +38,19 @@
       <div class="search-record-section" v-show="currentIndex === 1">
         <div class="search-record-section-wrapper" ref="searchRecordSectionRef">
           <div>
-            <div
-              class="search-record-item"
-              v-for="(item, index) of searchHistoryList"
-              :key="item.searchWord"
-            >
-              <span class="text">{{ item.searchWord }}</span>
-              <i
-                class="iconfont icon-close"
-                @click.stop="delSearchHistory(item)"
-              ></i>
-            </div>
+            <transition-group name="leave">
+              <div
+                class="search-record-item"
+                v-for="(item, index) of searchHistoryList"
+                :key="item.searchWord"
+              >
+                <span class="text">{{ item.searchWord }}</span>
+                <i
+                  class="iconfont icon-close"
+                  @click.stop="delSearchHistory(item)"
+                ></i>
+              </div>
+            </transition-group>
           </div>
         </div>
       </div>
@@ -58,7 +61,12 @@
     >
       <div class="scroll-wrapper" ref="searchResultWrapperRef">
         <div>
-          <div class="song-item" v-for="(song, index) of songs" :key="song.id">
+          <div
+            class="song-item"
+            v-for="(song, index) of songs"
+            :key="song.id"
+            :class="song.id === currentSong.id ? 'active' : ''"
+          >
             <div @click.stop="selectSong(song)">
               <span class="song-name">{{ song.name }}</span>
               <span class="song-singer">{{ song.singer }}</span>
@@ -73,7 +81,7 @@
 <script>
 import request from "@/request";
 import SwitchTab from "@/components/switch-tab/switch-tab";
-import { mapActions, mapMutations, mapState } from "vuex";
+import { mapActions, mapMutations, mapState, mapGetters } from "vuex";
 import BScroll from "better-scroll";
 import { debounce } from "throttle-debounce";
 import { nextTick } from "vue";
@@ -108,6 +116,7 @@ export default {
   },
   computed: {
     ...mapState(["recentlyPlayList", "searchHistoryList"]),
+    ...mapGetters(["currentSong"]),
   },
   watch: {
     currentIndex: {
@@ -176,7 +185,7 @@ export default {
       console.log(song);
     },
     async searchHandle(newVal) {
-      if (newVal.trim() === "") {
+      if (newVal.searchWord.trim() === "") {
         this.songs = [];
         return;
       }
@@ -185,7 +194,7 @@ export default {
           keywords: this.keyword,
           limit: 100,
         });
-        this.addTextToSearchHistoryList(this.keyword);
+        this.addTextToSearchHistoryList({ searchWord: this.keyword });
         console.log(result, "result");
         if (result.code === 200) {
           let songs = result.result.songs.slice();
@@ -284,6 +293,8 @@ export default {
     line-height: 30px;
     position: relative;
     text-align: center;
+    font-size: 14px;
+    color: $color-theme;
     .icon-wrapper {
       position: absolute;
       top: 50%;
@@ -307,6 +318,7 @@ export default {
         justify-content: space-between;
         margin: 10px 0;
         .text {
+          color: $color-text-d;
           font-size: 14px;
         }
         i {
@@ -328,10 +340,26 @@ export default {
     }
     .playlist-wrapper {
       .playlist-item {
+        margin: 5px 0;
+        padding-left: 10px;
         display: flex;
-        height: 60px;
+        height: 35px;
         flex-direction: column;
         justify-content: space-evenly;
+
+        &.active {
+          position: relative;
+          &::before {
+            position: absolute;
+            left: 0;
+            top: 0;
+            height: 100%;
+            width: 2px;
+            background-color: #ffcd32;
+            content: "";
+          }
+        }
+
         .song-name {
           font-size: 14px;
         }

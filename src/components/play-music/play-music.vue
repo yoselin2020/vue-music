@@ -1511,7 +1511,7 @@ defineExpose({
         //  color: $color-theme;
       }
       .icon-playlist {
-        font-size: 30px;
+        font-size: 26px;
         color: $color-theme;
       }
     }
