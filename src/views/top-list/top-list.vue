@@ -9,7 +9,7 @@
           @click.stop="toTopListDetail(top)"
         >
           <div class="img-wrapper">
-            <img :src="top.pic" :alt="topList.name" />
+            <img v-lazy="top.pic" :alt="topList.name" />
           </div>
           <div class="song-list-wrapper">
             <div
@@ -27,10 +27,9 @@
     </div>
     <router-view v-slot="{ Component }">
       <transition name="move">
-        <component :is="Component" :pic="pic" :title="title" />
+        <component :pic="pic" :title="title" :is="Component" />
       </transition>
     </router-view>
-    <!--    <router-view :pic="pic" :title="title"></router-view>-->
   </div>
 </template>
 

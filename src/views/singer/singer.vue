@@ -21,7 +21,7 @@
               :key="idx"
               @click.stop="toSingerDetail(innerSinger)"
             >
-              <img :src="innerSinger.pic" alt="" />
+              <img v-lazy="innerSinger.pic" alt="" />
               <span class="singer-name">{{ innerSinger.name }}</span>
             </div>
           </div>
@@ -35,7 +35,6 @@
       <component :is="Component" :pic="pic" :title="title" />
     </transition>
   </router-view>
-  <!--  <router-view :pic="pic" :title="title"></router-view>-->
 </template>
 
 <script>

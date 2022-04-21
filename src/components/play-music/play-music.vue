@@ -237,9 +237,10 @@
     </div>
   </transition>
   <!--  </div>-->
-  <div v-if="isShowAddSongSection">
-    <add-song @hide="hideAddSongSection"></add-song>
-  </div>
+
+  <transition name="popup">
+    <add-song v-if="isShowAddSongSection" @hide="hideAddSongSection"></add-song>
+  </transition>
 
   <audio
     ref="audioRef"
@@ -328,6 +329,7 @@ function cdTouchend(event) {
   // if (!slideChangeFull.value) {
   //   return;
   // }
+  const OFFSET = 80;
   let cdSwiperActiveIndexVal = cdSwiperActiveIndex.value;
   let value = Math.floor(cdMovePageX) - Math.floor(cdStartPageX);
   if (cdSwiperActiveIndexVal === 1 && value < 0) {
@@ -335,7 +337,7 @@ function cdTouchend(event) {
     value = Math.abs(value);
     // 判断距离是不是大于等于 50
     //  console.log(value, "大于50吗?");
-    if (value >= 50) {
+    if (value >= OFFSET) {
       nextSong();
     }
     slideChangeFull.value = false;
@@ -343,7 +345,7 @@ function cdTouchend(event) {
   if (cdSwiperActiveIndexVal === 0 && value > 0) {
     // 向右边移动,切换上一首歌曲
     value = Math.abs(value);
-    if (value >= 50) {
+    if (value >= OFFSET) {
       prevSong();
     }
   }
@@ -357,22 +359,32 @@ async function error() {
   //   message: "对不起,该歌曲需要登录",
   // });
   // 拿到歌曲我们直接去获取一个url
-  let song = currentSong.value;
-  if (song.isWY) {
-    //网易云音乐的路径
-    let [songObj] = await myProcessSongs([song]);
-    currentSong.value.url = songObj.url;
-    audioRef.value.src = songObj.url;
-  } else {
-    //qq音乐
-    let [songObj] = await myProcessSongs([song]);
-    currentSong.value.url = songObj.url;
-    audioRef.value.src = songObj.url;
+  try {
+    let song = currentSong.value;
+    if (song.isWY) {
+      //网易云音乐的路径
+      let [songObj] = await myProcessSongs([song]);
+      if (songObj) {
+        currentSong.value.url = songObj.url;
+        audioRef.value.src = songObj.url;
+      }
+      debugger;
+    } else {
+      //qq音乐
+      let [songObj] = await myProcessSongs([song]);
+      if (songObj) {
+        currentSong.value.url = songObj.url;
+        audioRef.value.src = songObj.url;
+      }
+      debugger;
+    }
+  } catch (err) {
+    store.commit("setPlaying", true);
+    nextSong();
   }
   store.commit("setPlaying", true);
   //console.log("error", "播放器报错了");
   // 切换到下一首歌曲
-  //nextSong();
 }
 
 // 迷你播放器 滑动切歌
@@ -389,6 +401,11 @@ function switchSong(index) {
 function showMask() {
   isShowMask.value = true;
 }
+watch(isShowAddSongSection, (newVal) => {
+  if (newVal) {
+    hideMask();
+  }
+});
 function hideMask() {
   isShowMask.value = false;
 }
@@ -450,6 +467,8 @@ function playingSong(song) {
   if (i > -1) {
     store.commit("setCurrentIndex", i);
     store.commit("setPlaying", true);
+  } else {
+    // 如果没有找到
   }
 }
 
@@ -501,14 +520,16 @@ watch(isShowMask, async () => {
 });
 async function scrollToCurrentSongSection() {
   await nextTick();
-  const scroll = playListScrollInstance.value;
-  const children = playListScrollRef.value.querySelectorAll(
-    ".play-list-item-wrapper"
-  );
-  if (scroll) {
-    scroll.refresh();
-    scroll.scrollToElement(children[currentSongIndex.value], 100);
-  }
+  setTimeout(() => {
+    const scroll = playListScrollInstance.value;
+    const children = playListScrollRef.value.querySelectorAll(
+      ".play-list-item-wrapper"
+    );
+    if (scroll) {
+      scroll.refresh();
+      scroll.scrollToElement(children[currentSongIndex.value], 100);
+    }
+  }, 500);
 }
 watch(playList, async () => {
   await nextTick();
@@ -632,6 +653,9 @@ watch(fullScreen, async (newVal) => {
 });
 // 歌曲缓冲完毕
 async function canplay() {
+  audioRef.value.loop = playMode.value === PLAY_MODE.loop;
+  // debugger;
+  console.log("canplay方法执行了!!!!!");
   console.log(isPlaying.value, "isPlaying.value");
   playLyric();
   songReady.value = true;
@@ -789,6 +813,7 @@ function lyricTextClick(line, index) {
 // 切换播放的模式
 function togglePlayMode() {
   const mode = (playMode.value + 1) % 3;
+  audioRef.value.loop = mode === PLAY_MODE.loop;
   store.dispatch("changeMode", mode);
 }
 
@@ -809,22 +834,29 @@ function stopLyric() {
 }
 
 // 歌曲播放结束
-function ended() {
+async function ended() {
+  // debugger;
   currentTime.value = 0;
   audioRef.value.currentTime = 0;
   //console.log("歌曲播放结束了");
+  console.log(playMode.value, "playMode.valueplayMode.valueplayMode.value");
   if (playMode.value === PLAY_MODE.loop) {
+    currentTime.value = 0;
+    audioRef.value.currentTime = 0;
+    // debugger;
     //如果是单曲循环
-    if (!isPlaying.value) {
-      store.commit("setPlaying", true);
-    }
-    return;
-  }
-  if (!isPlaying.value) {
+    // 设置audio loop循环播放
+    await nextTick();
+    audioRef.value.loop = true;
+    // store.commit("setPlaying", true);
+    // currentTime.value = 0;
+    // audioRef.value.currentTime = 0;
+  } else {
+    audioRef.value.loop = false;
     store.commit("setPlaying", true);
+    // 歌曲自然播放结束调用下一首歌曲进行播放
+    nextSong();
   }
-  // 歌曲自然播放结束调用下一首歌曲进行播放
-  nextSong();
 }
 let pageX, rect;
 // 手指触摸开始

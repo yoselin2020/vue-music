@@ -8,7 +8,7 @@
       </header>
       <div class="random-play-all" @click.stop="randomPlay">
         <i class="iconfont icon-play"></i>
-        <span>随机播放全部</span>
+        <span>随机播放一首歌曲</span>
       </div>
     </div>
     <div class="play-list" :style="isPaddingBottom">

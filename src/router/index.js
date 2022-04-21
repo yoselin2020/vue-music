@@ -78,7 +78,9 @@ const routes = [
   {
     name: "user",
     path: "/user",
-    component: () => import("@/views/user/user.vue"),
+    components: {
+      user: () => import("@/views/user/user.vue"),
+    },
     meta: {
       title: "用户",
     },

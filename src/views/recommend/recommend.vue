@@ -46,12 +46,9 @@
   </scroll>
   <router-view v-slot="{ Component }">
     <transition name="move">
-      <component :is="Component" :pic="pic" :title="title" :songs="songs" />
+      <component :pic="pic" :title="title" :songs="songs" :is="Component" />
     </transition>
   </router-view>
-  <!--  <transition name="move">-->
-  <!--    <router-view :pic="pic" :title="title" :songs="songs"></router-view>-->
-  <!--  </transition>-->
 </template>
 
 <script>
@@ -92,6 +89,7 @@ export default {
     },
   },
   async created() {
+    //console.log("1545456445");
     try {
       const result = await getRecommend();
       this.albums = result.albums;
@@ -112,6 +110,7 @@ export default {
       this.title = album.title;
       const result = await getAlbum(album);
       let songs = await processSongs(result.songs);
+      console.log(songs, "songssongssongs");
       this.songs = songs;
       // console.log(songs, "songs");
       this.$router.push({

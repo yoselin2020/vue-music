@@ -16,7 +16,7 @@ export default {
 </script>
 
 <script setup>
-import { defineProps, onMounted, ref } from "vue";
+import { defineProps, onMounted, ref, onActivated } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import { getTopDetail } from "@/service/top-list";
 import { processSongs } from "@/service/song";
@@ -47,8 +47,8 @@ function selectSong(song) {
 }
 //period
 onMounted(async () => {
+  //console.log(props.songs, "....");
   if (!props.pic) {
-    let route = useRoute();
     //console.log(route.matched[1].path, "route.matched[1].path");
     router.push({
       path: "/top-list",
@@ -63,10 +63,14 @@ onMounted(async () => {
       period,
     });
     songs.value = await processSongs(result.songs);
-    store.commit("setSequenceList", songs.value);
+    //store.commit("setSequenceList", songs.value);
     //console.log(songs, "songs.value");
   } catch (err) {}
   // console.log(props.id, "props.id");
+});
+
+onActivated(() => {
+  console.log(props.songs, "songssongssongs");
 });
 </script>
 

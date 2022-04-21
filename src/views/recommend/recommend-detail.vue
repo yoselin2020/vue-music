@@ -22,7 +22,17 @@ export default {
     title: String,
     songs: Array,
   },
+  activated() {
+    if (!this.pic) {
+      //   console.log(this.$route.matched);
+      this.$router.push({
+        path: this.$route.matched[1].path,
+      });
+    }
+    console.log("activated");
+  },
   mounted() {
+    console.log("mounted");
     if (!this.pic) {
       //   console.log(this.$route.matched);
       this.$router.push({

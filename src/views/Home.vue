@@ -3,7 +3,9 @@
     <my-header></my-header>
     <tabbar></tabbar>
     <div class="scroll-wrapper" :style="isPaddingBottom">
-      <router-view></router-view>
+      <router-view v-slot="{ Component }">
+        <component :is="Component" />
+      </router-view>
     </div>
   </div>
 </template>
