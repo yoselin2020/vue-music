@@ -8,6 +8,7 @@
       {{ outSinger.title }}
     </div>
   </div>
+  <div class="fixedTitle" v-show="scrollY > 0">{{ fixedTitle }}</div>
   <scroll @scroll="scroll" ref="scrollRef">
     <div class="singer">
       <!--      <div class="fixedTitle" :style="fixedStyle">{{ fixedTitle }}</div>-->
@@ -79,7 +80,7 @@ export default {
       let result = await getSingerList();
       //console.log(result, "result");
       this.singers = result.singers;
-      await this.$nextTick();
+      await nextTick();
       // 获取每个item的高度
       const singerItemWrappers = document.querySelectorAll(
         ".singer-item-wrapper"
@@ -117,6 +118,7 @@ export default {
     scroll(pos) {
       let fixedTitleHeight = 30; // 30px
       this.scrollY = -pos.y;
+      //console.log(this.scrollY, "scrollYscrollY");
       for (let i = 0; i < this.clientHeights.length - 1; i++) {
         const prevHeight = this.clientHeights[i];
         const nextHeight = this.clientHeights[i + 1];
@@ -130,6 +132,20 @@ export default {
 </script>
 
 <style lang="scss" scoped>
+.fixedTitle {
+  position: fixed;
+  top: 70px;
+  left: 0;
+  padding-left: 15px;
+  width: 100%;
+  box-sizing: border-box;
+  font-size: $font-size-small;
+  color: $color-text-d;
+  line-height: 30px;
+  background-color: $color-highlight-background;
+  z-index: 10;
+}
+
 // 右侧索引导航区域
 .index-list-wrapper {
   box-sizing: border-box;
@@ -153,18 +169,7 @@ export default {
 }
 .singer {
   // 头部固定区域
-  .fixedTitle {
-    position: fixed;
-    top: 70px;
-    left: 0;
-    padding-left: 15px;
-    width: 100%;
-    box-sizing: border-box;
-    font-size: $font-size-small;
-    color: $color-text-d;
-    line-height: 30px;
-    background-color: $color-highlight-background;
-  }
+
   .singer-content {
     .singer-item-wrapper {
       .title {

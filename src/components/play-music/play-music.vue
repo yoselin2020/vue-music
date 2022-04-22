@@ -276,6 +276,7 @@ import storage from "storejs";
 import { Dialog, Toast } from "vant";
 import AddSong from "@/components/add-song/add-song";
 import { myProcessSongs } from "@/api/song";
+import { processSongs } from "@/service/song";
 // 音乐标签对应ref
 const audioRef = ref(null);
 const modules = [Pagination];
@@ -386,8 +387,8 @@ async function error() {
       }
       // debugger;
     } else {
-      //qq音乐
-      let [songObj] = await myProcessSongs([song]);
+      //qq音乐接口
+      let [songObj] = await processSongs([song]);
       if (songObj) {
         currentSong.value.url = songObj.url;
         audioRef.value.src = songObj.url;
@@ -395,12 +396,12 @@ async function error() {
       //  debugger;
     }
   } catch (err) {
+    console.log("error", "播放器报错了");
     store.commit("setPlaying", true);
+    // 切换到下一首歌曲
     nextSong();
   }
   store.commit("setPlaying", true);
-  //console.log("error", "播放器报错了");
-  // 切换到下一首歌曲
 }
 
 // 迷你播放器 滑动切歌
