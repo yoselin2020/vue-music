@@ -75,8 +75,9 @@ export default {
   watch: {
     sliders: {
       async handler() {
-        //console.log(this.$refs.scrollRef, "this.$refs.scrollRef");
         await nextTick();
+        // console.log(this.$refs.scrollRef.scroll.refresh);
+        // debugger;
         this.$refs.scrollRef.scroll.refresh();
         // this.$refs.scrollRef.scroll.value.refresh();
       },
@@ -88,8 +89,15 @@ export default {
       },
     },
   },
+  mounted() {},
+  async activated() {
+    await nextTick();
+    const scroll = this.$refs.scrollRef.scroll;
+    scroll.enable();
+    scroll.refresh();
+  },
+
   async created() {
-    //console.log("1545456445");
     try {
       const result = await getRecommend();
       this.albums = result.albums;
@@ -97,22 +105,15 @@ export default {
     } catch (err) {}
   },
   methods: {
-    imgLoadError() {
-      console.log("imgLoadError");
-    },
-    change(event) {
-      //   console.log(event, "event");
-    },
+    imgLoadError() {},
+    change(event) {},
     async albumClickHandle(album) {
-      console.log(album, "album");
       const id = album.id;
       this.pic = album.pic;
       this.title = album.title;
       const result = await getAlbum(album);
       let songs = await processSongs(result.songs);
-      console.log(songs, "songssongssongs");
       this.songs = songs;
-      // console.log(songs, "songs");
       this.$router.push({
         path: `/recommend/${id}`,
       });

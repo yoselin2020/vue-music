@@ -165,19 +165,23 @@ export default {
 
 <style lang="scss" scoped>
 .user {
-  position: relative;
+  position: fixed;
+  left: 0;
+  bottom: 0;
+  right: 0;
+  width: 100%;
   height: 100%;
-
+  background-color: #222222;
   .back {
     position: absolute;
     left: 10px;
-    top: 0;
+    top: 18px;
     color: $color-theme;
     font-size: 16px;
   }
   .tab-wrapper {
     position: relative;
-    margin: 20px auto 0;
+    margin: 10px auto 0;
     // border: 1px solid red;
     width: 240px;
     display: flex;

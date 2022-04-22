@@ -194,10 +194,6 @@ export default {
       click: true,
       observeDOM: true,
     });
-    console.log(
-      this.scrollInstance,
-      "this.scrollInstancethis.scrollInstanceaa"
-    );
     this.searchSongsWrapperScrollInstance = new BScroll(
       this.$refs.searchSongsWrapperScrollRef,
       {
@@ -221,7 +217,7 @@ export default {
     },
     // 用户点击了搜索到的歌曲
     async selectSong(song) {
-      console.log(song);
+      // console.log(song);
       if (
         !song.hasOwnProperty("id") ||
         !song.hasOwnProperty("url") ||
@@ -235,7 +231,7 @@ export default {
       });
       song.lyric = res.lrc.lyric;
       //  song.lyric = res.klyric.lyric;
-      console.log(res, "res");
+      // console.log(res, "res");
       this.addSongToPlayList(song);
       console.log(song);
     },
@@ -248,7 +244,7 @@ export default {
     async reqSearch() {
       try {
         const result = await search(this.keyword, this.page, this.showSinger);
-        console.log(result, "result");
+        // console.log(result, "result");
       } catch (err) {
         console.log(err, "请求出错了！");
       }
@@ -285,7 +281,7 @@ export default {
         });
         // 处理 url
         this.songs = await myProcessSongs(result);
-        console.log(this.songs, "this.songs//////////////////////////");
+        //console.log(this.songs, "this.songs//////////////////////////");
         // debugger;
         this.addTextToSearchHistoryList({ searchWord: this.keyword });
         //console.log(result, "result");

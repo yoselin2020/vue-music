@@ -40,7 +40,7 @@ export default {
 </script>
 <script setup>
 import { getTopList } from "@/service/top-list";
-import { nextTick, onMounted, ref } from "vue";
+import { onActivated, nextTick, onMounted, ref } from "vue";
 import BScroll from "better-scroll";
 
 import { useRouter } from "vue-router";
@@ -53,6 +53,13 @@ const topList = ref([]);
 const scrollRef = ref(null);
 const scrollInstance = ref(null);
 
+onActivated(async () => {
+  await nextTick();
+  if (scrollInstance.value) {
+    scrollInstance.value.refresh();
+  }
+  // console.log("top-list-activated");
+});
 function toTopListDetail(top) {
   //console.log(top);
   //  debugger;
@@ -60,8 +67,8 @@ function toTopListDetail(top) {
   let period = top.period;
   title.value = top.name;
   pic.value = top.pic;
-  console.log(id, "id");
-  console.log(`/top-list/${id}`, "`/top-list/${id}`");
+  //console.log(id, "id");
+  //  console.log(`/top-list/${id}`, "`/top-list/${id}`");
   router.push({
     path: `/top-list/${id}?period=${period}`,
   });

@@ -42,6 +42,7 @@ import { getSingerList } from "@/service/singer";
 import scroll from "@/components/scroll/scroll";
 import store from "storejs";
 import { mapMutations } from "vuex";
+import { nextTick } from "vue";
 export default {
   name: "Singer",
   components: { scroll },
@@ -56,6 +57,15 @@ export default {
       title: "",
     };
   },
+  // async activated() {
+  //   await nextTick();
+  //   this.$refs.scrollRef.scroll.enable();
+  //   this.$refs.scrollRef.scroll.refresh();
+  // },
+  // async deactivated() {
+  //   await nextTick();
+  //   this.$refs.scrollRef.scroll.disable();
+  // },
   computed: {
     fixedTitle() {
       if (this.singers.length) {

@@ -2,11 +2,7 @@
   <div class="home">
     <my-header></my-header>
     <tabbar></tabbar>
-    <div class="scroll-wrapper" :style="isPaddingBottom">
-      <router-view v-slot="{ Component }">
-        <component :is="Component" />
-      </router-view>
-    </div>
+    <div class="scroll-wrapper" :style="isPaddingBottom"></div>
   </div>
 </template>
 

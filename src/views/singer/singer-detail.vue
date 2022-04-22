@@ -35,7 +35,7 @@ export default {
       });
     }
     // const mid = this.$route.query.mid;
-    const mid = this.id;
+    const mid = this.$route.params.id;
     try {
       const result = await getSingerDetail({ mid });
       let songs = await processSongs(result.songs);

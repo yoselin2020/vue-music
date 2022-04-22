@@ -1,16 +1,19 @@
 <template>
+  <transition name="popdown">
+    <div class="top-title" v-show="fullScreen">
+      <header class="header">
+        <i class="iconfont icon-back" @click="noFullScreen"></i>
+
+        <span class="song-name">{{ currentSong.name }}</span>
+        <span class="singer-name">
+          {{ currentSong.singer }}
+        </span>
+      </header>
+    </div>
+  </transition>
   <!--大的播放器-->
   <transition name="move">
     <div class="play-music" v-show="fullScreen">
-      <header class="header">
-        <i class="iconfont icon-back" @click="noFullScreen"></i>
-        <span class="song-name">{{ currentSong.name }}</span>
-      </header>
-      <div class="singer-name">
-        <span>
-          {{ currentSong.singer }}
-        </span>
-      </div>
       <div
         class="cd-swiper-wrapper"
         @touchstart="cdTouchstart"
@@ -62,62 +65,56 @@
           </swiper-slide>
         </swiper>
       </div>
-      <!--  歌曲播放时长区域   -->
-      <div class="song-play-time-wrapper">
-        <span class="play-time">{{
-          formatDuration(Math.floor(currentTime))
-        }}</span>
-        <div
-          class="progress-wrapper"
-          ref="barRef"
-          @touchstart="touchstart"
-          @touchmove="touchmove"
-          @touchend="touchend"
-        >
-          <van-progress
-            stroke-width="4px"
-            color="#ffcd32"
-            track-color="#363b32"
-            :show-pivot="false"
-            :percentage="progressBarWidth"
-          />
-        </div>
-        <span class="song-duration">{{
-          formatDuration(Math.floor(currentSong.duration))
-        }}</span>
+    </div>
+  </transition>
+  <!--  歌曲播放时长区域   -->
+  <transition name="move">
+    <div
+      v-show="fullScreen"
+      :style="{ transition: `all .6s` }"
+      class="song-play-time-wrapper"
+    >
+      <span class="play-time">{{
+        formatDuration(Math.floor(currentTime))
+      }}</span>
+      <div
+        class="progress-wrapper"
+        ref="barRef"
+        @touchstart="touchstart"
+        @touchmove="touchmove"
+        @touchend="touchend"
+      >
+        <van-progress
+          stroke-width="4px"
+          color="#ffcd32"
+          track-color="#363b32"
+          :show-pivot="false"
+          :percentage="progressBarWidth"
+        />
       </div>
-      <!--控制按钮区域-->
-      <div class="play-control-wrapper">
-        <span class="play-mode-icon-wrapper">
-          <i
-            :class="['iconfont', playModeIcon]"
-            @click.stop="togglePlayMode"
-          ></i>
-        </span>
-        <i
-          class="iconfont icon-prev"
-          @click="prevSong"
-          :style="disableStyle"
-        ></i>
-        <span class="is-playing" @click="toggleSongPlay" :style="disableStyle">
-          <!--播放时候显示的按钮-->
-          <i
-            class="iconfont"
-            :class="isPlaying ? 'icon-pause' : 'icon-play'"
-          ></i>
-        </span>
-        <i
-          class="iconfont icon-next"
-          @click="nextSong"
-          :style="disableStyle"
-        ></i>
-        <i
-          class="iconfont"
-          @click.stop="favoriteIconClick(currentSong)"
-          :class="isFavorite(currentSong)"
-          :style="{ color: favoriteColor(currentSong) }"
-        ></i>
-      </div>
+      <span class="song-duration">{{
+        formatDuration(Math.floor(currentSong.duration))
+      }}</span>
+    </div>
+  </transition>
+  <!--控制按钮区域-->
+  <transition name="slide" :style="{ transition: `all 1s` }">
+    <div v-show="fullScreen" class="play-control-wrapper">
+      <span class="play-mode-icon-wrapper">
+        <i :class="['iconfont', playModeIcon]" @click.stop="togglePlayMode"></i>
+      </span>
+      <i class="iconfont icon-prev" @click="prevSong" :style="disableStyle"></i>
+      <span class="is-playing" @click="toggleSongPlay" :style="disableStyle">
+        <!--播放时候显示的按钮-->
+        <i class="iconfont" :class="isPlaying ? 'icon-pause' : 'icon-play'"></i>
+      </span>
+      <i class="iconfont icon-next" @click="nextSong" :style="disableStyle"></i>
+      <i
+        class="iconfont"
+        @click.stop="favoriteIconClick(currentSong)"
+        :class="isFavorite(currentSong)"
+        :style="{ color: favoriteColor(currentSong) }"
+      ></i>
     </div>
   </transition>
   <!--迷你的播放器-->
@@ -174,7 +171,6 @@
   <transition name="fade">
     <div class="mask" @click.stop="hideMask" v-show="isShowMask"></div>
   </transition>
-  <!--  <div class="mask" @click.stop="hideMask" v-show="isShowMask">-->
   <transition name="popup">
     <div class="play-list" v-show="isShowMask">
       <header class="header">
@@ -237,11 +233,11 @@
     </div>
   </transition>
   <!--  </div>-->
-
+  <!-- 添加歌曲组件-->
   <transition name="popup">
     <add-song v-if="isShowAddSongSection" @hide="hideAddSongSection"></add-song>
   </transition>
-
+  <!--播放音乐标签-->
   <audio
     ref="audioRef"
     @canplay="canplay"
@@ -377,21 +373,17 @@ function cdTouchend(event) {
 // 播放器 报错了
 async function error() {
   // 歌曲播放出错,有可能是歌曲url地址过期了
-  // Toast({
-  //   type: "fail",
-  //   message: "对不起,该歌曲需要登录",
-  // });
   // 拿到歌曲我们直接去获取一个url
   try {
     let song = currentSong.value;
     if (song.isWY) {
-      //网易云音乐的路径
+      //某易云音乐的路径
       let [songObj] = await myProcessSongs([song]);
       if (songObj) {
         currentSong.value.url = songObj.url;
         audioRef.value.src = songObj.url;
       }
-      debugger;
+      // debugger;
     } else {
       //qq音乐
       let [songObj] = await myProcessSongs([song]);
@@ -399,7 +391,7 @@ async function error() {
         currentSong.value.url = songObj.url;
         audioRef.value.src = songObj.url;
       }
-      debugger;
+      //  debugger;
     }
   } catch (err) {
     store.commit("setPlaying", true);
@@ -1088,7 +1080,124 @@ defineExpose({
   transform: translateY(100%);
 }
 
+.popdown-enter-active,
+.popdown-leave-active {
+  transition: all 1s ease;
+}
+
+.popdown-enter-from,
+.popdown-leave-to {
+  transform: translateY(-100%);
+}
+
+.top-title {
+  height: 50px;
+  position: fixed;
+  left: 0;
+  top: 0;
+  width: 100%;
+  //line-height: 40px;
+  text-align: center;
+  background-color: #222222;
+  z-index: 999;
+  .header {
+    box-sizing: border-box;
+    position: relative;
+    height: 100%;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: space-evenly;
+    .icon-back {
+      position: absolute;
+      left: 15px;
+      top: 50%;
+      transform: translateY(-50%) rotate(180deg);
+      color: $color-theme;
+    }
+    .song-name {
+      padding-left: 6px;
+      font-size: 14px;
+      text-align: center;
+      color: #ffffff;
+    }
+    .singer-name {
+      text-align: center;
+      font-size: 16px;
+      display: inline-block;
+      width: 250px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+  }
+}
+
+// 播放进度条区域
+.song-play-time-wrapper {
+  box-sizing: border-box;
+  position: fixed;
+  bottom: 100px;
+  left: 0;
+  width: 100%;
+  padding: 10px 20px;
+  display: flex;
+  justify-content: space-evenly;
+  align-items: center;
+  z-index: 250;
+  // background-color: pink;
+
+  .play-time {
+    font-size: 12px;
+  }
+  .song-duration {
+    font-size: 13px;
+  }
+
+  .progress-wrapper {
+    padding: 5px 0;
+    //box-sizing: border-box;
+    margin: 0 10px;
+    flex: 1;
+    .van-progress {
+      ::v-deep(.van-progress__portion) {
+        // position: relative;
+        &::after {
+          position: absolute;
+          content: "";
+          right: 0;
+          top: 50%;
+          transform: translate(50%, -50%);
+          display: inline-block;
+          width: 10px;
+          height: 10px;
+          border: 2px solid #fff;
+          border-radius: 50%;
+          background-color: #ffcd32;
+        }
+      }
+    }
+  }
+}
+// 播放控制器区域
+.play-control-wrapper {
+  display: flex;
+  justify-content: space-evenly;
+  align-items: center;
+  position: fixed;
+  width: 100%;
+  height: 40px;
+  left: 0;
+  z-index: 300;
+  bottom: 40px;
+  color: $color-theme;
+  font-size: 30px;
+}
+
 .play-music {
+  box-sizing: border-box;
+  padding-top: 50px;
   position: fixed;
   left: 0;
   top: 0;
@@ -1181,88 +1290,6 @@ defineExpose({
     }
   }
 
-  .song-play-time-wrapper {
-    box-sizing: border-box;
-    position: fixed;
-    bottom: 100px;
-    left: 0;
-    width: 100%;
-    padding: 10px 20px;
-    display: flex;
-    justify-content: space-evenly;
-    align-items: center;
-    // background-color: pink;
-
-    .play-time {
-      font-size: 12px;
-    }
-    .song-duration {
-      font-size: 13px;
-    }
-
-    .progress-wrapper {
-      padding: 5px 0;
-      //box-sizing: border-box;
-      margin: 0 10px;
-      flex: 1;
-      .van-progress {
-        ::v-deep(.van-progress__portion) {
-          // position: relative;
-          &::after {
-            position: absolute;
-            content: "";
-            right: 0;
-            top: 50%;
-            transform: translate(50%, -50%);
-            display: inline-block;
-            width: 10px;
-            height: 10px;
-            border: 2px solid #fff;
-            border-radius: 50%;
-            background-color: #ffcd32;
-          }
-        }
-      }
-    }
-  }
-
-  .play-control-wrapper {
-    display: flex;
-    justify-content: space-evenly;
-    align-items: center;
-    position: absolute;
-    width: 100%;
-    height: 40px;
-    left: 0;
-    bottom: 40px;
-    color: $color-theme;
-    font-size: 30px;
-  }
-
-  .header {
-    text-align: center;
-    position: relative;
-    line-height: 40px;
-    .icon-back {
-      position: absolute;
-      left: 15px;
-      top: 50%;
-      transform: translateY(-50%) rotate(180deg);
-      color: $color-theme;
-    }
-  }
-  .singer-name {
-    margin-bottom: 20px;
-    text-align: center;
-    font-size: 14px;
-    span {
-      display: inline-block;
-      width: 250px;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      white-space: nowrap;
-    }
-  }
   .singer-pic-wrapper {
     .pic-box {
       margin: 0 auto;
@@ -1345,6 +1372,7 @@ defineExpose({
       }
     }
   }
+
   .play-list-scroll-wrapper {
     flex: 1;
     overflow: hidden;
