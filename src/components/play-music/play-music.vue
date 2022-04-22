@@ -261,6 +261,7 @@ import {
   onUnmounted,
 } from "vue";
 
+import { formatDuration } from "@/assets/js/util";
 import { Pagination } from "swiper";
 import { Swiper, SwiperSlide } from "swiper/vue";
 import "swiper/css";
@@ -1028,34 +1029,6 @@ function noFullScreen() {
   store.commit("setFullScreen", false);
 }
 
-// 格式化音乐时长
-function formatDuration(time) {
-  if (time > -1) {
-    // let hour = Math.floor(time / 3600);
-    let min = Math.floor(time / 60) % 60;
-    let sec = time % 60;
-    time = "";
-    // if (hour < 10) {
-    //   time = "0" + hour + ":";
-    // } else {
-    //   time = hour + ":";
-    // }
-    if (min < 10) {
-      time += "0";
-    }
-    time += min + ":";
-
-    if (sec < 10) {
-      time += "0";
-    }
-    time += sec;
-  }
-  //console.log(time, "time");
-  //let i = time.indexOf(":");
-  return time;
-  //return time.substring(i + 1);
-}
-
 function toggleSongPlay() {
   songReady.value = false;
   isUserPause.value = true;
@@ -1117,7 +1090,7 @@ defineExpose({
       color: $color-theme;
     }
     .song-name {
-      padding-left: 6px;
+      //padding-left: 6px;
       font-size: 14px;
       text-align: center;
       color: #ffffff;

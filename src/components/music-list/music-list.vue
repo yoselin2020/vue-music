@@ -24,9 +24,9 @@
         <div
           class="scroll-wrapper"
           ref="scrollRef"
-          :style="[{ height: scrollWrapperHeight + 'px' }, isPaddingBottom]"
+          :style="[{ height: scrollWrapperHeight + 'px' }]"
         >
-          <div class="list-content">
+          <div class="list-content" :style="isPaddingBottom">
             <div
               class="list-item"
               v-for="(song, index) of props.songs"
@@ -84,7 +84,6 @@ const playListTop = ref(0);
 const headerRef = ref(null);
 const headerHeight = ref(0);
 const headerZIndex = ref(1);
-
 const imgWrapperScale = ref({});
 const filterStyle = ref({});
 const headerBgColor = computed(() => {
@@ -95,6 +94,8 @@ const headerBgColor = computed(() => {
       }
     : { backgroundColor: `transparent`, transition: `all .3s` };
 });
+
+const fullScreen = computed(() => store.state.fullScreen);
 
 // scroll 滚动的距离
 const scrollY = ref(0);
@@ -113,6 +114,15 @@ const props = defineProps({
     default: () => ({}),
   },
 });
+
+watch(fullScreen, async (newFullScreen) => {
+  // 非全屏的状态,我们需要让scroll重新计算高度
+  if (!newFullScreen) {
+    await nextTick();
+    scrollInstance.value.refresh();
+  }
+});
+
 watch(scrollY, (newScrollY) => {
   //console.log(newScrollY, "newScrollY");
   let scrollY = 0;
@@ -155,6 +165,7 @@ watch(props.songs, async (newSongs) => {
     scrollInstance.value.refresh();
   }
 });
+
 // 随机播放全部
 function randomPlay() {
   store.commit("setPlayList", props.songs);
@@ -269,7 +280,9 @@ onMounted(async () => {
     left: 0;
     // overflow: hidden;
     .play-list-wrapper {
+      box-sizing: border-box;
       .scroll-wrapper {
+        box-sizing: border-box;
         height: 100%;
         .list-content {
           background-color: #222222;

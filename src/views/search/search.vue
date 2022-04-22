@@ -17,11 +17,13 @@
           <span class="title">热门搜索</span>
         </header>
         <div class="hot-search-record" ref="hotSearchRecordRef">
-          <template v-for="item of hotKeys" :key="item.id">
-            <span class="text" @click.stop="hotSearchItemClick(item)">{{
-              item.searchWord
-            }}</span>
-          </template>
+          <div>
+            <template v-for="item of hotKeys" :key="item.id">
+              <span class="text" @click.stop="hotSearchItemClick(item)">{{
+                item.searchWord
+              }}</span>
+            </template>
+          </div>
         </div>
       </div>
     </transition>
@@ -119,16 +121,17 @@ export default {
       keyword: "",
       hotKeys: [],
       showSinger: true,
-      page: 1,
       searchShowSectionHeight: 0,
       scrollInstance: null,
       songs: [],
+      hotSearchWrapperScrollInstance: null,
       searchSongsWrapperScrollInstance: null,
       // 搜索历史展示区域高度
       searchHistorySectionHeight: 0,
       // 查询的数量
       limit: 30,
       offset: 0,
+      //scrollPullingDownStatus: false,
     };
   },
   computed: {
@@ -198,6 +201,16 @@ export default {
       click: true,
       observeDOM: true,
     });
+
+    this.hotSearchWrapperScrollInstance = new BScroll(
+      this.$refs.hotSearchRecordRef,
+      {
+        probeType: 2,
+        click: true,
+        observeDOM: true,
+      }
+    );
+
     this.searchSongsWrapperScrollInstance = new BScroll(
       this.$refs.searchSongsWrapperScrollRef,
       {
@@ -205,7 +218,12 @@ export default {
         observeDOM: true,
         probeType: 2,
         pullUpLoad: true,
+        pullDownRefresh: true,
       }
+    );
+    this.searchSongsWrapperScrollInstance.on(
+      "pullingDown",
+      this.scrollPullingDown
     );
     this.searchSongsWrapperScrollInstance.on("pullingUp", this.scrollPullingUp);
   },
@@ -215,10 +233,19 @@ export default {
       "delTextFromSearchHistoryList",
     ]),
     ...mapActions(["addSongToPlayList"]),
-    // 滚动到底部
+    // 上拉刷新
+    async scrollPullingDown() {
+      this.offset = 0;
+      this.limit = 30;
+      this.keyword = "";
+      // 重新请求数据
+      await this.searchHandle(this.keyword);
+      this.searchSongsWrapperScrollInstance.finishPullDown();
+    },
+    // 滚动到底部(下拉加载更多)
     async scrollPullingUp() {
       // 继续去请求数据
-      console.log("滚动到底部");
+      //console.log("滚动到底部");
       // this.limit += 10;
       this.offset++;
       await this.searchHandle(this.keyword);
@@ -362,8 +389,12 @@ export default {
       }
     }
     .hot-search-record {
-      display: flex;
-      flex-wrap: wrap;
+      height: 150px;
+      overflow: hidden;
+      div {
+        display: flex;
+        flex-wrap: wrap;
+      }
       .text {
         margin-right: 10px;
         margin-bottom: 10px;
