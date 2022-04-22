@@ -126,6 +126,9 @@ export default {
       searchSongsWrapperScrollInstance: null,
       // 搜索历史展示区域高度
       searchHistorySectionHeight: 0,
+      // 查询的数量
+      limit: 30,
+      offset: 0,
     };
   },
   computed: {
@@ -177,6 +180,7 @@ export default {
         if (this.scrollInstance) {
           this.scrollInstance.refresh();
         }
+        await nextTick();
         if (this.searchSongsWrapperScrollInstance) {
           this.searchSongsWrapperScrollInstance.refresh();
         }
@@ -187,7 +191,7 @@ export default {
     const height =
       this.$refs.searchRef.clientHeight -
       this.$refs.vanSearchCom.$el.clientHeight;
-    this.searchShowSectionHeight = height;
+    this.searchShowSectionHeight = height - 200;
     this.$watch("keyword", debounce(500, this.searchHandle));
     await nextTick();
     this.scrollInstance = new BScroll(this.$refs.scrollRef, {
@@ -200,9 +204,10 @@ export default {
         click: true,
         observeDOM: true,
         probeType: 2,
-        bounce: false,
+        pullUpLoad: true,
       }
     );
+    this.searchSongsWrapperScrollInstance.on("pullingUp", this.scrollPullingUp);
   },
   methods: {
     ...mapMutations([
@@ -210,10 +215,19 @@ export default {
       "delTextFromSearchHistoryList",
     ]),
     ...mapActions(["addSongToPlayList"]),
+    // 滚动到底部
+    async scrollPullingUp() {
+      // 继续去请求数据
+      console.log("滚动到底部");
+      // this.limit += 10;
+      this.offset++;
+      await this.searchHandle(this.keyword);
+      this.searchSongsWrapperScrollInstance.finishPullUp();
+    },
     // 搜索历史item 点击事件
     searchHistoryClickHandle(searchHistory) {
       this.keyword = searchHistory.searchWord;
-      console.log(searchHistory, "searchHistory");
+      // console.log(searchHistory, "searchHistory");
     },
     // 用户点击了搜索到的歌曲
     async selectSong(song) {
@@ -233,21 +247,12 @@ export default {
       //  song.lyric = res.klyric.lyric;
       // console.log(res, "res");
       this.addSongToPlayList(song);
-      console.log(song);
+      // console.log(song);
     },
     // 热门搜索点击事件
     hotSearchItemClick(item) {
       this.keyword = item.searchWord;
-      console.log(this.keyword, "this.keyword");
-      //  this.reqSearch(item.key);
-    },
-    async reqSearch() {
-      try {
-        const result = await search(this.keyword, this.page, this.showSinger);
-        // console.log(result, "result");
-      } catch (err) {
-        console.log(err, "请求出错了！");
-      }
+      // console.log(this.keyword, "this.keyword");
     },
     delSearchHistoryItem(history) {
       this.delTextFromSearchHistoryList(history);
@@ -266,52 +271,24 @@ export default {
       } catch (err) {}
     },
     async searchHandle(newVal) {
+      //debugger;
       if (newVal.trim() === "") {
         this.songs = [];
         return;
       }
       try {
-        // const result = await request("/cloudsearch", {
-        //   keywords: this.keyword,
-        //   limit: 100,
-        // });
         const result = await searchSong({
-          keywords: this.keyword,
-          limit: 100,
+          keywords: newVal,
+          limit: this.limit,
+          offset: this.offset,
         });
         // 处理 url
-        this.songs = await myProcessSongs(result);
-        //console.log(this.songs, "this.songs//////////////////////////");
+        let song = await myProcessSongs(result);
+        //console.log(song, "song");
+        this.songs = [...this.songs, ...song];
+        // console.log(this.songs, "this.songs");
         // debugger;
         this.addTextToSearchHistoryList({ searchWord: this.keyword });
-        //console.log(result, "result");
-        //    if (result.code === 200) {
-        // let songs = result.result.songs.slice();
-        // songs = await myProcessSongs(songs);
-        // songs = songs.map((item) => ({
-        //   url: item.url,
-        //   name: item.name,
-        //   singer: item.ar[0].name,
-        //   pic: item.al.picUrl,
-        //   id: item.id,
-        //   duration: item.dt / 1000,
-        //   album: item.al.name,
-        //   isWY: true,
-        // }));
-        //  this.songs = songs;
-        //  console.log(this.songs, "this.songs");
-        // const result2 = await request("/song/url", {
-        //   id: arrId,
-        // });
-        // let song2 = result2.data;
-        // songs.forEach((item) => {
-        //   const findItem = song2.find((item2) => item2.id === item.id);
-        //   item.url = findItem.url;
-        // });
-        // //console.log(result2, "result2");
-        // console.log(songs, "processSongs");
-        //  }
-        await nextTick();
         this.recentlyPlayListSectionScrollInstance.refresh();
       } catch (err) {}
     },
