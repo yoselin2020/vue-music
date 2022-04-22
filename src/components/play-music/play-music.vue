@@ -19,6 +19,7 @@
         @touchstart="cdTouchstart"
         @touchmove="cdTouchmove"
         @touchend="cdTouchend"
+        ref="cdSwiperWrapperRef"
       >
         <swiper
           ref="cdSwiperRef"
@@ -261,7 +262,7 @@ import {
   onUnmounted,
 } from "vue";
 
-import { formatDuration } from "@/assets/js/util";
+import { formatDuration, createSnow } from "@/assets/js/util";
 import { Pagination } from "swiper";
 import { Swiper, SwiperSlide } from "swiper/vue";
 import "swiper/css";
@@ -280,6 +281,7 @@ import { processSongs } from "@/service/song";
 // 音乐标签对应ref
 const audioRef = ref(null);
 const modules = [Pagination];
+const cdSwiperWrapperRef = ref(null);
 // vuex store
 const store = useStore();
 const isShowMask = ref(false);
@@ -289,6 +291,9 @@ const isShowAddSongSection = ref(false);
 function showAddSongSection() {
   isShowAddSongSection.value = true;
 }
+
+// 控制雪花创建的定时器
+const controlCreateSnowTimer = ref(null);
 
 function hideAddSongSection() {
   isShowAddSongSection.value = false;
@@ -372,6 +377,18 @@ function cdTouchend(event) {
   }
 }
 
+// 创建雪花函数
+function createSnowHandle(delay = 300) {
+  controlCreateSnowTimer.value = setInterval(() => {
+    //  console.log(cdSwiperWrapperRef.value, "cdSwiperWrapperRef.value");
+    createSnow(cdSwiperWrapperRef.value, delay);
+  }, delay);
+}
+// 停止创建函数
+function stopCreateSnowHandle() {
+  clearInterval(controlCreateSnowTimer.value);
+}
+
 // 播放器 报错了
 async function error() {
   // 歌曲播放出错,有可能是歌曲url地址过期了
@@ -396,6 +413,7 @@ async function error() {
       //  debugger;
     }
   } catch (err) {
+    stopCreateSnowHandle();
     console.log("error", "播放器报错了");
     store.commit("setPlaying", true);
     // 切换到下一首歌曲
@@ -632,6 +650,12 @@ onUnmounted(() => {
 
 const currentSongIndex = computed(() => store.state.currentIndex);
 watch(fullScreen, async (newVal) => {
+  stopCreateSnowHandle();
+  if (newVal) {
+    createSnowHandle();
+  } else {
+    stopCreateSnowHandle();
+  }
   songNameSwipe.value.resize();
   //  console.log(songNameSwipe.value, "songNameSwipe.value");
   songNameSwipe.value.swipeTo(currentSongIndex.value);
@@ -674,6 +698,7 @@ watch(playMode, (mode) => {
 });
 // 歌曲缓冲完毕
 async function canplay() {
+  stopCreateSnowHandle();
   audioRef.value.loop = playMode.value === PLAY_MODE.loop;
   // debugger;
   console.log("canplay方法执行了!!!!!");
@@ -682,10 +707,17 @@ async function canplay() {
   songReady.value = true;
   if (isPlaying.value) {
     audioRef.value.play();
+    stopCreateSnowHandle();
+    if (fullScreen.value) {
+      createSnowHandle();
+    } else {
+      stopCreateSnowHandle();
+    }
     console.log("开始播放");
     playLyric();
   } else {
     audioRef.value.pause();
+    stopCreateSnowHandle();
     console.log("播放暂停");
     stopLyric();
   }
@@ -744,6 +776,7 @@ watch(currentSong, async (newSong) => {
 watch(
   isPlaying,
   async (newVal) => {
+    stopCreateSnowHandle();
     // 歌曲播放的时候也是需要 给一个 src
     //console.log("isPlaying - watch");
     if (!currentSong.value.url) {
@@ -752,9 +785,11 @@ watch(
     audioRef.value.src = currentSong.value.url;
     // 避免暂停后再次播放从头开始播放
     audioRef.value.currentTime = currentTime.value;
-    if (newVal) {
+    if (newVal && fullScreen.value) {
+      createSnowHandle();
       playLyric();
     } else {
+      stopCreateSnowHandle();
       if (!fullScreen.value) {
         return;
       }
@@ -1119,7 +1154,7 @@ defineExpose({
   display: flex;
   justify-content: space-evenly;
   align-items: center;
-  z-index: 250;
+  z-index: 360;
   // background-color: pink;
 
   .play-time {
@@ -1163,7 +1198,7 @@ defineExpose({
   width: 100%;
   height: 40px;
   left: 0;
-  z-index: 300;
+  z-index: 360;
   bottom: 40px;
   color: $color-theme;
   font-size: 30px;
@@ -1178,11 +1213,17 @@ defineExpose({
   width: 100%;
   height: 100%;
   background-color: $color-background;
-  z-index: 215;
+  // z-index: 215;
+  z-index: 352;
   //.swiper {
   //  width: 100%;
   //  height: 420px;
   //}
+
+  .cd-swiper-wrapper {
+    position: relative;
+    overflow: hidden;
+  }
   .my-swipe {
     padding-top: 20px;
     padding-bottom: 40px;
