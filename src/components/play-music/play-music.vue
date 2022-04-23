@@ -11,7 +11,7 @@
       </header>
     </div>
   </transition>
-  <!--大的播放器-->
+  <!--全屏播放器-->
   <transition name="move">
     <div class="play-music" v-show="fullScreen">
       <div
@@ -122,8 +122,17 @@
   <transition name="popup">
     <div class="mini-play-wrapper" v-show="!fullScreen && currentSong.url">
       <div class="mini-play-content">
-        <div class="img-wrapper" @click.stop="fullScreenHandle">
-          <img :src="currentSong.pic" alt="" />
+        <div
+          class="img-wrapper"
+          @click.stop="fullScreenHandle"
+          ref="miniImgWrapperRef"
+        >
+          <img
+            ref="miniImgRef"
+            :class="isPlaying ? 'turn' : ''"
+            :src="currentSong.pic"
+            alt=""
+          />
         </div>
         <div class="song-name-wrapper" @click.stop="fullScreenHandle">
           <van-swipe
@@ -654,6 +663,15 @@ watch(fullScreen, async (newVal) => {
   if (newVal) {
     createSnowHandle();
   } else {
+    // 把其他的删除掉
+    let childrens = cdSwiperWrapperRef.value.querySelectorAll(".snow-wrapper");
+    // console.log(childrens, "childrens");
+    // 移除未做完动画的元素
+    if (childrens.length > 0) {
+      childrens.forEach((children) => {
+        children.remove();
+      });
+    }
     stopCreateSnowHandle();
   }
   songNameSwipe.value.resize();
@@ -772,6 +790,8 @@ watch(currentSong, async (newSong) => {
     console.log(err, "报错了///");
   }
 });
+const miniImgWrapperRef = ref(null);
+const miniImgRef = ref(null);
 // 监视音乐是否播放状态
 watch(
   isPlaying,
@@ -789,13 +809,45 @@ watch(
       createSnowHandle();
       playLyric();
     } else {
+      // 暂停播放歌词
+      stopLyric();
       stopCreateSnowHandle();
       if (!fullScreen.value) {
+        if (miniImgRef.value && miniImgWrapperRef.value) {
+          // 内部图片的transform样式
+          let miniImgStyleTransform = getComputedStyle(
+            miniImgRef.value
+          ).transform;
+          // 图片包裹器的transform样式
+          let miniImgWrapperStyleTransform = getComputedStyle(
+            miniImgWrapperRef.value
+          ).transform;
+          // console.log(
+          //   miniImgWrapperStyleTransform,
+          //   "miniImgWrapperStyleTransform"
+          // );
+          // 如果外部有,需要把内部img的transform进行合并
+          miniImgWrapperRef.value.style.transform =
+            miniImgWrapperStyleTransform === "none"
+              ? miniImgStyleTransform
+              : miniImgWrapperStyleTransform.concat(" ", miniImgStyleTransform);
+          //    console.log(miniImgStyleTransform, "miniImgStyleTransform");
+          //     console.log(
+          //       miniImgWrapperStyleTransform,
+          //       "miniImgWrapperStyleTransform"
+          //     );
+          //     console.log(
+          //       miniImgWrapperStyleTransform.concat(" ", miniImgStyleTransform),
+          //       'miniImgWrapperStyleTransform.concat(" ", miniImgStyleTransform)'
+          //     );
+        }
         return;
       }
       // 暂停播放歌词
       stopLyric();
       // 播放暂停了
+      //miniImgWrapperRef
+      // miniImgRef
       const style = getComputedStyle(picBoxImgRef.value);
       const picBoxImgRefTransform = style.transform;
       const picBoxRefTransform = getComputedStyle(picBoxRef.value).transform;
@@ -1264,46 +1316,6 @@ defineExpose({
   //::v-deep(.van-swipe__indicators) {
   //  bottom: -20px;
   //}
-
-  /* 旋转动画 指定class为trun即可使用*/
-  .turn {
-    animation: turn 10s linear infinite;
-  }
-
-  /*
-  turn : 定义的动画名称
-  10s : 动画时间
-  linear : 动画平滑
-  infinite :使动画无限循环
-  transform:rotate(旋转角度)
-  %0:动画开始
-  %100:动画结束
-  */
-  @keyframes turn {
-    0% {
-      transform: rotate(0deg);
-    }
-
-    20% {
-      transform: rotate(72deg);
-    }
-
-    40% {
-      transform: rotate(144deg);
-    }
-
-    60% {
-      transform: rotate(216deg);
-    }
-
-    80% {
-      transform: rotate(288deg);
-    }
-
-    100% {
-      transform: rotate(360deg);
-    }
-  }
 
   .singer-pic-wrapper {
     .pic-box {

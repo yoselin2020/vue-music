@@ -101,6 +101,7 @@ export default createStore({
         });
         state.recentlyPlayList.splice(findIndex, 1);
         state.recentlyPlayList.unshift(findItem);
+        storage.set(recentlyPlayListKEY, state.recentlyPlayList);
       }
       if (!findItem) {
         state.recentlyPlayList.unshift(song);
@@ -110,12 +111,36 @@ export default createStore({
     },
     // 删除一首歌曲到最近播放
     delRecentlyPlaySong(state, song) {
+      //debugger;
+      let currentSongIndex = state.currentIndex;
       let index = state.recentlyPlayList.findIndex(
         (item) => item.id === song.id
       );
-      state.recentlyPlayList.splice(index, 1);
-      state.sequenceList.splice(index, 1);
-      storage.set(recentlyPlayListKEY, state.recentlyPlayList);
+      if (index > -1) {
+        state.recentlyPlayList.splice(index, 1);
+        // state.sequenceList.splice(index, 1);
+        storage.set(recentlyPlayListKEY, state.recentlyPlayList);
+      }
+      let seqIndex = state.sequenceList.findIndex(
+        (item) => item.id === song.id
+      );
+      if (seqIndex > -1) {
+        state.sequenceList.splice(seqIndex, 1);
+      }
+      let playIndex = state.playList.findIndex((item) => item.id === song.id);
+      if (playIndex > -1) {
+        state.playList.splice(playIndex, 1);
+        if (state.playList.length === 0) {
+          Toast({
+            message: "歌曲列表为空,请添加歌曲!",
+          });
+          state.isPlaying = false;
+          state.currentIndex = -1;
+        }
+        if (state.playList.length === currentSongIndex) {
+          state.currentIndex = --currentSongIndex;
+        }
+      }
     },
     // 是否正在播放
     setPlaying(state, isPlaying) {
@@ -164,6 +189,17 @@ export default createStore({
     },
   },
   actions: {
+    // 从我喜欢的歌曲列表中移除掉一首歌曲
+    async delOneSongFromFavorite({ state, commit, dispatch }, song) {
+      const songs = state.favoriteSongList;
+      let index = songs.findIndex((item) => item.id === song.id);
+      if (index > -1) {
+        songs.splice(index, 1);
+        commit("setFavoriteSongList", songs);
+        storage.set(FAVORITE_SONG_KEY, songs);
+        dispatch("delSong", song);
+      }
+    },
     // 添加一条歌曲到playList中
     addSongToPlayList({ state, commit }, song) {
       //  debugger;

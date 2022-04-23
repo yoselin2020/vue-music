@@ -32,24 +32,39 @@
           isPaddingBottom,
         ]"
       >
-        <div class="temp-box">
-          <div
-            :class="[
-              'playlist-item',
-              currentSong.id === song.id ? 'active2' : '',
-            ]"
-            ref="playlistItemRef"
-            v-for="(song, index) of songList"
-            :key="song.id"
-            @click.stop="songClickHandle(song, index)"
-          >
-            <p class="song-name">
-              <span>{{ song.name }}</span>
-            </p>
-            <p class="song-singer">
-              <span>{{ song.singer }}</span>
-            </p>
-          </div>
+        <div class="temp-box" :style="isPaddingBottom">
+          <transition-group name="leave">
+            <div
+              :class="[
+                'playlist-item',
+                currentSong.id === song.id ? 'active2' : '',
+              ]"
+              ref="playlistItemRef"
+              v-for="(song, index) of songList"
+              :key="song.id"
+              @click.stop="songClickHandle(song, index)"
+            >
+              <van-swipe-cell
+                @open="swiperCellOpen"
+                @click="swiperCellClick($event, song)"
+              >
+                <p class="song-name">
+                  <span>{{ song.name }}</span>
+                </p>
+                <p class="song-singer">
+                  <span>{{ song.singer }}</span>
+                </p>
+                <template #right>
+                  <van-button
+                    square
+                    text="删除"
+                    type="danger"
+                    class="delete-button"
+                  />
+                </template>
+              </van-swipe-cell>
+            </div>
+          </transition-group>
         </div>
       </div>
     </div>
@@ -128,7 +143,27 @@ export default {
     // console.log(height - 200, "heightheightheight");
   },
   methods: {
-    ...mapActions(["randomPlay", "addSongToPlayList"]),
+    ...mapActions(["randomPlay", "addSongToPlayList", "delSong"]),
+    ...mapMutations(["delRecentlyPlaySong"]),
+    // 滑动单元格打开的状态
+    swiperCellOpen(event) {
+      // console.log(event, "event-open");
+    },
+    //点击了右侧的删除按钮
+    swiperCellClick(event, song) {
+      if (event === "right") {
+        // 移除歌曲
+        // 移除歌曲后,我们还要从playList中进行移除操作
+        if (this.currentIndex === 0) {
+          // 从我喜欢的歌曲中移除掉
+        } else {
+          //   从最近播放中将歌曲移除掉
+          this.delRecentlyPlaySong(song);
+        }
+        // this.delSong(song);
+        // console.log("点击了删除按钮", "eeee");
+      }
+    },
     // 随机播放按钮点击事件
     randomPlayHandle() {
       let list = [];
@@ -238,16 +273,31 @@ export default {
       width: 2px;
       background-color: $color-theme;
     }
-
     .playlist-wrapper {
+      box-sizing: border-box;
       overflow: hidden;
       .playlist-item {
+        overflow: hidden;
+        box-sizing: border-box;
         margin: 5px 0;
         padding-left: 5px;
         display: flex;
         height: 35px;
         flex-direction: column;
         justify-content: space-between;
+        .delete-button {
+          height: 100%;
+        }
+
+        ::v-deep(.van-button--danger) {
+          box-sizing: border-box;
+          border: none;
+        }
+
+        //::v-deep(.van-button--danger) {
+        //  border: 1px solid transparent;
+        //}
+
         &.active2 {
           position: relative;
           &::before {

@@ -59,25 +59,31 @@ export function createSnow(parentElement) {
   const start = {
     x: Math.random() * window.innerWidth,
     y: Math.random() * window.innerHeight,
-    scale: Math.random() * 1.5,
+    scale: Math.random() * 1.2,
   };
   // 创建一个 div元素
   const div = document.createElement("div");
   div.style.position = "absolute";
   div.style.left = 0;
   div.style.top = 0;
-  div.innerText = "*";
+  // div.innerText = "*";
   div.style.color = "#fff";
   div.style.transition = "all 2s";
   div.style.zIndex = 999;
   div.style.pointerEvents = "none";
+  div.className = "snow-wrapper";
+  let img = document.createElement("img");
+  let src = require("@/assets/images/snow2.png");
+  img.src = src;
   div.style.transform = `translate3d(${start.x}px,${start.y}px,0) scale(${start.scale})`;
+  div.appendChild(img);
+  //div.innerHTML = `<img :src='' alt=''>`;
   parentElement.appendChild(div);
   // 结束坐标
   const end = {
     x: Math.random() * window.innerWidth,
     y: Math.random() * window.innerHeight,
-    scale: Math.random() * 1.5,
+    scale: Math.random() * 1.2,
   };
   // 让浏览器触发重绘
   div.offsetHeight;
