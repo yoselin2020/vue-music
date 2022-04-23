@@ -191,6 +191,7 @@ export default createStore({
   actions: {
     // 从我喜欢的歌曲列表中移除掉一首歌曲
     async delOneSongFromFavorite({ state, commit, dispatch }, song) {
+      //let currentIndex = state.currentIndex;
       const songs = state.favoriteSongList;
       let index = songs.findIndex((item) => item.id === song.id);
       if (index > -1) {
@@ -199,9 +200,16 @@ export default createStore({
         storage.set(FAVORITE_SONG_KEY, songs);
         dispatch("delSong", song);
       }
+      // 要从playList中删除的歌曲索引位置
+      // const playIndex = state.playList.findIndex((item) => item.id === song.id);
+      // if (playIndex > -1) {
+      //   // 判断currentIndex
+      //   if (playIndex < currentIndex || ) {
+      //   }
+      // }
     },
     // 添加一条歌曲到playList中
-    addSongToPlayList({ state, commit }, song) {
+    async addSongToPlayList({ state, commit }, song) {
       //  debugger;
       const playList = state.playList;
       const sequenceList = state.sequenceList;

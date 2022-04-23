@@ -29,10 +29,7 @@
     </transition>
     <!--搜索历史展示区域-->
     <transition name="leave">
-      <div
-        :style="isPaddingBottom"
-        v-show="searchHistoryList.length && songs.length === 0"
-      >
+      <div v-show="searchHistoryList.length && songs.length === 0">
         <header class="search-history-title" ref="searchHistoryTitle">
           <span class="text">搜索历史</span>
           <span class="icon-wrapper" @click.stop="clearSearchRecord"
@@ -46,10 +43,9 @@
             {
               height: searchHistorySectionHeight + 'px',
             },
-            isPaddingBottom,
           ]"
         >
-          <div class="search-history-wrapper">
+          <div class="search-history-wrapper" :style="isPaddingBottom">
             <div class="search-history-content">
               <transition-group name="leave">
                 <div
@@ -104,6 +100,14 @@
       </div>
     </transition>
   </div>
+
+  <confirm
+    v-model:visible="visible"
+    v-if="visible"
+    @confirm="confirm"
+    @cancel="cancel"
+    message="是否清空播放列表?"
+  ></confirm>
 </template>
 
 <script>
@@ -114,12 +118,14 @@ import BScroll from "better-scroll";
 import { nextTick } from "vue";
 import request from "@/request";
 import { mapActions, mapMutations, mapState } from "vuex";
+import confirm from "@/components/confirm/confirm";
 export default {
   name: "Search",
   data() {
     return {
       keyword: "",
       hotKeys: [],
+      visible: false,
       showSinger: true,
       searchShowSectionHeight: 0,
       scrollInstance: null,
@@ -136,6 +142,9 @@ export default {
   },
   computed: {
     ...mapState(["searchHistoryList", "fullScreen"]),
+  },
+  components: {
+    confirm,
   },
   async created() {
     try {
@@ -231,8 +240,15 @@ export default {
     ...mapMutations([
       "addTextToSearchHistoryList",
       "delTextFromSearchHistoryList",
+      "setSearchHistoryList",
     ]),
     ...mapActions(["addSongToPlayList"]),
+    // 清空搜索历史
+    confirm() {
+      this.setSearchHistoryList([]);
+    },
+    //取消清空
+    cancel() {},
     // 上拉刷新
     async scrollPullingDown() {
       this.offset = 0;
@@ -273,7 +289,9 @@ export default {
       song.lyric = res.lrc.lyric;
       //  song.lyric = res.klyric.lyric;
       // console.log(res, "res");
-      this.addSongToPlayList(song);
+      await this.addSongToPlayList(song);
+      this.keyword = "";
+      this.songs = [];
       // console.log(song);
     },
     // 热门搜索点击事件
@@ -287,15 +305,16 @@ export default {
     },
     // 清空搜索记录
     async clearSearchRecord() {
-      try {
-        await this.$dialog.confirm({
-          title: "提示",
-          message: "确认清空搜索记录?",
-          confirmButtonColor: "#6d6d6d",
-          cancelButtonColor: "#6d6d6d",
-        });
-        this.searchHistoryList = [];
-      } catch (err) {}
+      this.visible = true;
+      // try {
+      //   await this.$dialog.confirm({
+      //     title: "提示",
+      //     message: "确认清空搜索记录?",
+      //     confirmButtonColor: "#6d6d6d",
+      //     cancelButtonColor: "#6d6d6d",
+      //   });
+      //   this.searchHistoryList = [];
+      // } catch (err) {}
     },
     async searchHandle(newVal) {
       //debugger;
@@ -432,6 +451,7 @@ export default {
     }
   }
   .search-history-wrapper {
+    box-sizing: border-box;
     .search-history-content {
       .search-history-item {
         display: flex;

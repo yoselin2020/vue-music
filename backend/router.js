@@ -69,11 +69,14 @@ function handleSongList(list) {
 
   list.forEach((item) => {
     const info = item.songInfo || item;
-    if (info.pay.pay_play !== 0 || !info.interval) {
-      // 过滤付费歌曲和获取不到时长的歌曲
-      return;
-    }
-
+    // if (!info.interval) {
+    //   // 过滤付费歌曲和获取不到时长的歌曲
+    //   return;
+    // }
+    // if (info.pay.pay_play !== 0 || !info.interval) {
+    //   // 过滤付费歌曲和获取不到时长的歌曲
+    //   return;
+    // }
     // 构造歌曲的数据结构
     const song = {
       id: info.id,
@@ -87,10 +90,9 @@ function handleSongList(list) {
         : fallbackPicUrl,
       album: info.album.name,
     };
-
     songList.push(song);
   });
-
+  console.log(songList, "songList", "111");
   return songList;
 }
 
@@ -355,7 +357,7 @@ function registerSingerDetail(app) {
         const list = data.singerSongList.data.songList;
         // 歌单详情、榜单详情接口都有类似处理逻辑，固封装成函数
         const songList = handleSongList(list);
-
+        console.log(songList, "songListsongListsongListsongList");
         res.json({
           code: ERR_OK,
           result: {

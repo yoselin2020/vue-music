@@ -34,8 +34,12 @@ export default {
     // console.log(this.id, "iddi");
     if (!this.pic) {
       //   console.log(this.$route.matched);
+      // this.$router.push({
+      //   path: this.$route.matched[1].path,
+      // });
+
       this.$router.push({
-        path: this.$route.matched[1].path,
+        path: "/recommend",
       });
     }
   },

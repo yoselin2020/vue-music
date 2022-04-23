@@ -43,6 +43,7 @@
                 class="search-record-item"
                 v-for="(item, index) of searchHistoryList"
                 :key="item.searchWord"
+                @click.stop="searchHistoryClickHandle(item)"
               >
                 <span class="text">{{ item.searchWord }}</span>
                 <i
@@ -62,16 +63,34 @@
       <div class="scroll-wrapper" ref="searchResultWrapperRef">
         <div>
           <div
-            class="song-item"
+            class="song-item-wrapper"
             v-for="(song, index) of songs"
             :key="song.id"
-            :class="song.id === currentSong.id ? 'active' : ''"
+            @click.stop="selectSong(song)"
           >
-            <div @click.stop="selectSong(song)">
+            <div class="img-wrapper">
+              <img
+                :src="require('@/assets/images/music-logo-big.png')"
+                alt=""
+              />
+            </div>
+            <div class="song-info">
               <span class="song-name">{{ song.name }}</span>
               <span class="song-singer">{{ song.singer }}</span>
             </div>
           </div>
+
+          <!--          <div-->
+          <!--            class="song-item"-->
+          <!--            v-for="(song, index) of songs"-->
+          <!--            :key="song.id"-->
+          <!--            :class="song.id === currentSong.id ? 'active' : ''"-->
+          <!--          >-->
+          <!--            <div @click.stop="selectSong(song)">-->
+          <!--              <span class="song-name">{{ song.name }}</span>-->
+          <!--              <span class="song-singer">{{ song.singer }}</span>-->
+          <!--            </div>-->
+          <!--          </div>-->
         </div>
       </div>
     </div>
@@ -85,7 +104,7 @@ import { mapActions, mapMutations, mapState, mapGetters } from "vuex";
 import BScroll from "better-scroll";
 import { debounce } from "throttle-debounce";
 import { nextTick } from "vue";
-import { myProcessSongs } from "@/api/song";
+import { myProcessSongs, searchSong } from "@/api/song";
 
 export default {
   name: "add-song",
@@ -101,6 +120,8 @@ export default {
       songsCount: 0,
       searchResultWrapperScrollInstance: null,
       searchRecordSectionScrollInstance: null,
+      offset: 0,
+      limit: 30,
     };
   },
   emits: ["hide"],
@@ -124,6 +145,9 @@ export default {
         await nextTick();
         if (this.searchRecordSectionScrollInstance) {
           this.searchRecordSectionScrollInstance.refresh();
+        }
+        if (this.recentlyPlayListSectionScrollInstance) {
+          this.recentlyPlayListSectionScrollInstance.refresh();
         }
       },
     },
@@ -166,7 +190,7 @@ export default {
     },
     // 用户点击了搜索到的歌曲
     async selectSong(song) {
-      console.log(song);
+      //   console.log(song);
       if (
         !song.hasOwnProperty("id") ||
         !song.hasOwnProperty("url") ||
@@ -180,30 +204,39 @@ export default {
       });
       song.lyric = res.lrc.lyric;
       //  song.lyric = res.klyric.lyric;
-      console.log(res, "res");
-      this.addSongToPlayList(song);
-      console.log(song);
+      // console.log(res, "res");
+      await this.addSongToPlayList(song);
+      this.keyword = "";
+      this.songs = [];
+      // console.log(song);
     },
+    // 搜索方法处理函数
     async searchHandle(newVal) {
-      if (newVal.searchWord.trim() === "") {
+      //debugger;
+      if (newVal.trim() === "") {
         this.songs = [];
+        await nextTick();
+        if (this.searchRecordSectionScrollInstance) {
+          this.searchRecordSectionScrollInstance.refresh();
+        }
         return;
       }
       try {
-        const result = await request("/cloudsearch", {
-          keywords: this.keyword,
-          limit: 100,
+        const result = await searchSong({
+          keywords: newVal,
+          limit: this.limit,
+          offset: this.offset,
         });
+        // 处理 url
+        let song = await myProcessSongs(result);
+        //console.log(song, "song");
+        this.songs = [...this.songs, ...song];
+        // console.log(this.songs, "this.songs");
+        // debugger;
         this.addTextToSearchHistoryList({ searchWord: this.keyword });
-        console.log(result, "result");
-        if (result.code === 200) {
-          let songs = result.result.songs.slice();
-          this.songs = await myProcessSongs(songs);
-          await nextTick();
-          this.recentlyPlayListSectionScrollInstance.refresh();
-        }
+        await nextTick();
+        this.recentlyPlayListSectionScrollInstance.refresh();
       } catch (err) {}
-      console.log(newVal, "newVal");
     },
     async initScroll() {
       this.searchRecordSectionScrollInstance = new BScroll(
@@ -231,9 +264,16 @@ export default {
         }
       );
     },
-    songClickHandle(song) {
+    // 搜索历史item 点击事件
+    searchHistoryClickHandle(searchHistory) {
+      this.keyword = searchHistory.searchWord;
+      // console.log(searchHistory, "searchHistory");
+    },
+    async songClickHandle(song) {
       this.addSongToPlayList(song);
-      this.$store.dispatch("selectSong", song);
+      await this.$store.dispatch("selectSong", song);
+      this.keyword = "";
+      this.songs = [];
     },
     switchTab(index) {
       console.log(index, "iiii");
@@ -248,15 +288,36 @@ export default {
 
 <style lang="scss" scoped>
 .add-song {
+  position: fixed;
   width: 100%;
   height: 100%;
-  position: fixed;
   left: 0;
   top: 0;
   background-color: #222222;
   z-index: 350;
   display: flex;
   flex-direction: column;
+
+  .song-item-wrapper {
+    margin-bottom: 5px;
+    display: flex;
+    .img-wrapper {
+      margin-right: 5px;
+    }
+    .song-info {
+      flex: 1;
+
+      .song-name {
+        font-size: 14px;
+        color: $color-text-d;
+      }
+      .song-singer {
+        margin-left: 5px;
+        font-size: 14px;
+        color: $color-text-d;
+      }
+    }
+  }
 
   ::v-deep(.van-search__content) {
     background-color: #333333;
@@ -323,7 +384,7 @@ export default {
         }
         i {
           font-size: 14px;
-          color: #405461;
+          color: $color-text-d;
         }
       }
     }

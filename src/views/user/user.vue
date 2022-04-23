@@ -32,39 +32,79 @@
           isPaddingBottom,
         ]"
       >
-        <div class="temp-box" :style="isPaddingBottom">
-          <transition-group name="leave">
-            <div
-              :class="[
-                'playlist-item',
-                currentSong.id === song.id ? 'active2' : '',
-              ]"
-              ref="playlistItemRef"
-              v-for="(song, index) of songList"
-              :key="song.id"
-              @click.stop="songClickHandle(song, index)"
-            >
-              <van-swipe-cell
-                @open="swiperCellOpen"
-                @click="swiperCellClick($event, song)"
+        <div>
+          <div
+            class="temp-box"
+            v-show="currentIndex === 0"
+            :style="isPaddingBottom"
+          >
+            <transition-group name="list">
+              <div
+                :class="['playlist-item']"
+                ref="playlistItemRef"
+                v-for="(song, index) of favoriteSongList"
+                :key="song.id"
+                @click.stop="songClickHandle(song, index)"
               >
-                <p class="song-name">
-                  <span>{{ song.name }}</span>
-                </p>
-                <p class="song-singer">
-                  <span>{{ song.singer }}</span>
-                </p>
-                <template #right>
-                  <van-button
-                    square
-                    text="删除"
-                    type="danger"
-                    class="delete-button"
-                  />
-                </template>
-              </van-swipe-cell>
-            </div>
-          </transition-group>
+                <van-swipe-cell
+                  @open="swiperCellOpen"
+                  @click="swiperCellClick($event, song)"
+                  :class="currentSong.id === song.id ? 'active2' : ''"
+                >
+                  <p class="song-name">
+                    <span>{{ song.name }}</span>
+                  </p>
+                  <p class="song-singer">
+                    <span>{{ song.singer }}</span>
+                  </p>
+                  <template #right>
+                    <van-button
+                      square
+                      text="删除"
+                      type="danger"
+                      class="delete-button"
+                    />
+                  </template>
+                </van-swipe-cell>
+              </div>
+            </transition-group>
+          </div>
+          <div
+            class="temp-box"
+            v-show="currentIndex === 1"
+            :style="isPaddingBottom"
+          >
+            <transition-group name="list">
+              <div
+                :class="['playlist-item']"
+                ref="playlistItemRef"
+                v-for="(song, index) of recentlyPlayList"
+                :key="song.id"
+                @click.stop="songClickHandle(song, index)"
+              >
+                <van-swipe-cell
+                  @open="swiperCellOpen"
+                  @click="swiperCellClick($event, song)"
+                  :class="currentSong.id === song.id ? 'active2' : ''"
+                >
+                  <p class="song-name">
+                    <span>{{ song.name }}</span>
+                  </p>
+                  <p class="song-singer">
+                    <span>{{ song.singer }}</span>
+                  </p>
+                  <template #right>
+                    <van-button
+                      square
+                      text="删除"
+                      type="danger"
+                      class="delete-button"
+                    />
+                  </template>
+                </van-swipe-cell>
+              </div>
+            </transition-group>
+          </div>
         </div>
       </div>
     </div>
@@ -143,7 +183,12 @@ export default {
     // console.log(height - 200, "heightheightheight");
   },
   methods: {
-    ...mapActions(["randomPlay", "addSongToPlayList", "delSong"]),
+    ...mapActions([
+      "randomPlay",
+      "addSongToPlayList",
+      "delSong",
+      "delOneSongFromFavorite",
+    ]),
     ...mapMutations(["delRecentlyPlaySong"]),
     // 滑动单元格打开的状态
     swiperCellOpen(event) {
@@ -156,6 +201,7 @@ export default {
         // 移除歌曲后,我们还要从playList中进行移除操作
         if (this.currentIndex === 0) {
           // 从我喜欢的歌曲中移除掉
+          this.delOneSongFromFavorite(song);
         } else {
           //   从最近播放中将歌曲移除掉
           this.delRecentlyPlaySong(song);
@@ -165,7 +211,7 @@ export default {
       }
     },
     // 随机播放按钮点击事件
-    randomPlayHandle() {
+    async randomPlayHandle() {
       let list = [];
       if (this.currentIndex === 0) {
         list = this.favoriteSongList;
@@ -173,11 +219,15 @@ export default {
         list = this.recentlyPlayList;
       }
       this.randomPlay({ list });
+      // await nextTick();
+      // this.playlistScrollInstance.refresh();
       // list.forEach((song) => {
       //   this.addSongToPlayList(song);
       // });
     },
     songClickHandle(song, index) {
+      console.log(song, "song");
+      debugger;
       this.playSongCurrentIndex = index;
       //console.log(song, "song");
       this.addSongToPlayList(song);
@@ -277,7 +327,6 @@ export default {
       box-sizing: border-box;
       overflow: hidden;
       .playlist-item {
-        overflow: hidden;
         box-sizing: border-box;
         margin: 5px 0;
         padding-left: 5px;
@@ -289,27 +338,44 @@ export default {
           height: 100%;
         }
 
-        ::v-deep(.van-button--danger) {
-          box-sizing: border-box;
-          border: none;
+        ::v-deep(.van-swipe-cell) {
+          padding-left: 10px;
+          &.active2 {
+            .van-swipe-cell__wrapper {
+              position: relative;
+              &::before {
+                position: absolute;
+                left: -5px;
+                content: "";
+                top: 0;
+                height: 100%;
+                width: 2px;
+                background-color: #ffcd32;
+              }
+            }
+          }
+          .van-button--danger {
+            box-sizing: border-box;
+            border: 0 !important;
+          }
         }
 
         //::v-deep(.van-button--danger) {
         //  border: 1px solid transparent;
         //}
 
-        &.active2 {
-          position: relative;
-          &::before {
-            position: absolute;
-            left: 0;
-            content: "";
-            top: 0;
-            height: 100%;
-            width: 2px;
-            background-color: #ffcd32;
-          }
-        }
+        //&.active2 {
+        //  position: relative;
+        //  &::before {
+        //    position: absolute;
+        //    left: 0;
+        //    content: "";
+        //    top: 0;
+        //    height: 100%;
+        //    width: 2px;
+        //    background-color: #ffcd32;
+        //  }
+        //}
         .song-name {
           white-space: nowrap;
           text-overflow: ellipsis;

@@ -57,7 +57,12 @@
                       :key="index"
                       @touchend="lyricTextClick(line, index)"
                     >
-                      {{ line.txt }}
+                      <!--                      <span-->
+                      <!--                        class="lyric-active"-->
+                      <!--                        v-if="currentLyricNum === index && scrollIng"-->
+                      <!--                        >{{ formatDuration(Math.floor(currentTime)) }}</span-->
+                      <!--                      >-->
+                      <span>{{ line.txt }}</span>
                     </p>
                   </div>
                 </div>
@@ -622,6 +627,10 @@ function handler({ lineNum, txt }) {
   // console.log(lineNum, txt);
   currentLyricText.value = txt;
   currentLyricNum.value = lineNum;
+  // console.log(
+  //   scrollRef.value,
+  //   "scrollRef.valuescrollRef.valuescrollRef.valuescrollRef.value"
+  // );
   if (!scrollRef.value) {
     return;
   }
@@ -630,7 +639,15 @@ function handler({ lineNum, txt }) {
       observeDOM: true,
       probeType: 2,
     });
+    //console.log("我的歌");
+    // console.log(scrollWrapper.value, "scrollWrapper.value");
   }
+  // scrollWrapper.value.on("scroll", (pos) => {
+  //   //  console.log("滚动开始了");
+  // });
+  // scrollWrapper.value.on("scrollEnd", (pos) => {
+  //   // console.log("滚动结束了");
+  // });
   const childrens = scrollRef.value
     .querySelector(".lyric-wrapper")
     .querySelectorAll(".lyric-text");
@@ -658,7 +675,61 @@ onUnmounted(() => {
 });
 
 const currentSongIndex = computed(() => store.state.currentIndex);
+const scrollY = ref(0);
+async function scrollIngFun(pos) {
+  //console.log("scrollIngFun");
+  //stopLyric();
+  scrollIng.value = true;
+  // stopLyric();
+  // await nextTick();
+  // currentLyricNum.value = 0;
+  // stopLyric();
+  // scrollIng.value = true;
+  // scrollY.value = 0;
+  // stopLyric();
+  // // 停止歌词进行播放
+  // //playLyric();
+  // // console.log(-pos.y);
+  // let index = 0;
+  // scrollY.value = -pos.y;
+  // let lyricTextHeights = lyricSectionClientHeight.value;
+  // console.log(
+  //   lyricTextHeights,
+  //   "lyricTextHeightslyricTextHeightslyricTextHeightslyricTextHeights"
+  // );
+  // for (let i = 0; i < lyricTextHeights.length - 1; i++) {
+  //   let prevHeight = lyricTextHeights[i];
+  //   //- 5 * lyricTextHeights[1];
+  //   let nextHeight = lyricTextHeights[i + 1];
+  //   // if (i >= 5) {
+  //   prevHeight -= 5 * lyricTextHeights[1];
+  //   nextHeight -= 5 * lyricTextHeights[1];
+  //   // }
+  //   if (scrollY.value >= prevHeight && scrollY.value <= nextHeight) {
+  //     currentLyricNum.value = i;
+  //   }
+  // }
+  // console.log(currentLyricNum.value, "currentLyricNum.value");
+  //currentLyricNum.value = index;
+  // console.log("滚动开始了");
+}
+// 滚动结束了
+function scrollEndFun(pos) {
+  // stopLyric();
+  // console.log("scrollEndFun");
+  // stopLyric();
+  // playLyric();
+  // stopLyric();
+  // playLyric();
+  // playLyric();
+  //currentLyricNum.value = 0;
+  scrollIng.value = false;
+  // 结束后让歌词播放到具体的位置
+  // console.log("滚动结束了");
+}
+
 watch(fullScreen, async (newVal) => {
+  //stopLyric();
   stopCreateSnowHandle();
   if (newVal) {
     createSnowHandle();
@@ -686,6 +757,10 @@ watch(fullScreen, async (newVal) => {
       observeDOM: true,
       probeType: 2,
     });
+    if (scrollWrapper.value) {
+      scrollWrapper.value.on("scroll", scrollIngFun);
+      scrollWrapper.value.on("scrollEnd", scrollEndFun);
+    }
   }
   await nextTick();
   scrollToCurrentSongSection();
@@ -716,6 +791,7 @@ watch(playMode, (mode) => {
 });
 // 歌曲缓冲完毕
 async function canplay() {
+  //audioRef.value.play();
   stopCreateSnowHandle();
   audioRef.value.loop = playMode.value === PLAY_MODE.loop;
   // debugger;
@@ -744,10 +820,31 @@ async function canplay() {
   // console.log(songNameSwipe.value, "songNameSwipe.value");
   songNameSwipe.value.swipeTo(currentSongIndex.value);
 }
+const lyricSectionClientHeight = ref([]);
+// 获取对应歌词区块高度的值
+async function getLyricSectionClientHeight() {
+  await nextTick();
+  let height = 0;
+  lyricSectionClientHeight.value.push(height);
+  // 获取到每一个地方的歌词高度
+  const lyricWrapper = document.querySelector(".lyric-wrapper");
+  const lyricText = lyricWrapper.querySelectorAll(".lyric-text");
+  if (lyricText.length > 0) {
+    lyricText.forEach((text) => {
+      height += text.clientHeight;
+      lyricSectionClientHeight.value.push(height);
+    });
+    console.log(
+      lyricSectionClientHeight.value,
+      "lyricSectionClientHeight.value"
+    );
+  }
+}
 
 // 监听当前歌曲的变化
 watch(currentSong, async (newSong) => {
   currentTime.value = 0;
+  lyricSectionClientHeight.value = [];
   // if (audioRef.value) {
   //
   // }
@@ -764,6 +861,7 @@ watch(currentSong, async (newSong) => {
     if (!newSong.lyric) {
       const lyric = await getLyric(newSong);
       newSong.lyric = lyric;
+
       if (newSong.lyric && newSong.url) {
         store.commit("addRecentlyPlaySong", newSong);
       }
@@ -782,6 +880,7 @@ watch(currentSong, async (newSong) => {
       return;
     }
     await nextTick();
+    getLyricSectionClientHeight();
     audioRef.value.currentTime = 0;
     songNameSwipe.value.resize();
     // console.log(songNameSwipe.value, "songNameSwipe.value");
@@ -805,6 +904,7 @@ watch(
     audioRef.value.src = currentSong.value.url;
     // 避免暂停后再次播放从头开始播放
     audioRef.value.currentTime = currentTime.value;
+    stopLyric();
     if (newVal && fullScreen.value) {
       createSnowHandle();
       playLyric();
@@ -909,9 +1009,15 @@ function miniPlay() {
   store.commit("setFullScreen", false);
   store.commit("setPlaying", !isPlaying.value);
 }
+// 滚动中不让歌词进行滚动 锁
+const scrollIng = ref(false);
 
 // 歌词点击事件
 function lyricTextClick(line, index) {
+  //console.log(currentLyric.value.lines[index]);
+  if (scrollIng.value) {
+    return;
+  }
   console.log(line, "line");
   currentLyricNum.value = index;
   const time = line.time / 1000;
@@ -1304,11 +1410,37 @@ defineExpose({
         margin: 0 60px;
         text-align: center;
         .lyric-text {
+          position: relative;
           //background-color: red;
           padding: 5px 0;
           font-size: 14px;
           line-height: 15px;
           color: $color-text-d;
+          .lyric-active {
+            position: absolute;
+            right: 0;
+            top: 50%;
+            font-size: 10px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            transform: translateY(-50%);
+            width: 50px;
+            height: 20px;
+            background-color: $color-theme;
+            color: #ffffff;
+          }
+          //&.currentLyricActive {
+          //  &::after {
+          //    content: "";
+          //    right: 0;
+          //    top: 50%;
+          //    transform: translateY(-50%);
+          //    width: 50px;
+          //    height: 100%;
+          //    background-color: $color-theme;
+          //  }
+          //}
         }
       }
     }

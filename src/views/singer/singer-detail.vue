@@ -38,8 +38,10 @@ export default {
     const mid = this.$route.params.id;
     try {
       const result = await getSingerDetail({ mid });
+      //    debugger;
       let songs = await processSongs(result.songs);
       this.songs = songs;
+      //console.log(this.songs, "this.songs.......");
     } catch (err) {}
   },
   mounted() {},
