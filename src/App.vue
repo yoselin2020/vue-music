@@ -4,9 +4,9 @@
     <tabbar ref="tabBarRef"></tabbar>
     <div class="scroll-wrapper" :style="[isPaddingBottom]">
       <router-view v-slot="{ Component }">
-        <!--        <keep-alive>-->
-        <component :is="Component" />
-        <!--        </keep-alive>-->
+        <keep-alive>
+          <component :is="Component" />
+        </keep-alive>
       </router-view>
     </div>
     <!--音乐播放器组件-->

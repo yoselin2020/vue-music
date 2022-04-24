@@ -95,7 +95,7 @@ app.use(store).use(router).use(Vant);
 app.mixin(noFullScreen);
 
 app.use(lazyPlugin, {
-  loading: require("@/assets/images/default.png"),
+  loading: require("@/assets/images/xhboy.png"),
   //error: "error.png",
 });
 app.mount("#app");

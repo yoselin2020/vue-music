@@ -92,6 +92,7 @@
               </div>
               <div class="song-info">
                 <span class="song-name">{{ song.name }}</span>
+                <span class="operator">-</span>
                 <span class="song-singer">{{ song.singer }}</span>
               </div>
             </div>
@@ -155,6 +156,10 @@ export default {
     } catch (err) {}
   },
   watch: {
+    async searchHistorySectionHeight() {
+      await nextTick();
+      this.scrollInstance.refresh();
+    },
     fullScreen: {
       async handler() {
         await nextTick();
@@ -176,9 +181,14 @@ export default {
         this.$refs.searchHistoryTitle.clientHeight -
         this.$refs.vanSearchCom.$el.clientHeight -
         this.$refs._hotSearchWrapperRef.clientHeight;
+      //  console.log(height2, "height2");
       // console.log(height2, "height2height2height2height2height2");
       // console.log(height2, "height2height2");
-      this.searchHistorySectionHeight = height2;
+      this.searchHistorySectionHeight = height2 - 100;
+      // console.log(
+      //   this.searchHistorySectionHeight,
+      //   "this.searchHistorySectionHeight"
+      // );
     },
     async searchShowSectionHeight() {
       await nextTick();
@@ -373,8 +383,16 @@ export default {
           margin-right: 5px;
         }
         .song-info {
+          color: $color-text-d;
+          width: 100%;
+          white-space: nowrap;
+          overflow: hidden;
+          text-overflow: ellipsis;
           flex: 1;
-
+          .operator {
+            color: $color-text-d;
+            margin: 0 5px;
+          }
           .song-name {
             font-size: 14px;
             color: $color-text-d;

@@ -152,6 +152,11 @@ export default createStore({
     setPlaying(state, isPlaying) {
       state.isPlaying = isPlaying;
     },
+    // 清空播放列表
+    clearPlayList(state) {
+      state.playList = [];
+      state.sequenceList = [];
+    },
     // 播放器列表
     setPlayList(state, list) {
       list.forEach((item) => {

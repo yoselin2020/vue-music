@@ -32,16 +32,16 @@ export default {
   async mounted() {
     // console.log(this.songs, "this.songsthis.songsthis.songsthis.songs");
     // console.log(this.id, "iddi");
-    if (!this.pic) {
-      //   console.log(this.$route.matched);
-      // this.$router.push({
-      //   path: this.$route.matched[1].path,
-      // });
-
-      this.$router.push({
-        path: "/recommend",
-      });
-    }
+    // if (!this.pic) {
+    //   //   console.log(this.$route.matched);
+    //   // this.$router.push({
+    //   //   path: this.$route.matched[1].path,
+    //   // });
+    //
+    //   this.$router.push({
+    //     path: "/recommend",
+    //   });
+    // }
   },
   methods: {
     selectSong(song) {

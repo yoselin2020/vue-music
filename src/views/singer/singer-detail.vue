@@ -29,11 +29,11 @@ export default {
   },
   components: { MusicList },
   async created() {
-    if (!this.pic) {
-      this.$router.push({
-        path: "/singer",
-      });
-    }
+    // if (!this.pic) {
+    //   this.$router.push({
+    //     path: "/singer",
+    //   });
+    // }
     // const mid = this.$route.query.mid;
     const mid = this.$route.params.id;
     try {

@@ -191,7 +191,7 @@
     ></div>
   </transition>
   <transition name="popup">
-    <div class="play-list" v-show="isShowMask && sequenceList.length > 0">
+    <div class="play-list" v-show="isShowMask && !fullScreen">
       <header class="header">
         <div class="left-box" @click.stop="togglePlayMode">
           <i :class="['iconfont', playModeIcon]"></i>
@@ -486,7 +486,8 @@ async function confirmHandle() {
   // 清空播放列表
   // 让歌曲暂停掉
   store.commit("setPlaying", false);
-  store.commit("setPlayList", []);
+  store.commit("clearPlayList");
+  //  store.commit("setPlayList", []);
   store.commit("setSequenceList", []);
   store.commit("setCurrentIndex", -1);
 }
@@ -1706,6 +1707,10 @@ defineExpose({
         font-size: $font-size-medium;
       }
       .singer-name {
+        width: 100%;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
         font-size: $font-size-small;
         color: $color-text-d;
       }

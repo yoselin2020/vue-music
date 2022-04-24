@@ -48,13 +48,13 @@ function selectSong(song) {
 //period
 onMounted(async () => {
   //console.log(props.songs, "....");
-  if (!props.pic) {
-    //console.log(route.matched[1].path, "route.matched[1].path");
-    router.push({
-      path: "/top-list",
-      //route.matched[1].path,
-    });
-  }
+  // if (!props.pic) {
+  //   //console.log(route.matched[1].path, "route.matched[1].path");
+  //   router.push({
+  //     path: "/top-list",
+  //     //route.matched[1].path,
+  //   });
+  // }
   const period = useRoute().query.period;
   const id = props.id;
   try {
