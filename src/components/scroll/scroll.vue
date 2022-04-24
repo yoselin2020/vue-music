@@ -13,6 +13,7 @@ import {
   watch,
   computed,
   nextTick,
+  onMounted,
 } from "vue";
 import { useStore } from "vuex";
 const rootRef = ref(null);
@@ -36,6 +37,7 @@ const props = defineProps({
     default: true,
   },
 });
+
 const { scroll } = useScroll(rootRef, props, emit);
 
 watch(fullScreen, async (newFullScreen) => {
@@ -48,6 +50,7 @@ watch(fullScreen, async (newFullScreen) => {
 // console.log(scroll, "scroll");
 defineExpose({
   scroll,
+  rootRef,
 });
 </script>
 
