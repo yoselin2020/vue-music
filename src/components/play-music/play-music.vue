@@ -1032,7 +1032,6 @@ watch(currentTime, async (newTime) => {
   }
   progressBarWidth.value = (newTime / currentSong.value.duration) * 100;
 });
-// 隐藏一首歌曲
 async function delSong(song) {
   // 删除一首歌曲
   await store.dispatch("delSong", song);

@@ -168,36 +168,38 @@ export default createStore({
     },
     // 播放器列表
     setPlayList(state, list) {
-      list.forEach((item) => {
-        item.isDel = false;
-      });
-      //  debugger;
-      let l = state.playList.slice();
-      if (l.length > 0 && Array.isArray(l)) {
-        // 过滤出已经存在列表中的歌曲,不存在的歌曲进行添加
-        let result = l.filter(
-          (item) => list.findIndex((item2) => item2.id === item.id) === -1
-        );
-        state.playList = [...result, ...list];
-      } else {
-        state.playList = list;
-      }
+      state.playList = list;
+      // list.forEach((item) => {
+      //   item.isDel = false;
+      // });
+      // //  debugger;
+      // let l = state.playList.slice();
+      // if (l.length > 0 && Array.isArray(l)) {
+      //   // 过滤出已经存在列表中的歌曲,不存在的歌曲进行添加
+      //   let result = l.filter(
+      //     (item) => list.findIndex((item2) => item2.id === item.id) === -1
+      //   );
+      //   state.playList = [...result, ...list];
+      // } else {
+      //   state.playList = list;
+      // }
     },
     // 顺序播放列表
     setSequenceList(state, list) {
-      list.forEach((item) => {
-        item.isDel = false;
-      });
-      let l = state.sequenceList.slice();
-      if (l.length > 0 && Array.isArray(l)) {
-        // 过滤出已经存在列表中的歌曲,不存在的歌曲进行添加
-        let result = l.filter(
-          (item) => list.findIndex((item2) => item2.id === item.id) === -1
-        );
-        state.sequenceList = [...result, ...list];
-      } else {
-        state.sequenceList = list;
-      }
+      state.sequenceList = list;
+      // list.forEach((item) => {
+      //   item.isDel = false;
+      // });
+      // let l = state.sequenceList.slice();
+      // if (l.length > 0 && Array.isArray(l)) {
+      //   // 过滤出已经存在列表中的歌曲,不存在的歌曲进行添加
+      //   let result = l.filter(
+      //     (item) => list.findIndex((item2) => item2.id === item.id) === -1
+      //   );
+      //   state.sequenceList = [...result, ...list];
+      // } else {
+      //   state.sequenceList = list;
+      // }
     },
     // 播放器是否全屏状态
     setFullScreen(state, status) {
@@ -248,6 +250,7 @@ export default createStore({
         state.currentIndex = 0;
         state.isPlaying = true;
         state.sequenceList = sequenceList;
+        Toast("已添加至播放队列");
         return;
       }
       if (sequenceListIndex > -1) {
@@ -266,6 +269,7 @@ export default createStore({
         }
         playList.splice(playListIndex, 1);
         playList.splice(currentPlaySongIndex + 1, 0, song);
+        Toast("已添加至播放队列");
         if (
           playListIndex < currentPlaySongIndex ||
           playListIndex === playList.length
@@ -278,10 +282,11 @@ export default createStore({
       } else {
         // 不存在歌曲列表中
         playList.splice(currentPlaySongIndex + 1, 0, song);
+        Toast("已添加至播放队列");
         state.playList = playList;
       }
       state.sequenceList = sequenceList;
-      Toast("请添加歌曲至播放列表");
+      //Toast("请添加歌曲至播放列表");
     },
   },
   actions: {
@@ -339,7 +344,7 @@ export default createStore({
     },
     // 删除一首歌曲
     delSong({ state, commit }, song) {
-      //debugger;
+      debugger;
       // 这里先拷贝一份, 不要直接修改, 直接修改会出问题, 直接修改会导致currentSong的变化
       const playList = state.playList.slice();
       const sequenceList = state.sequenceList.slice();

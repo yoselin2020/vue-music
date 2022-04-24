@@ -487,6 +487,7 @@ export default {
         justify-content: space-evenly;
         .delete-button {
           border: 0 !important;
+          border: none;
           height: 100%;
         }
         .icon {
