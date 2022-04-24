@@ -191,7 +191,10 @@
     ></div>
   </transition>
   <transition name="popup">
-    <div class="play-list" v-show="isShowMask && !fullScreen">
+    <div
+      class="play-list"
+      v-show="isShowMask && !fullScreen && sequenceList.length"
+    >
       <header class="header">
         <div class="left-box" @click.stop="togglePlayMode">
           <i :class="['iconfont', playModeIcon]"></i>
@@ -247,11 +250,23 @@
       </div>
       <div class="add-song" @click.stop="showAddSongSection">
         <div>
-          <img
-            class="add-icon"
-            :src="require('@/assets/images/add-icon3.png')"
-            alt=""
-          />
+          <svg
+            @click.stop="addToPlayListQueue(song)"
+            t="1650811025936"
+            class="icon"
+            viewBox="0 0 1025 1024"
+            version="1.1"
+            xmlns="http://www.w3.org/2000/svg"
+            p-id="45618"
+            width="16"
+            height="16"
+          >
+            <path
+              d="M512 1024c-282.787759 0-512-229.248343-512-512C0 229.212241 229.212241 0 512 0 794.751657 0 1024.036102 229.212241 1024.036102 512 1024.036102 794.787759 794.751657 1024 512 1024zM768.036102 460.80722l-204.80722 0L563.228882 256 460.843323 256l0 204.80722L256 460.80722l0 102.385559 204.80722 0 0 204.80722 102.385559 0 0-204.80722 204.80722 0L768 460.80722z"
+              p-id="45619"
+              fill="#ffcd32"
+            ></path>
+          </svg>
           <span>添加歌曲到队列</span>
         </div>
       </div>
@@ -610,16 +625,18 @@ watch(isShowMask, async (newVal) => {
 });
 async function scrollToCurrentSongSection() {
   await nextTick();
-  setTimeout(() => {
-    const scroll = playListScrollInstance.value;
-    const children = playListScrollRef.value.querySelectorAll(
-      ".play-list-item-wrapper"
-    );
-    if (scroll) {
-      scroll.refresh();
-      scroll.scrollToElement(children[currentSongIndex.value], 100);
-    }
-  }, 500);
+  // debugger;
+  const scroll = playListScrollInstance.value;
+  const children = playListScrollRef.value.querySelectorAll(
+    ".play-list-item-wrapper"
+  );
+  if (currentSongIndex.value === -1) {
+    return;
+  }
+  if (scroll) {
+    scroll.refresh();
+    scroll.scrollToElement(children[currentSongIndex.value], 100);
+  }
 }
 watch(playList, async () => {
   await nextTick();
@@ -815,16 +832,16 @@ watch(fullScreen, async (newVal) => {
   }
   await nextTick();
   if (newVal) {
-    const childrens = scrollRef.value
-      .querySelector(".lyric-wrapper")
-      .querySelectorAll(".lyric-text");
-    const scrollWrapperValue = scrollWrapper.value;
-    if (scrollWrapperValue) {
-      if (lineNum > 5) {
-        lineNum -= 5;
-      }
-      scrollWrapperValue.scrollToElement(childrens[lineNum], 300);
-    }
+    // const childrens = scrollRef.value
+    //   .querySelector(".lyric-wrapper")
+    //   .querySelectorAll(".lyric-text");
+    // const scrollWrapperValue = scrollWrapper.value;
+    // if (scrollWrapperValue) {
+    //   if (lineNum > 5) {
+    //     lineNum -= 5;
+    //   }
+    //   scrollWrapperValue.scrollToElement(childrens[lineNum], 300);
+    // }
   }
   scrollToCurrentSongSection();
 });
@@ -1644,6 +1661,7 @@ defineExpose({
       }
 
       > span {
+        margin-left: 5px;
       }
     }
   }

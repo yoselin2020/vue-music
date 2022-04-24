@@ -47,6 +47,17 @@ export default createStore({
     //喜欢的歌曲
   },
   mutations: {
+    // 添加一首歌曲到列表后面
+    addToPlayListQueue(state, song) {
+      const findIndex = state.playList.findIndex((item) => item.id === song.id);
+      if (findIndex === -1) {
+        state.playList.push(song);
+        state.sequenceList.push(song);
+        Toast("添加成功");
+      } else {
+        Toast("已存在该歌曲");
+      }
+    },
     // 设置我喜欢的歌曲列表
     setFavoriteSongList(state, list) {
       state.favoriteSongList = list;
@@ -132,9 +143,7 @@ export default createStore({
         state.playList.splice(playIndex, 1);
         if (state.playList.length === 0) {
           //  debugger;
-          Toast({
-            message: "歌曲列表为空,请添加歌曲!",
-          });
+          Toast("歌曲列表为空,请添加歌曲!");
           state.isPlaying = false;
           state.currentIndex = -1;
           return;
@@ -272,10 +281,7 @@ export default createStore({
         state.playList = playList;
       }
       state.sequenceList = sequenceList;
-      Toast({
-        icon: "success",
-        message: "请添加歌曲至播放列表",
-      });
+      Toast("请添加歌曲至播放列表");
     },
   },
   actions: {
@@ -347,10 +353,7 @@ export default createStore({
       sequenceList.splice(sequenceListIndex, 1);
       // 如果歌曲已经被删完了,那么停止歌曲播放
       if (playList.length === 0) {
-        Toast({
-          icon: "success",
-          message: "请添加歌曲至播放列表",
-        });
+        Toast("请添加歌曲至播放列表");
         commit("setPlaying", false);
         commit("setPlayList", playList);
         commit("setSequenceList", sequenceList);

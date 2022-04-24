@@ -38,6 +38,23 @@
                 >
                   <p class="song-name">{{ song.name }}</p>
                   <p class="song-singer">{{ song.singer }}</p>
+                  <svg
+                    @click.stop="addToPlayListQueue(song)"
+                    t="1650811025936"
+                    class="icon"
+                    viewBox="0 0 1025 1024"
+                    version="1.1"
+                    xmlns="http://www.w3.org/2000/svg"
+                    p-id="45618"
+                    width="18"
+                    height="18"
+                  >
+                    <path
+                      d="M512 1024c-282.787759 0-512-229.248343-512-512C0 229.212241 229.212241 0 512 0 794.751657 0 1024.036102 229.212241 1024.036102 512 1024.036102 794.787759 794.751657 1024 512 1024zM768.036102 460.80722l-204.80722 0L563.228882 256 460.843323 256l0 204.80722L256 460.80722l0 102.385559 204.80722 0 0 204.80722 102.385559 0 0-204.80722 204.80722 0L768 460.80722z"
+                      p-id="45619"
+                      fill="#ffcd32"
+                    ></path>
+                  </svg>
                   <template #right>
                     <van-button
                       square
@@ -203,6 +220,11 @@ export default {
       "delRecentlyPlaySong",
     ]),
     ...mapActions(["addSongToPlayList"]),
+
+    addToPlayListQueue(song) {
+      this.$store.commit("addToPlayListQueue", song);
+      console.log(song, "songi");
+    },
     // 删除一条搜索记录
     delSearchHistory(item) {
       this.delTextFromSearchHistoryList(item);
@@ -456,6 +478,7 @@ export default {
     }
     .playlist-wrapper {
       .playlist-item {
+        position: relative;
         margin: 5px 0;
         padding-left: 10px;
         display: flex;
@@ -466,7 +489,15 @@ export default {
           border: 0 !important;
           height: 100%;
         }
+        .icon {
+          position: absolute;
+          right: 10px;
+          z-index: 20;
+          top: 50%;
+          transform: translateY(-50%);
+        }
         ::v-deep(.van-swipe-cell) {
+          position: relative;
           padding-left: 10px;
           &.active2 {
             .van-swipe-cell__wrapper {
@@ -502,9 +533,11 @@ export default {
         }
 
         .song-name {
+          margin-right: 20px;
           font-size: 14px;
         }
         .song-singer {
+          margin-right: 20px;
           overflow: hidden;
           text-overflow: ellipsis;
           white-space: nowrap;
