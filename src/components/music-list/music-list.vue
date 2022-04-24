@@ -49,6 +49,9 @@
                   </span>
                 </p>
               </div>
+              <div class="tools-wrapper">
+                <tools @next-play="nextPlay(song)"></tools>
+              </div>
             </div>
           </div>
         </div>
@@ -72,6 +75,7 @@ import { SINGER_KEY } from "@/assets/js/constant";
 import BScroll from "better-scroll";
 import { useStore } from "vuex";
 import storage from "storejs";
+import tools from "@/components/tools/tools";
 const emits = defineEmits(["selectSong"]);
 const scrollInstance = ref(null);
 const scrollRef = ref(null);
@@ -114,6 +118,12 @@ const props = defineProps({
     default: () => ({}),
   },
 });
+
+// 添加到下一首歌曲
+function nextPlay(song) {
+  store.commit("addSongNextPlay", song);
+  //console.log(song, "next-play");
+}
 
 watch(fullScreen, async (newFullScreen) => {
   // 非全屏的状态,我们需要让scroll重新计算高度
@@ -290,7 +300,6 @@ onMounted(async () => {
           .list-item {
             display: flex;
             .icon-wrapper {
-              width: 40px;
               margin-right: 15px;
               display: flex;
               justify-content: center;
@@ -299,6 +308,9 @@ onMounted(async () => {
                 width: 24px;
               }
               span {
+                display: inline-block;
+                width: 24px;
+                text-align: center;
                 color: $color-theme;
               }
             }

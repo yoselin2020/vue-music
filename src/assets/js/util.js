@@ -94,3 +94,7 @@ export function createSnow(parentElement) {
   });
   div.style.transform = `translate3d(${end.x}px,${end.y}px,0) scale(${end.scale})`;
 }
+// 生成一个随机数
+export function getRandom(min = 0, max) {
+  return Math.floor(Math.random() * (max - min) + min);
+}

@@ -5,10 +5,10 @@ import {
   SearchHistoryListKEY,
 } from "@/assets/js/constant";
 import storage from "storejs";
-const debug = process.env.NODE_ENV !== "production";
 import { PLAY_MODE } from "@/assets/js/constant";
-import { shuffle } from "@/assets/js/util";
+import { shuffle, getRandom } from "@/assets/js/util";
 import { Toast } from "vant";
+const debug = process.env.NODE_ENV !== "production";
 export default createStore({
   plugins: debug ? [createLogger()] : [],
   state: {
@@ -131,14 +131,20 @@ export default createStore({
       if (playIndex > -1) {
         state.playList.splice(playIndex, 1);
         if (state.playList.length === 0) {
+          //  debugger;
           Toast({
             message: "歌曲列表为空,请添加歌曲!",
           });
           state.isPlaying = false;
           state.currentIndex = -1;
+          return;
         }
-        if (state.playList.length === currentSongIndex) {
+        if (
+          playIndex < currentSongIndex ||
+          state.playList.length === currentSongIndex
+        ) {
           state.currentIndex = --currentSongIndex;
+          state.isPlaying = true;
         }
       }
     },
@@ -186,6 +192,31 @@ export default createStore({
         state.favoriteSongList.splice(index, 1);
         storage.set(FAVORITE_SONG_KEY, state.favoriteSongList);
       }
+    },
+    //将歌曲添加到下一首播放
+    addSongNextPlay(state, song) {
+      //当前正在播放歌曲的索引
+      let currentPlaySongIndex = state.currentIndex;
+      // 查找歌曲有没有存在在 playlist 播放歌曲列表中
+      let playListIndex = state.playList.findIndex(
+        (item) => item.id === song.id
+      );
+      // 存在歌曲列表中
+      if (playListIndex > -1) {
+        // 如果存在的话,先删除掉, 然后再进行插入
+        if (playListIndex === currentPlaySongIndex) {
+          return;
+        }
+        let [s] = state.playList.splice(playListIndex, 1);
+        state.playList.splice(currentPlaySongIndex + 1, 0, s);
+      } else {
+        // 不存在歌曲列表中
+        state.playList.splice(currentPlaySongIndex + 1, 0, song);
+      }
+      Toast({
+        icon: "success",
+        message: "已添加到播放列表",
+      });
     },
   },
   actions: {
@@ -281,11 +312,7 @@ export default createStore({
     },
     // 随机播放全部
     async randomPlay({ commit, state, getters }, { list, index }) {
-      // 生成一个随机数
-      function getRandom(min, max) {
-        return Math.random() * (max - min) + min;
-      }
-      let num = Math.floor(getRandom(0, list.length));
+      let num = getRandom(0, list.length);
       //  console.log(getters.currentIndex);
       commit("setCurrentIndex", num);
       // commit("setPlayList", shuffle(list));

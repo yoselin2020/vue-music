@@ -59,7 +59,7 @@ export default {
 .switch-tab {
   .tab-wrapper {
     position: relative;
-    margin: 20px auto 0;
+    margin: 15px auto 0;
     // border: 1px solid red;
     width: 240px;
     display: flex;

@@ -184,10 +184,14 @@
   </transition>
   <!-- -->
   <transition name="fade">
-    <div class="mask" @click.stop="hideMask" v-show="isShowMask"></div>
+    <div
+      class="mask"
+      @click.stop="hideMask"
+      v-show="isShowMask && sequenceList.length > 0"
+    ></div>
   </transition>
   <transition name="popup">
-    <div class="play-list" v-show="isShowMask">
+    <div class="play-list" v-show="isShowMask && sequenceList.length > 0">
       <header class="header">
         <div class="left-box" @click.stop="togglePlayMode">
           <i :class="['iconfont', playModeIcon]"></i>
@@ -242,7 +246,14 @@
         </div>
       </div>
       <div class="add-song" @click.stop="showAddSongSection">
-        <span>添加歌曲到队列</span>
+        <div>
+          <img
+            class="add-icon"
+            :src="require('@/assets/images/add-icon2.png')"
+            alt=""
+          />
+          <span>添加歌曲到队列</span>
+        </div>
       </div>
       <div class="button-close" @click.stop="hideMask">关闭</div>
     </div>
@@ -262,6 +273,13 @@
     @pause="pause"
     @error="error"
   ></audio>
+  <confirm
+    v-if="visible"
+    v-model:visible="visible"
+    message="是否清空播放列表?"
+    @confirm="confirmHandle"
+    @cancel="cancel"
+  ></confirm>
 </template>
 
 <script setup>
@@ -282,6 +300,7 @@ import { Swiper, SwiperSlide } from "swiper/vue";
 import "swiper/css";
 import "swiper/css/pagination";
 
+import confirm from "@/components/confirm/confirm";
 import { useStore } from "vuex";
 import { PLAY_MODE } from "@/assets/js/constant";
 import { getLyric } from "@/service/song";
@@ -427,11 +446,13 @@ async function error() {
       //  debugger;
     }
   } catch (err) {
-    stopCreateSnowHandle();
     console.log("error", "播放器报错了");
+    debugger;
+    stopCreateSnowHandle();
     store.commit("setPlaying", true);
     // 切换到下一首歌曲
     nextSong();
+    return;
   }
   store.commit("setPlaying", true);
 }
@@ -458,6 +479,20 @@ watch(isShowAddSongSection, (newVal) => {
 function hideMask() {
   isShowMask.value = false;
 }
+// 控制confirm组件显示和隐藏
+const visible = ref(false);
+
+async function confirmHandle() {
+  // 清空播放列表
+  // 让歌曲暂停掉
+  store.commit("setPlaying", false);
+  store.commit("setPlayList", []);
+  store.commit("setSequenceList", []);
+  store.commit("setCurrentIndex", -1);
+}
+
+async function cancel() {}
+
 // 进度条父盒子ref
 const barRef = ref(null);
 // 歌曲是否已经缓冲好了
@@ -560,7 +595,7 @@ const playList = computed(() => {
   return store.getters.playList;
 });
 
-watch(isShowMask, async () => {
+watch(isShowMask, async (newVal) => {
   await nextTick();
   if (playListScrollInstance.value) {
     playListScrollInstance.value.refresh();
@@ -732,6 +767,8 @@ watch(fullScreen, async (newVal) => {
   //stopLyric();
   stopCreateSnowHandle();
   if (newVal) {
+    stopLyric();
+    playLyric();
     createSnowHandle();
   } else {
     // 把其他的删除掉
@@ -770,19 +807,19 @@ watch(fullScreen, async (newVal) => {
   if (scrollWrapper.value) {
     scrollWrapper.value.refresh();
   }
-  // if (newVal) {
-  //   const childrens = scrollRef.value
-  //     .querySelector(".lyric-wrapper")
-  //     .querySelectorAll(".lyric-text");
-  //   const scrollWrapperValue = scrollWrapper.value;
-  //   if (scrollWrapperValue) {
-  //     if (lineNum > 5) {
-  //       lineNum -= 5;
-  //     }
-  //     scrollWrapperValue.scrollToElement(childrens[lineNum], 1000);
-  //   }
-  // }
   await nextTick();
+  if (newVal) {
+    const childrens = scrollRef.value
+      .querySelector(".lyric-wrapper")
+      .querySelectorAll(".lyric-text");
+    const scrollWrapperValue = scrollWrapper.value;
+    if (scrollWrapperValue) {
+      if (lineNum > 5) {
+        lineNum -= 5;
+      }
+      scrollWrapperValue.scrollToElement(childrens[lineNum], 300);
+    }
+  }
   scrollToCurrentSongSection();
 });
 // 监视playMode的变化
@@ -980,16 +1017,17 @@ async function delSong(song) {
 }
 // 清空mask中播放列表中的歌曲
 async function clearPlayList() {
-  try {
-    const result = await Dialog.confirm({
-      title: "提示",
-      message: "确认清空播放列表?",
-    });
-    playList.value.forEach((item) => {
-      item.isDel = true;
-    });
-    //   store.commit("setPlayList", playList.value);
-  } catch (err) {}
+  visible.value = true;
+  // try {
+  //   const result = await Dialog.confirm({
+  //     title: "提示",
+  //     message: "确认清空播放列表?",
+  //   });
+  //   playList.value.forEach((item) => {
+  //     item.isDel = true;
+  //   });
+  //   //   store.commit("setPlayList", playList.value);
+  // } catch (err) {}
 }
 
 // swiper 索引值改变
@@ -1379,6 +1417,7 @@ defineExpose({
   //}
 
   .cd-swiper-wrapper {
+    //  padding-bottom: 40px;
     position: relative;
     overflow: hidden;
   }
@@ -1403,7 +1442,7 @@ defineExpose({
     //  }
     //}
     .scroll-wrapper {
-      height: 380px;
+      height: 420px;
       overflow: hidden;
       //  background-color: pink;
       .lyric-wrapper {
@@ -1452,6 +1491,7 @@ defineExpose({
   .singer-pic-wrapper {
     .pic-box {
       margin: 0 auto;
+      margin-top: 15px;
       width: 300px;
       height: 300px;
       overflow: hidden;
@@ -1466,7 +1506,7 @@ defineExpose({
   }
 
   .currentLyric-wrapper {
-    margin-top: 30px;
+    margin-top: 50px;
     text-align: center;
     .text {
       display: inline-block;
@@ -1583,13 +1623,22 @@ defineExpose({
   .add-song {
     padding: 20px;
     margin: 0 auto;
-    span {
-      display: inline-block;
+    > div {
+      display: flex;
+      justify-content: center;
+      align-items: center;
       padding: 8px 20px;
       font-size: 12px;
       color: $color-text-d;
       border: 1px solid $color-text-d;
       border-radius: 10px;
+
+      > img {
+        margin-right: 4px;
+      }
+
+      > span {
+      }
     }
   }
 
@@ -1624,6 +1673,7 @@ defineExpose({
       width: 40px;
       height: 40px;
       border-radius: 50%;
+      border: 2px solid #4e5649;
       overflow: hidden;
       img {
         width: 100%;

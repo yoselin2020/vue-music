@@ -408,7 +408,7 @@ export default {
       }
     }
     .hot-search-record {
-      height: 150px;
+      height: 120px;
       overflow: hidden;
       div {
         display: flex;

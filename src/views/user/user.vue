@@ -21,7 +21,7 @@
     </div>
     <div class="random-play" ref="randomPlayRef" @click.stop="randomPlayHandle">
       <i class="iconfont icon-play"></i>
-      <span>随机播放全部</span>
+      <span>随机播放一首歌曲</span>
     </div>
     <div class="tab-panel" :style="isPaddingBottom">
       <div
@@ -114,6 +114,7 @@
 <script>
 import { mapActions, mapMutations, mapState, mapGetters } from "vuex";
 import BScroll from "better-scroll";
+import { getRandom } from "@/assets/js/util";
 import { nextTick } from "vue";
 export default {
   name: "user",
@@ -175,7 +176,7 @@ export default {
       this.$refs.userRef.clientHeight -
       this.$refs.tabWrapperRef.clientHeight -
       this.$refs.randomPlayRef.clientHeight;
-    this.playlistScrollSectionHeight = height - 200;
+    this.playlistScrollSectionHeight = height - 100;
     // console.log(
     //   this.$refs.randomPlayRef.clientHeight,
     //   "this.$refs.tabWrapperRef.clientHeight"
@@ -218,7 +219,9 @@ export default {
       } else {
         list = this.recentlyPlayList;
       }
-      this.randomPlay({ list });
+      let index = getRandom(0, list.length);
+      this.addSongToPlayList(list[index]);
+      //this.randomPlay({ list });
       // await nextTick();
       // this.playlistScrollInstance.refresh();
       // list.forEach((song) => {
@@ -226,8 +229,8 @@ export default {
       // });
     },
     songClickHandle(song, index) {
-      console.log(song, "song");
-      debugger;
+      // console.log(song, "song");
+      // debugger;
       this.playSongCurrentIndex = index;
       //console.log(song, "song");
       this.addSongToPlayList(song);
@@ -293,16 +296,20 @@ export default {
     // background-color: red;
     margin: 10px auto;
     border: 1px solid $color-theme;
-    max-width: 120px;
+    width: 150px;
+    // margin: 0 auto;
     text-align: center;
-    line-height: 30px;
+    //  line-height: 30px;
     border-radius: 10px;
     font-size: 14px;
-    padding: 0 10px;
+    padding: 10px;
     i {
+      font-size: 15px;
+      vertical-align: middle;
       color: $color-theme;
     }
     span {
+      font-size: 14px;
       color: $color-theme;
       margin-left: 5px;
     }
@@ -335,6 +342,7 @@ export default {
         flex-direction: column;
         justify-content: space-between;
         .delete-button {
+          border: 0 !important;
           height: 100%;
         }
 

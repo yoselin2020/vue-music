@@ -11,7 +11,10 @@
       placeholder="搜索歌曲/歌手"
       background="#222222"
     />
-    <div v-show="songs.length === 0 || keyword.trim().length === 0">
+    <div
+      class="switch-wrapper"
+      v-show="songs.length === 0 || keyword.trim().length === 0"
+    >
       <switch-tab
         @switchTab="switchTab"
         :currentIndex="currentIndex"
@@ -20,17 +23,32 @@
       <!--最近播放区域-->
       <div class="recently-playList-section" v-show="currentIndex === 0">
         <div class="scroll-ele" ref="recentlyPlayListSectionRef">
+          <!--:class="song.id === currentSong.id ? 'active' : ''"-->
           <div class="playlist-wrapper">
-            <div
-              class="playlist-item"
-              :class="song.id === currentSong.id ? 'active' : ''"
-              v-for="song of recentlyPlayList"
-              :key="song.id"
-              @click.stop="songClickHandle(song)"
-            >
-              <p class="song-name">{{ song.name }}</p>
-              <p class="song-singer">{{ song.singer }}</p>
-            </div>
+            <transition-group name="list">
+              <div
+                class="playlist-item"
+                v-for="song of recentlyPlayList"
+                :key="song.id"
+                @click.stop="songClickHandle(song)"
+              >
+                <van-swipe-cell
+                  @click="swiperCellClick($event, song)"
+                  :class="currentSong.id === song.id ? 'active2' : ''"
+                >
+                  <p class="song-name">{{ song.name }}</p>
+                  <p class="song-singer">{{ song.singer }}</p>
+                  <template #right>
+                    <van-button
+                      square
+                      text="删除"
+                      type="danger"
+                      class="delete-button"
+                    />
+                  </template>
+                </van-swipe-cell>
+              </div>
+            </transition-group>
           </div>
         </div>
       </div>
@@ -182,11 +200,25 @@ export default {
     ...mapMutations([
       "addTextToSearchHistoryList",
       "delTextFromSearchHistoryList",
+      "delRecentlyPlaySong",
     ]),
     ...mapActions(["addSongToPlayList"]),
     // 删除一条搜索记录
     delSearchHistory(item) {
       this.delTextFromSearchHistoryList(item);
+    },
+    //点击了右侧的删除按钮
+    swiperCellClick(event, song) {
+      // debugger;
+      if (event === "right") {
+        console.log(event, song);
+        // 移除歌曲
+        // 移除歌曲后,我们还要从playList中进行移除操作
+        if (this.currentIndex === 0) {
+          //   从最近播放中将歌曲移除掉
+          this.delRecentlyPlaySong(song);
+        }
+      }
     },
     // 用户点击了搜索到的歌曲
     async selectSong(song) {
@@ -238,6 +270,12 @@ export default {
         this.recentlyPlayListSectionScrollInstance.refresh();
       } catch (err) {}
     },
+    async pullingUpHandle() {
+      this.offset++;
+      await this.searchHandle(this.keyword);
+      this.searchResultWrapperScrollInstance.finishPullUp();
+      // console.log("pullUp");
+    },
     async initScroll() {
       this.searchRecordSectionScrollInstance = new BScroll(
         this.$refs.searchRecordSectionRef,
@@ -253,7 +291,12 @@ export default {
           probeType: 2,
           click: true,
           observeDOM: true,
+          pullUpLoad: true,
         }
+      );
+      this.searchResultWrapperScrollInstance.on(
+        "pullingUp",
+        this.pullingUpHandle
       );
       this.recentlyPlayListSectionScrollInstance = new BScroll(
         this.$refs.recentlyPlayListSectionRef,
@@ -297,6 +340,9 @@ export default {
   z-index: 350;
   display: flex;
   flex-direction: column;
+
+  .switch-wrapper {
+  }
 
   .song-item-wrapper {
     margin-bottom: 5px;
@@ -351,7 +397,7 @@ export default {
   }
 
   .header {
-    line-height: 30px;
+    line-height: 40px;
     position: relative;
     text-align: center;
     font-size: 14px;
@@ -362,6 +408,9 @@ export default {
       transform: translateY(-50%);
       right: 15px;
 
+      .add-icon {
+      }
+
       i {
         color: $color-theme;
       }
@@ -369,15 +418,21 @@ export default {
   }
 
   .search-record-section {
+    padding: 10px 40px;
     .search-record-section-wrapper {
       height: 500px;
       overflow: hidden;
+
+      //   margin: 0 10px;
       box-sizing: border-box;
-      padding: 10px 40px;
       .search-record-item {
+        box-sizing: border-box;
+        padding-left: 15px;
+        line-height: 35px;
         display: flex;
+        align-items: center;
         justify-content: space-between;
-        margin: 10px 0;
+        //  margin: 10px 0;
         .text {
           color: $color-text-d;
           font-size: 14px;
@@ -407,6 +462,31 @@ export default {
         height: 35px;
         flex-direction: column;
         justify-content: space-evenly;
+        .delete-button {
+          border: 0 !important;
+          height: 100%;
+        }
+        ::v-deep(.van-swipe-cell) {
+          padding-left: 10px;
+          &.active2 {
+            .van-swipe-cell__wrapper {
+              position: relative;
+              &::before {
+                position: absolute;
+                left: -5px;
+                content: "";
+                top: 0;
+                height: 100%;
+                width: 2px;
+                background-color: #ffcd32;
+              }
+            }
+          }
+          .van-button--danger {
+            box-sizing: border-box;
+            border: 0 !important;
+          }
+        }
 
         &.active {
           position: relative;

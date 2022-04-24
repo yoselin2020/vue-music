@@ -1,13 +1,15 @@
 <template>
   <teleport to="body">
-    <div class="confirm">
-      <div class="confirm-wrapper">
-        <div class="tip-message">{{ message }}</div>
-        <div class="btn-wrapper">
-          <span class="clear" @click="confirm">清空</span>
-          <span class="cancel" @click="cancel">取消</span>
+    <div class="confirm" @click="hide">
+      <transition name="fade">
+        <div class="confirm-wrapper">
+          <div class="tip-message">{{ message }}</div>
+          <div class="btn-wrapper">
+            <span class="clear" @click.stop="confirm">清空</span>
+            <span class="cancel" @click.stop="cancel">取消</span>
+          </div>
         </div>
-      </div>
+      </transition>
     </div>
   </teleport>
 </template>
@@ -33,6 +35,9 @@ export default {
     },
   },
   methods: {
+    hide() {
+      this.$emit("update:visible", false);
+    },
     confirm() {
       this.$emit("confirm");
       this.$emit("update:visible", false);
