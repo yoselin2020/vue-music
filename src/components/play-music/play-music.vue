@@ -187,7 +187,7 @@
     <div
       class="mask"
       @click.stop="hideMask"
-      v-show="isShowMask && sequenceList.length > 0"
+      v-show="isShowMask && !fullScreen && sequenceList.length > 0"
     ></div>
   </transition>
   <transition name="popup">
@@ -237,6 +237,7 @@
                       :style="{ color: favoriteColor(song) }"
                     ></i>
                     <i
+                      :class="removeING ? 'removeING' : ''"
                       class="iconfont icon-close close-btn"
                       @click.stop="delSong(song)"
                     ></i>
@@ -1032,9 +1033,20 @@ watch(currentTime, async (newTime) => {
   }
   progressBarWidth.value = (newTime / currentSong.value.duration) * 100;
 });
+
+const removeING = ref(false);
+let timer = null;
 async function delSong(song) {
+  if (removeING.value) {
+    return;
+  }
+  clearTimeout(timer);
   // 删除一首歌曲
   await store.dispatch("delSong", song);
+  removeING.value = true;
+  timer = setTimeout(() => {
+    removeING.value = false;
+  }, 500);
   // song.isDel = true;
 }
 // 清空mask中播放列表中的歌曲
@@ -1315,6 +1327,10 @@ defineExpose({
 .popdown-enter-from,
 .popdown-leave-to {
   transform: translateY(-100%);
+}
+
+.removeING {
+  opacity: 0.3;
 }
 
 .top-title {
