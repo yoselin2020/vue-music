@@ -139,11 +139,14 @@ watch(scrollY, (newScrollY) => {
   let imgWrapperHeightValue = imgWrapperHeight.value;
   // 用户向上滚动
   if (newScrollY < 0) {
-    let v = Math.max(Math.min(newScrollY, imgWrapperHeight.value), 0);
+    let v = -Math.min(newScrollY, imgWrapperHeight.value);
+    //console.log(v, "vv");
+    //console.log(v / imgWrapperHeight.value, "v / imgWrapperHeight.value");
     let blur = (v / imgWrapperHeight.value) * 20;
     scrollY = Math.abs(newScrollY);
     let value = scrollY - imgWrapperHeightValue;
     // console.log(Math.abs(value), "valuevalue");
+    // console.log(blur, "blurblurblurblur");
     if (value <= 0) {
       scrollY = Math.abs(scrollY - imgWrapperHeightValue);
       if (scrollY <= headerHeight.value) {
@@ -151,12 +154,15 @@ watch(scrollY, (newScrollY) => {
         headerZIndex.value = 10;
       } else {
         headerZIndex.value = 1;
-        //  filterStyle.value = {};
+        //filterStyle.value = {};
       }
     }
+    // console.log(blur, "blur");
     filterStyle.value = {
-      filter: `blur(${blur}px)`,
+      backdropFilter: `blur(${blur}px)`,
+      //filter: `blur(${blur}px)`,
     };
+    //   console.log(filterStyle.value, "filterStyle.value");
   } else {
     // console.log("用户向下滚动");
     let scroll = newScrollY;
@@ -211,7 +217,7 @@ onMounted(async () => {
   headerHeight.value = headerRef.value.clientHeight;
   // 获取图片区域的高度
   let imgClientHeight = imgWrapperRef.value.clientHeight;
-  console.log(imgClientHeight, "imgClientHeightimgClientHeight");
+  // console.log(imgClientHeight, "imgClientHeightimgClientHeight");
   imgWrapperHeight.value = imgClientHeight;
   playListTop.value = imgClientHeight;
   scrollWrapperHeight.value = musicListRef.value.clientHeight - imgClientHeight;
@@ -260,8 +266,9 @@ onMounted(async () => {
       left: 0;
       width: 100%;
       height: 100%;
+      //background-color: red;
       background: rgba(7, 17, 27, 0.4);
-      // z-index: 4;
+      // z-index: 400;
     }
     .random-play-all {
       position: absolute;

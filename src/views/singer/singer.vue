@@ -12,19 +12,26 @@
   <!--  </transition>-->
   <van-search
     ref="vanSearchCom"
-    show-action
     v-model="singerName"
     placeholder="请输入歌手名称"
     background="#222222"
     @focus="focus"
     @blur="blur"
   >
-    <template #action>
-      <div @click="onClickSearchButton">搜索</div>
-    </template>
+    <!--show-action-->
+    <!--
+
+   -->
+    <!--    <template #action>-->
+    <!--      <div @click="onClickSearchButton">搜索</div>-->
+    <!--    </template>-->
   </van-search>
   <div class="fixedTitle" v-show="scrollY > 0">{{ fixedTitle }}</div>
-  <scroll @scroll="scroll" ref="scrollRef" style="overflow: hidden">
+  <div
+    ref="scrollRef"
+    style="overflow: hidden"
+    :style="{ height: scrollHeight + 'px' }"
+  >
     <div class="singer" :style="isPaddingBottom">
       <!--      <div class="fixedTitle" :style="fixedStyle">{{ fixedTitle }}</div>-->
       <div class="singer-content" ref="singerContentRef">
@@ -44,7 +51,7 @@
         </template>
       </div>
     </div>
-  </scroll>
+  </div>
 
   <router-view v-slot="{ Component }">
     <transition name="move">
@@ -57,9 +64,11 @@
 import { getSingerList } from "@/service/singer";
 import scroll from "@/components/scroll/scroll";
 import store from "storejs";
+import { debounce } from "throttle-debounce";
 import { mapMutations } from "vuex";
 import { nextTick } from "vue";
 import { Toast } from "vant";
+import BScroll from "better-scroll";
 export default {
   name: "Singer",
   components: { scroll },
@@ -74,9 +83,10 @@ export default {
       pic: "",
       title: "",
       singerName: "",
-
       // 存储所有的歌手名称
       singerNameList: [],
+      scrollHeight: 0,
+      scrollInstance: null,
     };
   },
   // async activated() {
@@ -124,8 +134,23 @@ export default {
       console.log(err);
     }
   },
-
-  async mounted() {},
+  async mounted() {
+    this.scrollInstance = new BScroll(this.$refs.scrollRef, {
+      click: true,
+      observeDOM: true,
+      probeType: 3,
+    });
+    this.scrollInstance.on("scroll", this.scroll);
+    let parentHeight = document.querySelector(".scroll-wrapper").clientHeight;
+    let scrollHeight = parentHeight - this.$refs.vanSearchCom.$el.clientHeight;
+    // let height =
+    //   this.$refs.scrollRef.rootRef.clientHeight -
+    //   this.$refs.vanSearchCom.$el.clientHeight;
+    // console.log(height, "height");
+    this.scrollHeight = scrollHeight;
+    // console.log(scrollHeight, "scrollHeight");
+    this.$watch("singerName", this.debounce(this.onClickSearchButton, 1000));
+  },
   methods: {
     focus() {
       this.visible = false;
@@ -136,12 +161,22 @@ export default {
         this.visible = true;
       }, 1000);
     },
+    debounce(func, delay) {
+      this.timer = null;
+      return function (...args) {
+        if (this.timer) clearTimeout(this.timer);
+        this.timer = setTimeout(() => {
+          func.apply(this, args);
+        }, delay);
+      };
+    },
     onClickSearchButton() {
+      // console.log(this.singerName, "singerName");
       if (this.singerName.trim().length === 0) {
-        Toast({
-          icon: "fail",
-          message: "请输入歌手名称",
-        });
+        // Toast({
+        //   icon: "fail",
+        //   message: "请输入歌手名称",
+        // });
         return;
       }
       // console.log(
@@ -156,17 +191,17 @@ export default {
       try {
         singerNameList.forEach((singerName, index) => {
           if (singerName.includes(this.singerName)) {
-            this.$refs.scrollRef.scroll.scrollToElement(
-              childrens[index - 1],
-              300
-            );
+            if (index !== 0) {
+              index -= 1;
+            }
+            this.scrollInstance.scrollToElement(childrens[index], 300);
             throw new Error("终止运行");
           }
         });
       } catch (err) {
         //  console.log(this.a, "this.athis.a");
       }
-      console.log("onClickSearchButton");
+      //   console.log("onClickSearchButton");
     },
     toSingerDetail(innerSinger) {
       //   debugger;
@@ -183,8 +218,8 @@ export default {
       const singerItemWrappers = document.querySelectorAll(
         ".singer-item-wrapper"
       );
-      const scroll = this.$refs.scrollRef.scroll;
-      scroll.scrollToElement(singerItemWrappers[index], 300);
+      //  const scroll = this.$refs.scrollRef.scroll;
+      this.scrollInstance.scrollToElement(singerItemWrappers[index], 300);
     },
     scroll(pos) {
       let fixedTitleHeight = 30; // 30px
