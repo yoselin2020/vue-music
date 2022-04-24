@@ -249,7 +249,7 @@
         <div>
           <img
             class="add-icon"
-            :src="require('@/assets/images/add-icon2.png')"
+            :src="require('@/assets/images/add-icon3.png')"
             alt=""
           />
           <span>添加歌曲到队列</span>
@@ -590,6 +590,11 @@ const playModeIcon = computed(() => {
 
 // 顺序播放数据
 const sequenceList = computed(() => store.state.sequenceList);
+
+watch(sequenceList, async () => {
+  await nextTick();
+  playListScrollInstance.value.refresh();
+});
 
 const playList = computed(() => {
   return store.getters.playList;

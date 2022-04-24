@@ -1,20 +1,35 @@
 <template>
-  <div class="index-list-wrapper">
-    <div
-      :class="['index-title', currentIndex === index ? 'active' : '']"
-      v-for="(outSinger, index) of singers"
-      @click="indexItemClick(index)"
-    >
-      {{ outSinger.title }}
+  <transition name="leave">
+    <div class="index-list-wrapper" v-show="visible">
+      <div
+        :class="['index-title', currentIndex === index ? 'active' : '']"
+        v-for="(outSinger, index) of singers"
+        @click="indexItemClick(index)"
+      >
+        {{ outSinger.title }}
+      </div>
     </div>
-  </div>
+  </transition>
+  <van-search
+    ref="vanSearchCom"
+    show-action
+    v-model="singerName"
+    placeholder="请输入歌手名称"
+    background="#222222"
+    @focus="focus"
+    @blur="blur"
+  >
+    <template #action>
+      <div @click="onClickSearchButton">搜索</div>
+    </template>
+  </van-search>
   <div class="fixedTitle" v-show="scrollY > 0">{{ fixedTitle }}</div>
-  <scroll @scroll="scroll" ref="scrollRef">
-    <div class="singer">
+  <scroll @scroll="scroll" ref="scrollRef" style="overflow: hidden">
+    <div class="singer" :style="isPaddingBottom">
       <!--      <div class="fixedTitle" :style="fixedStyle">{{ fixedTitle }}</div>-->
-      <div class="singer-content">
+      <div class="singer-content" ref="singerContentRef">
         <template v-for="(outSinger, index) of singers" :key="index">
-          <div class="singer-item-wrapper">
+          <div class="singer-item-wrapper" ref="singerItemWrapperRef">
             <header class="title">{{ outSinger.title }}</header>
             <div
               class="singer-item"
@@ -44,11 +59,13 @@ import scroll from "@/components/scroll/scroll";
 import store from "storejs";
 import { mapMutations } from "vuex";
 import { nextTick } from "vue";
+import { Toast } from "vant";
 export default {
   name: "Singer",
   components: { scroll },
   data() {
     return {
+      visible: true,
       singers: [],
       clientHeights: [],
       scrollY: 0,
@@ -56,6 +73,10 @@ export default {
       fixedStyle: {},
       pic: "",
       title: "",
+      singerName: "",
+
+      // 存储所有的歌手名称
+      singerNameList: [],
     };
   },
   // async activated() {
@@ -80,6 +101,13 @@ export default {
       let result = await getSingerList();
       //console.log(result, "result");
       this.singers = result.singers;
+      this.singers.forEach((outer) => {
+        outer.list.forEach((item) => {
+          this.singerNameList.push(item.name);
+        });
+      });
+      // console.log(this.singerNameList, "singerNameList");
+      //  console.log(this.singers, "this.singers");
       await nextTick();
       // 获取每个item的高度
       const singerItemWrappers = document.querySelectorAll(
@@ -96,7 +124,47 @@ export default {
       console.log(err);
     }
   },
+
+  async mounted() {},
   methods: {
+    focus() {
+      this.visible = false;
+    },
+    blur() {
+      this.visible = true;
+    },
+    onClickSearchButton() {
+      if (this.singerName.trim().length === 0) {
+        Toast({
+          icon: "fail",
+          message: "请输入歌手名称",
+        });
+        return;
+      }
+      // console.log(
+      //   this.$refs.singerItemWrapperRef,
+      //   "this.$refs.singerItemWrapperRef"
+      // );
+      const childrens =
+        this.$refs.singerContentRef.querySelectorAll(".singer-item");
+      // console.log();
+      //  console.log(childrens, "childrens");
+      const singerNameList = this.singerNameList;
+      try {
+        singerNameList.forEach((singerName, index) => {
+          if (singerName.includes(this.singerName)) {
+            this.$refs.scrollRef.scroll.scrollToElement(
+              childrens[index - 1],
+              300
+            );
+            throw new Error("终止运行");
+          }
+        });
+      } catch (err) {
+        //  console.log(this.a, "this.athis.a");
+      }
+      console.log("onClickSearchButton");
+    },
     toSingerDetail(innerSinger) {
       //   debugger;
       this.pic = innerSinger.pic;
@@ -134,7 +202,7 @@ export default {
 <style lang="scss" scoped>
 .fixedTitle {
   position: fixed;
-  top: 70px;
+  top: 120px;
   left: 0;
   padding-left: 15px;
   width: 100%;
@@ -144,6 +212,25 @@ export default {
   line-height: 30px;
   background-color: $color-highlight-background;
   z-index: 10;
+}
+
+::v-deep(.van-search__content) {
+  background-color: #333333;
+  .van-field__control {
+    color: #ffffff;
+    &::placeholder {
+      color: $color-text-d;
+    }
+    caret-color: #ffffff;
+  }
+}
+
+::v-deep(.van-search__action) {
+  background-color: #222222;
+  color: #ffffff !important;
+  div {
+    color: #ffffff !important;
+  }
 }
 
 // 右侧索引导航区域
@@ -169,8 +256,9 @@ export default {
 }
 .singer {
   // 头部固定区域
-
+  overflow: hidden;
   .singer-content {
+    overflow: hidden;
     .singer-item-wrapper {
       .title {
         box-sizing: border-box;

@@ -157,14 +157,33 @@ export default createStore({
       list.forEach((item) => {
         item.isDel = false;
       });
-      state.playList = list;
+      //  debugger;
+      let l = state.playList.slice();
+      if (l.length > 0 && Array.isArray(l)) {
+        // 过滤出已经存在列表中的歌曲,不存在的歌曲进行添加
+        let result = l.filter(
+          (item) => list.findIndex((item2) => item2.id === item.id) === -1
+        );
+        state.playList = [...result, ...list];
+      } else {
+        state.playList = list;
+      }
     },
     // 顺序播放列表
     setSequenceList(state, list) {
       list.forEach((item) => {
         item.isDel = false;
       });
-      state.sequenceList = list;
+      let l = state.sequenceList.slice();
+      if (l.length > 0 && Array.isArray(l)) {
+        // 过滤出已经存在列表中的歌曲,不存在的歌曲进行添加
+        let result = l.filter(
+          (item) => list.findIndex((item2) => item2.id === item.id) === -1
+        );
+        state.sequenceList = [...result, ...list];
+      } else {
+        state.sequenceList = list;
+      }
     },
     // 播放器是否全屏状态
     setFullScreen(state, status) {
@@ -195,27 +214,62 @@ export default createStore({
     },
     //将歌曲添加到下一首播放
     addSongNextPlay(state, song) {
+      // debugger;
+      const playList = state.playList.slice();
+      const sequenceList = state.sequenceList.slice();
       //当前正在播放歌曲的索引
       let currentPlaySongIndex = state.currentIndex;
       // 查找歌曲有没有存在在 playlist 播放歌曲列表中
-      let playListIndex = state.playList.findIndex(
+      let playListIndex = playList.findIndex((item) => item.id === song.id);
+      let sequenceListIndex = sequenceList.findIndex(
         (item) => item.id === song.id
       );
+      // 不是播放的状态 && playListIndex === -1
+      if (!state.isPlaying && playList.length === 0) {
+        // 往前面插入
+        playList.unshift(song);
+        //state.currentIndex = 0;
+        state.playList = playList;
+        sequenceList.unshift(song);
+        state.currentIndex = 0;
+        state.isPlaying = true;
+        state.sequenceList = sequenceList;
+        return;
+      }
+      if (sequenceListIndex > -1) {
+        // state.sequenceList.push(song);
+        sequenceList.splice(sequenceListIndex, 1);
+        sequenceList.splice(currentPlaySongIndex + 1, 0, song);
+      } else {
+        sequenceList.splice(currentPlaySongIndex + 1, 0, song);
+      }
       // 存在歌曲列表中
       if (playListIndex > -1) {
         // 如果存在的话,先删除掉, 然后再进行插入
         if (playListIndex === currentPlaySongIndex) {
+          //debugger;
           return;
         }
-        let [s] = state.playList.splice(playListIndex, 1);
-        state.playList.splice(currentPlaySongIndex + 1, 0, s);
+        playList.splice(playListIndex, 1);
+        playList.splice(currentPlaySongIndex + 1, 0, song);
+        if (
+          playListIndex < currentPlaySongIndex ||
+          playListIndex === playList.length
+        ) {
+          --currentPlaySongIndex;
+        }
+        //state.currentIndex = currentPlaySongIndex;
+        state.playList = playList;
+        console.log(state.playList, "state.playListstate.playList");
       } else {
         // 不存在歌曲列表中
-        state.playList.splice(currentPlaySongIndex + 1, 0, song);
+        playList.splice(currentPlaySongIndex + 1, 0, song);
+        state.playList = playList;
       }
+      state.sequenceList = sequenceList;
       Toast({
         icon: "success",
-        message: "已添加到播放列表",
+        message: "请添加歌曲至播放列表",
       });
     },
   },
@@ -229,7 +283,7 @@ export default createStore({
         songs.splice(index, 1);
         commit("setFavoriteSongList", songs);
         storage.set(FAVORITE_SONG_KEY, songs);
-        dispatch("delSong", song);
+        // dispatch("delSong", song);
       }
       // 要从playList中删除的歌曲索引位置
       // const playIndex = state.playList.findIndex((item) => item.id === song.id);
@@ -286,6 +340,18 @@ export default createStore({
       );
       playList.splice(playListIndex, 1);
       sequenceList.splice(sequenceListIndex, 1);
+      // 如果歌曲已经被删完了,那么停止歌曲播放
+      if (playList.length === 0) {
+        Toast({
+          icon: "success",
+          message: "请添加歌曲至播放列表",
+        });
+        commit("setPlaying", false);
+        commit("setPlayList", playList);
+        commit("setSequenceList", sequenceList);
+        commit("setCurrentIndex", -1);
+        return;
+      }
       // 如果删除的是之前的歌曲,那么就索引减1, 如果删除的是最后一项也需要减1
       if (
         playListIndex < playingSongIndex ||
@@ -295,9 +361,9 @@ export default createStore({
       }
       commit("setPlayList", playList);
       commit("setSequenceList", sequenceList);
-      console.log("1.0");
+      //  console.log("1.0");
       commit("setCurrentIndex", playingSongIndex);
-      console.log("2.0");
+      //   console.log("2.0");
     },
     // 用户点击了一首歌曲
     async selectSong({ commit, state }, song) {
