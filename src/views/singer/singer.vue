@@ -1,15 +1,15 @@
 <template>
-  <transition name="leave">
-    <div class="index-list-wrapper" v-show="visible">
-      <div
-        :class="['index-title', currentIndex === index ? 'active' : '']"
-        v-for="(outSinger, index) of singers"
-        @click="indexItemClick(index)"
-      >
-        {{ outSinger.title }}
-      </div>
+  <!--  <transition name="leave">-->
+  <div class="index-list-wrapper" v-show="visible">
+    <div
+      :class="['index-title', currentIndex === index ? 'active' : '']"
+      v-for="(outSinger, index) of singers"
+      @click="indexItemClick(index)"
+    >
+      {{ outSinger.title }}
     </div>
-  </transition>
+  </div>
+  <!--  </transition>-->
   <van-search
     ref="vanSearchCom"
     show-action
@@ -131,7 +131,10 @@ export default {
       this.visible = false;
     },
     blur() {
-      this.visible = true;
+      clearTimeout(this.timer);
+      this.timer = setTimeout(() => {
+        this.visible = true;
+      }, 1000);
     },
     onClickSearchButton() {
       if (this.singerName.trim().length === 0) {
