@@ -112,6 +112,23 @@
             <div class="song-info">
               <span class="song-name">{{ song.name }}</span>
               <span class="song-singer">{{ song.singer }}</span>
+              <svg
+                @click.stop="addToPlayListQueue(song)"
+                t="1650811025936"
+                class="icon2"
+                viewBox="0 0 1025 1024"
+                version="1.1"
+                xmlns="http://www.w3.org/2000/svg"
+                p-id="45618"
+                width="18"
+                height="18"
+              >
+                <path
+                  d="M512 1024c-282.787759 0-512-229.248343-512-512C0 229.212241 229.212241 0 512 0 794.751657 0 1024.036102 229.212241 1024.036102 512 1024.036102 794.787759 794.751657 1024 512 1024zM768.036102 460.80722l-204.80722 0L563.228882 256 460.843323 256l0 204.80722L256 460.80722l0 102.385559 204.80722 0 0 204.80722 102.385559 0 0-204.80722 204.80722 0L768 460.80722z"
+                  p-id="45619"
+                  fill="#ffcd32"
+                ></path>
+              </svg>
             </div>
           </div>
 
@@ -373,8 +390,15 @@ export default {
       margin-right: 5px;
     }
     .song-info {
+      position: relative;
       flex: 1;
-
+      .icon2 {
+        position: absolute;
+        top: 50%;
+        transform: translateY(-50%);
+        right: 0;
+        z-index: 10;
+      }
       .song-name {
         font-size: 14px;
         color: $color-text-d;

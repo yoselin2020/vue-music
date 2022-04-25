@@ -3,10 +3,14 @@ import axios from "axios";
 import { Toast } from "vant";
 
 const ERR_OK = 0;
+
 const baseURL =
-  process.env.NODE_ENV === "production"
-    ? "http://ustbhuangyi.com/music-next/"
-    : "/";
+  process.env.NODE_ENV === "production" ? "http://192.168.1.107:8080/" : "/";
+
+// const baseURL =
+//   process.env.NODE_ENV === "production"
+//     ? "http://ustbhuangyi.com/music-next/"
+//     : "/";
 
 axios.defaults.baseURL = baseURL;
 

@@ -106,6 +106,12 @@ export default {
       return "";
     },
   },
+  // 组件进入的时候让scroll实例对象重新计算高度
+  async activated() {
+    // console.log("123456");
+    await nextTick();
+    this.scrollInstance.refresh();
+  },
   async created() {
     try {
       let result = await getSingerList();
@@ -150,6 +156,12 @@ export default {
     this.scrollHeight = scrollHeight;
     // console.log(scrollHeight, "scrollHeight");
     this.$watch("singerName", this.debounce(this.onClickSearchButton, 1000));
+  },
+  watch: {
+    async scrollHeight() {
+      await nextTick();
+      this.scrollInstance.refresh();
+    },
   },
   methods: {
     focus() {

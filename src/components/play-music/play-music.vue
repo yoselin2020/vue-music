@@ -450,12 +450,18 @@ async function error() {
       if (songObj) {
         currentSong.value.url = songObj.url;
         audioRef.value.src = songObj.url;
+        if (songObj.url) {
+          store.commit("addRecentlyPlaySong", currentSong.value);
+        }
       }
       // debugger;
     } else {
       //qq音乐接口
       let [songObj] = await processSongs([song]);
       if (songObj) {
+        if (songObj.url) {
+          store.commit("addRecentlyPlaySong", currentSong.value);
+        }
         currentSong.value.url = songObj.url;
         audioRef.value.src = songObj.url;
       }
@@ -634,9 +640,15 @@ async function scrollToCurrentSongSection() {
   if (currentSongIndex.value === -1) {
     return;
   }
-  if (scroll) {
-    scroll.refresh();
-    scroll.scrollToElement(children[currentSongIndex.value], 100);
+  let i = sequenceList.value.findIndex(
+    (item) => item.id === currentSong.value.id
+  );
+  // 寻找歌曲在sequenceList中的索引
+  if (i > -1) {
+    if (scroll) {
+      scroll.refresh();
+      scroll.scrollToElement(children[i], 100);
+    }
   }
 }
 watch(playList, async () => {

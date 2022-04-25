@@ -12,7 +12,7 @@ export async function searchSong(params) {
       singer: item.ar[0].name,
       pic: item.al.picUrl,
       id: item.id,
-      duration: item.dt / 1000,
+      duration: Math.ceil(item.dt / 1000),
       album: item.al.name,
       isWY: true,
     }));

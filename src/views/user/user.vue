@@ -35,7 +35,7 @@
         <div>
           <div
             class="temp-box"
-            v-show="currentIndex === 0"
+            v-if="currentIndex === 0"
             :style="isPaddingBottom"
           >
             <transition-group name="list">
@@ -71,7 +71,7 @@
           </div>
           <div
             class="temp-box"
-            v-show="currentIndex === 1"
+            v-if="currentIndex === 1"
             :style="isPaddingBottom"
           >
             <transition-group name="list">
@@ -132,7 +132,12 @@ export default {
   },
   computed: {
     //recentlyPlayList 最近播放
-    ...mapState(["favoriteSongList", "recentlyPlayList", ""]),
+    ...mapState([
+      "favoriteSongList",
+      "recentlyPlayList",
+      "currentIndex",
+      "isPlaying",
+    ]),
     ...mapGetters(["currentSong"]),
     slideBlockTransformStyle() {
       return {
@@ -152,16 +157,35 @@ export default {
       // console.log(this.$refs.playlistItemRef[0], "this.$refs.playlistItemRef");
     },
     currentIndex: {
-      async handler() {
+      async handler(newVal) {
+        if (newVal === 0) {
+          if (!this.isPlaying) {
+            return;
+          }
+          await nextTick();
+          // 如果切换到了我喜欢的tab,让他滚动到可视区
+          console.log(this.$refs.playlistScrollRef);
+          const idx = this.songList.findIndex(
+            (item) => item.id === this.currentSong.id
+          );
+          if (idx > -1) {
+            const children =
+              this.$refs.playlistScrollRef.querySelectorAll(".playlist-item");
+            console.log(children, "childrenchildrenchildren");
+            this.playlistScrollInstance.scrollToElement(children[idx], 300);
+          }
+        }
         await nextTick();
         this.playlistScrollInstance.refresh();
       },
+      important: true,
     },
   },
   mounted() {
     if (this.currentIndex === 0) {
       this.songList = this.favoriteSongList;
     }
+
     // this.playlistItemHeight = this.$refs.playlistItemRef[0].clientHeight;
 
     // console.log(this.$refs.playlistItemRef[0].clientHeight, "88+++");
