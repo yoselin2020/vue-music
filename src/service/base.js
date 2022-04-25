@@ -5,7 +5,7 @@ import { Toast } from "vant";
 const ERR_OK = 0;
 
 const baseURL =
-  process.env.NODE_ENV === "production" ? "http://192.168.1.107:8080/" : "/";
+  process.env.NODE_ENV === "production" ? "http://192.168.1.107:4000/" : "/";
 
 // const baseURL =
 //   process.env.NODE_ENV === "production"

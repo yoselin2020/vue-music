@@ -1,7 +1,9 @@
 const registerRouter = require("./backend/router");
+const UglifyJsPlugin = require("uglifyjs-webpack-plugin");
 const { defineConfig } = require("@vue/cli-service");
 module.exports = defineConfig({
   transpileDependencies: true,
+  productionSourceMap: false,
   css: {
     loaderOptions: {
       sass: {

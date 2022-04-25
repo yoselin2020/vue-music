@@ -4,6 +4,10 @@ import Recommend from "@/views/recommend/recommend";
 
 const routes = [
   {
+    path: "/",
+    redirect: "/recommend",
+  },
+  {
     path: "/recommend",
     name: "Recommend",
     component: Recommend,
