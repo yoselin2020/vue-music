@@ -13,7 +13,7 @@
   </transition>
   <!--全屏播放器-->
   <transition name="move">
-    <div class="play-music" v-show="fullScreen">
+    <div class="play-music" v-if="fullScreen">
       <div
         class="cd-swiper-wrapper"
         @touchstart="cdTouchstart"
@@ -47,7 +47,10 @@
             <div class="_wrapper">
               <div class="scroll-wrapper" ref="scrollRef">
                 <div>
-                  <div class="lyric-wrapper" v-if="currentLyric">
+                  <div
+                    class="lyric-wrapper"
+                    v-if="currentLyric && currentLyric.lines"
+                  >
                     <p
                       class="lyric-text"
                       v-for="(line, index) of currentLyric.lines"
@@ -440,6 +443,7 @@ function stopCreateSnowHandle() {
 
 // 播放器 报错了
 async function error() {
+  // debugger;
   // 歌曲播放出错,有可能是歌曲url地址过期了
   // 拿到歌曲我们直接去获取一个url
   try {
@@ -448,10 +452,14 @@ async function error() {
       //某易云音乐的路径
       let [songObj] = await myProcessSongs([song]);
       if (songObj) {
-        currentSong.value.url = songObj.url;
-        audioRef.value.src = songObj.url;
-        if (songObj.url) {
-          store.commit("addRecentlyPlaySong", currentSong.value);
+        try {
+          audioRef.value.src = songObj.url;
+          currentSong.value.url = songObj.url;
+          if (songObj.url) {
+            store.commit("addRecentlyPlaySong", currentSong.value);
+          }
+        } catch (err) {
+          nextSong();
         }
       }
       // debugger;
@@ -459,17 +467,21 @@ async function error() {
       //qq音乐接口
       let [songObj] = await processSongs([song]);
       if (songObj) {
-        if (songObj.url) {
-          store.commit("addRecentlyPlaySong", currentSong.value);
+        try {
+          audioRef.value.src = songObj.url;
+          currentSong.value.url = songObj.url;
+          if (songObj.url) {
+            store.commit("addRecentlyPlaySong", currentSong.value);
+          }
+        } catch (err) {
+          nextSong();
         }
-        currentSong.value.url = songObj.url;
-        audioRef.value.src = songObj.url;
       }
       //  debugger;
     }
   } catch (err) {
     console.log("error", "播放器报错了");
-    debugger;
+    // debugger;
     stopCreateSnowHandle();
     store.commit("setPlaying", true);
     // 切换到下一首歌曲
@@ -710,6 +722,20 @@ function handler({ lineNum, txt }) {
       observeDOM: true,
       probeType: 2,
     });
+    if (!scrollRef.value) {
+      return;
+    }
+  }
+  const childrens = scrollRef.value
+    .querySelector(".lyric-wrapper")
+    .querySelectorAll(".lyric-text");
+  const scrollWrapperValue = scrollWrapper.value;
+  if (scrollWrapperValue) {
+    if (lineNum > 5) {
+      lineNum -= 5;
+    }
+    scrollWrapperValue.scrollToElement(childrens[lineNum], 300);
+
     //console.log("我的歌");
     // console.log(scrollWrapper.value, "scrollWrapper.value");
   }
@@ -719,16 +745,7 @@ function handler({ lineNum, txt }) {
   // scrollWrapper.value.on("scrollEnd", (pos) => {
   //   // console.log("滚动结束了");
   // });
-  const childrens = scrollRef.value
-    .querySelector(".lyric-wrapper")
-    .querySelectorAll(".lyric-text");
-  const scrollWrapperValue = scrollWrapper.value;
-  if (scrollWrapperValue) {
-    if (lineNum > 5) {
-      lineNum -= 5;
-    }
-    scrollWrapperValue.scrollToElement(childrens[lineNum], 1000);
-  }
+  //  console.log(scrollRef.value, "????????");
 }
 
 onUnmounted(() => {
@@ -803,8 +820,6 @@ watch(fullScreen, async (newVal) => {
   //stopLyric();
   stopCreateSnowHandle();
   if (newVal) {
-    stopLyric();
-    playLyric();
     createSnowHandle();
   } else {
     // 把其他的删除掉
@@ -843,19 +858,20 @@ watch(fullScreen, async (newVal) => {
   if (scrollWrapper.value) {
     scrollWrapper.value.refresh();
   }
-  await nextTick();
-  if (newVal) {
-    // const childrens = scrollRef.value
-    //   .querySelector(".lyric-wrapper")
-    //   .querySelectorAll(".lyric-text");
-    // const scrollWrapperValue = scrollWrapper.value;
-    // if (scrollWrapperValue) {
-    //   if (lineNum > 5) {
-    //     lineNum -= 5;
-    //   }
-    //   scrollWrapperValue.scrollToElement(childrens[lineNum], 300);
-    // }
-  }
+  // if (newVal) {
+  //   console.log(scrollRef.value, "scrollRef.value");
+  //   // debugger;
+  //   const childrens = scrollRef.value
+  //     .querySelector(".lyric-wrapper")
+  //     .querySelectorAll(".lyric-text");
+  //   const scrollWrapperValue = scrollWrapper.value;
+  //   if (scrollWrapperValue) {
+  //     if (lineNum > 5) {
+  //       lineNum -= 5;
+  //     }
+  //     scrollWrapperValue.scrollToElement(childrens[lineNum], 300);
+  //   }
+  // }
   scrollToCurrentSongSection();
 });
 // 监视playMode的变化
