@@ -2,8 +2,8 @@ import { createApp } from "vue";
 import App from "./App.vue";
 import router from "./router";
 import store from "./store";
-import Vant from "vant";
-import "vant/lib/index.css";
+// import Vant from "vant";
+// import "vant/lib/index.css";
 import "@/assets/scss/index.scss";
 import lazyPlugin from "vue3-lazy";
 import noFullScreen from "@/mixins/noFullScreen";
@@ -89,9 +89,21 @@ import { processSongs } from "@/service/song";
 //   storage.set(FAVORITE_SONG_KEY, arr);
 // });
 
-const app = createApp(App);
-app.use(store).use(router).use(Vant);
+import {
+  Swipe,
+  SwipeItem,
+  Progress,
+  Circle,
+  SwipeCell,
+  Search,
+  Button,
+} from "vant";
+const vantCom = [Swipe, SwipeItem, Progress, Circle, SwipeCell, Search, Button];
 
+const app = createApp(App);
+vantCom.forEach((item) => app.use(item));
+app.use(store).use(router);
+// app.use(Vant)
 app.mixin(noFullScreen);
 
 app.use(lazyPlugin, {

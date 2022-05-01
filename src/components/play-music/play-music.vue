@@ -357,16 +357,30 @@ const slideChangeFull = ref(false);
 //   console.log(cdSwiperRef.value, "cdSwiperRef.value");
 //   // debugger;
 // });
-
+const cdTimer = ref(null);
 // cd 唱片部分swiper切换
 function cdSectionSwiperChange(event) {
   // debugger;
   let activeIndex = event.activeIndex;
   //slideChangeFull.value = true;
-  setTimeout(() => {
+  cdTimer.value = setTimeout(async () => {
     cdSwiperActiveIndex.value = activeIndex;
+    if (activeIndex === 1) {
+      await nextTick();
+      let lineNum = currentLyricNum.value;
+      const childrens = scrollRef.value
+        .querySelector(".lyric-wrapper")
+        .querySelectorAll(".lyric-text");
+      const scrollWrapperValue = scrollWrapper.value;
+      if (scrollWrapperValue) {
+        if (lineNum > 5) {
+          lineNum -= 5;
+        }
+        scrollWrapperValue.scrollToElement(childrens[lineNum], 300);
+      }
+    }
     //   slideChangeFull.value = false;
-  }, 500);
+  });
   //console.log(activeIndex, "activeIndexqq");
 }
 let cdStartPageX = 0,
@@ -390,6 +404,7 @@ function cdTouchmove(event) {
 }
 
 function cdTouchend(event) {
+  // clearTimeout(cdTimer.value);
   // console.log(event, "eventend");
   // console.log("cdTouchend");
   // debugger;
@@ -405,6 +420,7 @@ function cdTouchend(event) {
   }
   let value = Math.floor(cdMovePageX) - Math.floor(cdStartPageX);
   console.log("value=" + value);
+  console.log(cdSwiperActiveIndex.value, "cdSwiperActiveIndex");
   if (Math.abs(value) < 100) {
     return;
   }
@@ -442,7 +458,8 @@ function stopCreateSnowHandle() {
 }
 
 // 播放器 报错了
-async function error() {
+async function error(event) {
+  console.log("error了");
   // debugger;
   // 歌曲播放出错,有可能是歌曲url地址过期了
   // 拿到歌曲我们直接去获取一个url
@@ -706,7 +723,7 @@ const disableStyle = computed(() => {
 const fullScreen = computed(() => {
   return store.getters.fullScreen;
 });
-function handler({ lineNum, txt }) {
+async function handler({ lineNum, txt }) {
   // console.log(lineNum, txt);
   currentLyricText.value = txt;
   currentLyricNum.value = lineNum;
@@ -714,18 +731,10 @@ function handler({ lineNum, txt }) {
   //   scrollRef.value,
   //   "scrollRef.valuescrollRef.valuescrollRef.valuescrollRef.value"
   // );
-  if (!scrollRef.value) {
+  if (!fullScreen.value) {
     return;
   }
-  if (!scrollWrapper.value) {
-    scrollWrapper.value = new BScroll(scrollRef.value, {
-      observeDOM: true,
-      probeType: 2,
-    });
-    if (!scrollRef.value) {
-      return;
-    }
-  }
+  await nextTick();
   const childrens = scrollRef.value
     .querySelector(".lyric-wrapper")
     .querySelectorAll(".lyric-text");
@@ -767,6 +776,7 @@ const scrollY = ref(0);
 async function scrollIngFun(pos) {
   //console.log("scrollIngFun");
   //stopLyric();
+  console.log("正在滚动....");
   scrollIng.value = true;
   // stopLyric();
   // await nextTick();
@@ -811,45 +821,63 @@ function scrollEndFun(pos) {
   // playLyric();
   // playLyric();
   //currentLyricNum.value = 0;
+  console.log("滚动结束....");
   scrollIng.value = false;
   // 结束后让歌词播放到具体的位置
   // console.log("滚动结束了");
 }
 
+watch(currentLyric, async () => {
+  if (fullScreen.value) {
+    if (scrollWrapper.value) {
+      await nextTick();
+      scrollWrapper.value.refresh();
+      console.log("刷新了....");
+    }
+  }
+});
+
 watch(fullScreen, async (newVal) => {
+  scrollWrapper.value = null;
+  await nextTick();
   //stopLyric();
   stopCreateSnowHandle();
   if (newVal) {
-    createSnowHandle();
-  } else {
-    // 把其他的删除掉
-    let childrens = cdSwiperWrapperRef.value.querySelectorAll(".snow-wrapper");
-    // console.log(childrens, "childrens");
-    // 移除未做完动画的元素
-    if (childrens.length > 0) {
-      childrens.forEach((children) => {
-        children.remove();
-      });
-    }
-    stopCreateSnowHandle();
-  }
-  songNameSwipe.value.resize();
-  //  console.log(songNameSwipe.value, "songNameSwipe.value");
-  songNameSwipe.value.swipeTo(currentSongIndex.value);
-  if (!scrollRef.value) {
-    return;
-  }
-  let lineNum = currentLyricNum.value;
-  if (!scrollWrapper.value) {
+    await nextTick();
     scrollWrapper.value = new BScroll(scrollRef.value, {
       observeDOM: true,
       probeType: 2,
     });
-    if (scrollWrapper.value) {
-      scrollWrapper.value.on("scroll", scrollIngFun);
-      scrollWrapper.value.on("scrollEnd", scrollEndFun);
-    }
+    // console.log(scrollWrapper.value, "currentSong");
+    scrollWrapper.value.on("scroll", scrollIngFun);
+    scrollWrapper.value.on("scrollEnd", scrollEndFun);
+    // scrollToCurrentSongSection();
+    createSnowHandle();
+  } else {
+    // 把其他的删除掉
+    setTimeout(() => {
+      let childrens =
+        cdSwiperWrapperRef.value?.querySelectorAll(".snow-wrapper");
+      // 移除未做完动画的元素
+      if (childrens?.length > 0) {
+        childrens.forEach((children) => {
+          children.remove();
+        });
+      }
+      stopCreateSnowHandle();
+    });
   }
+  songNameSwipe.value.resize();
+  songNameSwipe.value.swipeTo(currentSongIndex.value);
+
+  // if (!scrollWrapper.value) {
+  //   scrollWrapper.value = new BScroll(scrollRef.value, {
+  //     observeDOM: true,
+  //     probeType: 2,
+  //   });
+  //
+  //
+  // }
   await nextTick();
   scrollToCurrentSongSection();
   if (!scrollRef.value) {
@@ -878,9 +906,18 @@ watch(fullScreen, async (newVal) => {
 watch(playMode, (mode) => {
   audioRef.value.loop = mode === PLAY_MODE.loop;
 });
+onMounted(() => {
+  document.addEventListener("click", () => {
+    //console.log("document-click");
+    try {
+      audioRef.value.play();
+    } catch (err) {}
+  });
+});
 // 歌曲缓冲完毕
 async function canplay() {
   //audioRef.value.play();
+  cdMovePageX = 0;
   stopCreateSnowHandle();
   audioRef.value.loop = playMode.value === PLAY_MODE.loop;
   // debugger;
@@ -917,22 +954,24 @@ async function getLyricSectionClientHeight() {
   lyricSectionClientHeight.value.push(height);
   // 获取到每一个地方的歌词高度
   const lyricWrapper = document.querySelector(".lyric-wrapper");
-  const lyricText = lyricWrapper.querySelectorAll(".lyric-text");
-  if (lyricText.length > 0) {
+  // debugger;
+  const lyricText = lyricWrapper?.querySelectorAll(".lyric-text");
+  if (lyricText?.length > 0) {
     lyricText.forEach((text) => {
       height += text.clientHeight;
       lyricSectionClientHeight.value.push(height);
     });
-    console.log(
-      lyricSectionClientHeight.value,
-      "lyricSectionClientHeight.value"
-    );
+    // console.log(
+    //   lyricSectionClientHeight.value,
+    //   "lyricSectionClientHeight.value"
+    // );
   }
 }
 
 // 监听当前歌曲的变化
 watch(currentSong, async (newSong) => {
   currentTime.value = 0;
+  cdMovePageX = 0;
   lyricSectionClientHeight.value = [];
   // if (audioRef.value) {
   //
@@ -944,22 +983,26 @@ watch(currentSong, async (newSong) => {
   scrollWrapper.value = null;
   currentLyricNum.value = 0;
   currentLyric.value = null;
+  // if (currentSongIndex.value === -1) {
+  //   return;
+  // }
   try {
     songReady.value = false;
-
     if (!newSong.lyric) {
       const lyric = await getLyric(newSong);
       newSong.lyric = lyric;
-
       if (newSong.lyric && newSong.url) {
+        //  audioRef.value.src = newSong.url;
         store.commit("addRecentlyPlaySong", newSong);
       }
       if (currentSong.value.lyric !== lyric) {
         return;
       }
     }
+
     currentLyric.value = new Lyric(newSong.lyric, handler);
     if (audioRef.value && newSong.url) {
+      await nextTick();
       audioRef.value.src = newSong.url;
     }
     if (songReady.value) {
@@ -990,7 +1033,14 @@ watch(
     if (!currentSong.value.url) {
       return;
     }
-    audioRef.value.src = currentSong.value.url;
+    try {
+      //audioRef.value.src = currentSong.value.url;
+    } catch (err) {
+      console.log("load err");
+      // 播放下一首歌曲
+      nextSong();
+      audioRef.value.currentTime = 0;
+    }
     // 避免暂停后再次播放从头开始播放
     audioRef.value.currentTime = currentTime.value;
     stopLyric();

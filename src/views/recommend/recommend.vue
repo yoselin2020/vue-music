@@ -53,7 +53,6 @@
 
 <script>
 import { getAlbum, getRecommend } from "@/service/recommend";
-
 import Scroll from "@/components/scroll/scroll";
 import { processSongs } from "@/service/song";
 import { nextTick } from "vue";

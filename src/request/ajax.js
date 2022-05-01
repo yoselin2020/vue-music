@@ -1,7 +1,13 @@
 import axios from "axios";
 import { Toast } from "vant";
+
+const baseURL =
+  process.env.NODE_ENV === "production"
+    ? "http://47.112.208.33:4000/"
+    : "http://192.168.1.105:3000/";
+
 const http = axios.create({
-  baseURL: "http://192.168.1.107:3000",
+  baseURL,
 });
 // 添加请求拦截器
 http.interceptors.request.use(

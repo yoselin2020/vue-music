@@ -4,13 +4,11 @@ import { Toast } from "vant";
 
 const ERR_OK = 0;
 
-const baseURL =
-  process.env.NODE_ENV === "production" ? "http://192.168.1.107:4000/" : "/";
-
 // const baseURL =
-//   process.env.NODE_ENV === "production"
-//     ? "http://ustbhuangyi.com/music-next/"
-//     : "/";
+//   process.env.NODE_ENV === "production" ? "http://47.112.208.33:4000/" : "/";
+
+const baseURL =
+  process.env.NODE_ENV === "production" ? "http://127.0.0.1:4000/" : "/";
 
 axios.defaults.baseURL = baseURL;
 
