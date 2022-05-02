@@ -6,5 +6,15 @@ if (process.env.NODE_ENV === "production") {
 
 module.exports = {
   presets: ["@vue/cli-plugin-babel/preset"],
-  plugins: [...plugins],
+  plugins: [
+    ...plugins,
+    [
+      "import",
+      {
+        libraryName: "vant",
+        libraryDirectory: "es",
+        style: true,
+      },
+    ],
+  ],
 };

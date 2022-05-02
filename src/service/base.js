@@ -4,12 +4,8 @@ import { Toast } from "vant";
 
 const ERR_OK = 0;
 
-// const baseURL =
-//   process.env.NODE_ENV === "production" ? "http://47.112.208.33:4000/" : "/";
-
 const baseURL =
-  process.env.NODE_ENV === "production" ? "http://127.0.0.1:4000/" : "/";
-
+  process.env.NODE_ENV === "production" ? "http://47.112.208.33:4000/" : "/";
 axios.defaults.baseURL = baseURL;
 
 // 添加请求拦截器

@@ -1,17 +1,17 @@
 <template>
   <div class="music-list" ref="musicListRef">
     <header
-      class="header"
-      ref="headerRef"
-      :style="[{ zIndex: headerZIndex }, headerBgColor]"
+        class="header"
+        ref="headerRef"
+        :style="[{ zIndex: headerZIndex }, headerBgColor]"
     >
       <i class="iconfont icon-back" @click="$router.back()"></i>
       <span class="title">{{ props.title }}</span>
     </header>
     <div
-      class="img-wrapper"
-      ref="imgWrapperRef"
-      :style="[{ backgroundImage: `url(${props.pic})` }, imgWrapperScale]"
+        class="img-wrapper"
+        ref="imgWrapperRef"
+        :style="[{ backgroundImage: `url(${props.pic})` }, imgWrapperScale]"
     >
       <div class="filter" :style="filterStyle"></div>
       <div class="random-play-all" @click.stop="randomPlay">
@@ -22,22 +22,22 @@
     <div class="play-list" :style="[{ top: playListTop + 'px' }]">
       <div class="play-list-wrapper">
         <div
-          class="scroll-wrapper"
-          ref="scrollRef"
-          :style="[{ height: scrollWrapperHeight + 'px' }]"
+            class="scroll-wrapper"
+            ref="scrollRef"
+            :style="[{ height: scrollWrapperHeight + 'px' }]"
         >
           <div class="list-content" :style="isPaddingBottom">
             <div
-              class="list-item"
-              v-for="(song, index) of props.songs"
-              :key="song.id"
-              @click="selectSong(song)"
+                class="list-item"
+                v-for="(song, index) of props.songs"
+                :key="song.id"
+                @click="selectSong(song)"
             >
               <!--              {{ song }}-->
               <div class="icon-wrapper">
                 <img
-                  v-if="index < 3"
-                  :src="require(`@/assets/images/icon${index}.png`)"
+                    v-if="index < 3"
+                    :src="require(`@/assets/images/icon${index}.png`)"
                 />
                 <span v-else>{{ index + 1 }}</span>
               </div>
@@ -69,169 +69,171 @@ import {
   nextTick,
   onUnmounted,
   computed,
-  watch,
-} from "vue";
-import { SINGER_KEY } from "@/assets/js/constant";
-import BScroll from "better-scroll";
-import { useStore } from "vuex";
-import storage from "storejs";
-import tools from "@/components/tools/tools";
-const emits = defineEmits(["selectSong"]);
-const scrollInstance = ref(null);
-const scrollRef = ref(null);
-const scrollWrapperHeight = ref(0);
-const imgWrapperRef = ref(0);
-const imgWrapperHeight = ref(0);
-const musicListRef = ref(0);
-const playListTop = ref(0);
+  watch
+} from 'vue'
+import { SINGER_KEY } from '@/assets/js/constant'
+import BScroll from 'better-scroll'
+import { useStore } from 'vuex'
+import storage from 'storejs'
+import tools from '@/components/tools/tools'
+
+const emits = defineEmits(['selectSong'])
+const scrollInstance = ref(null)
+const scrollRef = ref(null)
+const scrollWrapperHeight = ref(0)
+const imgWrapperRef = ref(0)
+const imgWrapperHeight = ref(0)
+const musicListRef = ref(0)
+const playListTop = ref(0)
 // header区域对应的ref
-const headerRef = ref(null);
-const headerHeight = ref(0);
-const headerZIndex = ref(1);
-const imgWrapperScale = ref({});
-const filterStyle = ref({});
+const headerRef = ref(null)
+const headerHeight = ref(0)
+const headerZIndex = ref(1)
+const imgWrapperScale = ref({})
+const filterStyle = ref({})
 const headerBgColor = computed(() => {
   return headerZIndex.value > 1
-    ? {
+      ? {
         backgroundColor: `#222222`,
-        transition: `all .3s`,
+        transition: `all .3s`
       }
-    : { backgroundColor: `transparent`, transition: `all .3s` };
-});
+      : { backgroundColor: `transparent`, transition: `all .3s` }
+})
 
-const fullScreen = computed(() => store.state.fullScreen);
+const fullScreen = computed(() => store.state.fullScreen)
 
 // scroll 滚动的距离
-const scrollY = ref(0);
-const store = useStore();
+const scrollY = ref(0)
+const store = useStore()
 const props = defineProps({
   pic: {
     type: String,
-    default: "",
+    default: ''
   },
   title: {
     type: String,
-    default: "",
+    default: ''
   },
   songs: {
     type: Array,
-    default: () => ({}),
-  },
-});
+    default: () => []
+  }
+})
 
 // 添加到下一首歌曲
 function nextPlay(song) {
-  store.commit("addSongNextPlay", song);
+  store.commit('addSongNextPlay', song)
   //console.log(song, "next-play");
 }
 
 watch(fullScreen, async (newFullScreen) => {
   // 非全屏的状态,我们需要让scroll重新计算高度
-  if (!newFullScreen) {
-    await nextTick();
-    scrollInstance.value.refresh();
-  }
-});
+  await nextTick()
+  scrollInstance.value.refresh()
+})
 
 watch(scrollY, (newScrollY) => {
   //console.log(newScrollY, "newScrollY");
-  let scrollY = 0;
-  let imgWrapperHeightValue = imgWrapperHeight.value;
+  let scrollY = 0
+  let imgWrapperHeightValue = imgWrapperHeight.value
   // 用户向上滚动
   if (newScrollY < 0) {
-    let v = -Math.min(newScrollY, imgWrapperHeight.value);
+    let v = -Math.min(newScrollY, imgWrapperHeight.value)
     //console.log(v, "vv");
     //console.log(v / imgWrapperHeight.value, "v / imgWrapperHeight.value");
-    let blur = (v / imgWrapperHeight.value) * 20;
-    scrollY = Math.abs(newScrollY);
-    let value = scrollY - imgWrapperHeightValue;
+    let blur = (v / imgWrapperHeight.value) * 20
+    scrollY = Math.abs(newScrollY)
+    let value = scrollY - imgWrapperHeightValue
     // console.log(Math.abs(value), "valuevalue");
     // console.log(blur, "blurblurblurblur");
     if (value <= 0) {
-      scrollY = Math.abs(scrollY - imgWrapperHeightValue);
+      scrollY = Math.abs(scrollY - imgWrapperHeightValue)
       if (scrollY <= headerHeight.value) {
         // 那么就让头部层级变高
-        headerZIndex.value = 10;
+        headerZIndex.value = 10
       } else {
-        headerZIndex.value = 1;
+        headerZIndex.value = 1
         //filterStyle.value = {};
       }
     }
     // console.log(blur, "blur");
     filterStyle.value = {
-      backdropFilter: `blur(${blur}px)`,
+      backdropFilter: `blur(${ blur }px)`
       //filter: `blur(${blur}px)`,
-    };
+    }
     //   console.log(filterStyle.value, "filterStyle.value");
   } else {
     // console.log("用户向下滚动");
-    let scroll = newScrollY;
-    scroll = Math.max(Math.min(scroll, imgWrapperHeight.value), 0);
-    let val = scroll / imgWrapperHeight.value;
+    let scroll = newScrollY
+    scroll = Math.max(Math.min(scroll, imgWrapperHeight.value), 0)
+    let val = scroll / imgWrapperHeight.value
     //console.log(val, "valvalvalvalval");
     // console.log(`scale(${1 + val})`, "scale");
     imgWrapperScale.value = {
-      transform: `scale(${1 + val}) translateZ(0px)`,
-    };
+      transform: `scale(${ 1 + val }) translateZ(0px)`
+    }
   }
-});
+})
 watch(props.songs, async (newSongs) => {
   if (newSongs && newSongs.length > 0) {
-    await nextTick();
-    scrollInstance.value.refresh();
+    await nextTick()
+    scrollInstance.value.refresh()
   }
-});
+})
 
 // 随机播放全部
 function randomPlay() {
-  store.commit("setPlayList", props.songs);
-  store.commit("setSequenceList", props.songs);
-  store.dispatch("randomPlay", {
-    list: props.songs,
-  });
+  store.commit('setPlayList', props.songs)
+  store.commit('setSequenceList', props.songs)
+  store.dispatch('randomPlay', {
+    list: props.songs
+  })
 }
+
 function selectSong(song) {
   // console.log(song);
   // debugger;
   // store.commit("addRecentlyPlaySong", song);
-  emits("selectSong", song);
+  emits('selectSong', song)
 }
+
 //scroll 滚动事件回调函数
 function scrollHandle(pos) {
-  scrollY.value = pos.y;
+  scrollY.value = pos.y
   //console.log(pos.y, "pos.y");
   //console.log(pos, "possss");
 }
+
 onUnmounted(() => {
   // console.log(props, "props....");
   // console.log("onUnmounted执行了");
   storage.set(SINGER_KEY, {
     songs: props.songs,
     pic: props.pic,
-    title: props.title,
-  });
-  scrollInstance.value = null;
-});
+    title: props.title
+  })
+  scrollInstance.value = null
+})
 onMounted(async () => {
   // console.log(props, "onMounted");
-  headerHeight.value = headerRef.value.clientHeight;
+  headerHeight.value = headerRef.value.clientHeight
   // 获取图片区域的高度
-  let imgClientHeight = imgWrapperRef.value.clientHeight;
+  let imgClientHeight = imgWrapperRef.value.clientHeight
   // console.log(imgClientHeight, "imgClientHeightimgClientHeight");
-  imgWrapperHeight.value = imgClientHeight;
-  playListTop.value = imgClientHeight;
-  scrollWrapperHeight.value = musicListRef.value.clientHeight - imgClientHeight;
-  await nextTick();
+  imgWrapperHeight.value = imgClientHeight
+  playListTop.value = imgClientHeight
+  scrollWrapperHeight.value = musicListRef.value.clientHeight - imgClientHeight
+  await nextTick()
   scrollInstance.value = new BScroll(scrollRef.value, {
     observeDOM: true,
     click: true,
     // 实时派发滚动事件
-    probeType: 3,
-  });
-  scrollInstance.value.on("scroll", scrollHandle);
+    probeType: 3
+  })
+  scrollInstance.value.on('scroll', scrollHandle)
   //  console.log(scrollInstance.value, "scrollInstance.value");
   //console.log(props.songs, "o");
-});
+})
 </script>
 
 <style lang="scss" scoped>
@@ -240,6 +242,7 @@ onMounted(async () => {
   height: 100%;
   display: flex;
   flex-direction: column;
+
   .header {
     position: absolute;
     left: 0;
@@ -256,10 +259,12 @@ onMounted(async () => {
       color: $color-theme;
     }
   }
+
   .img-wrapper {
     position: relative;
     height: 260px;
     background-size: cover;
+
     .filter {
       position: absolute;
       top: 0;
@@ -270,6 +275,7 @@ onMounted(async () => {
       background: rgba(7, 17, 27, 0.4);
       // z-index: 400;
     }
+
     .random-play-all {
       position: absolute;
       left: 50%;
@@ -280,15 +286,18 @@ onMounted(async () => {
       border-radius: 10px;
       font-size: 14px;
       color: $color-theme;
+
       .icon-play {
         vertical-align: middle;
       }
+
       span {
         margin-left: 5px;
         vertical-align: middle;
       }
     }
   }
+
   .play-list {
     flex: 1;
     box-sizing: border-box;
@@ -298,22 +307,29 @@ onMounted(async () => {
     // overflow: hidden;
     .play-list-wrapper {
       box-sizing: border-box;
+
       .scroll-wrapper {
         box-sizing: border-box;
         height: 100%;
+
         .list-content {
+          //  box-sizing: border-box;
           background-color: #222222;
           padding: 15px 40px;
+
           .list-item {
             display: flex;
+
             .icon-wrapper {
               margin-right: 15px;
               display: flex;
               justify-content: center;
               align-items: center;
+
               img {
                 width: 24px;
               }
+
               span {
                 display: inline-block;
                 width: 24px;
@@ -328,8 +344,10 @@ onMounted(async () => {
               display: flex;
               flex-direction: column;
               justify-content: space-evenly;
+
               .song-singer {
                 text-align: left;
+
                 span {
                   font-size: 12px;
                   display: inline-block;
@@ -340,6 +358,7 @@ onMounted(async () => {
                   color: $color-text-d;
                 }
               }
+
               .song-name {
                 font-size: 14px;
               }

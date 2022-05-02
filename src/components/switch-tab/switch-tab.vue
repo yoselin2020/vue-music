@@ -80,6 +80,7 @@ export default {
       @include f-center;
       flex: 1;
       height: 100%;
+      font-size: 14px;
     }
   }
 }

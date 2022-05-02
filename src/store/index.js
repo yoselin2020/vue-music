@@ -9,6 +9,7 @@ import { PLAY_MODE } from "@/assets/js/constant";
 import { shuffle, getRandom } from "@/assets/js/util";
 import { Toast } from "vant";
 const debug = process.env.NODE_ENV !== "production";
+
 export default createStore({
   plugins: debug ? [createLogger()] : [],
   state: {
@@ -49,10 +50,19 @@ export default createStore({
   mutations: {
     // 添加一首歌曲到列表后面
     addToPlayListQueue(state, song) {
-      const findIndex = state.playList.findIndex((item) => item.id === song.id);
+      // debugger;
+      const playList = state.playList;
+      // const sequenceList = state.sequenceList;
+      // const sFindIndex = sequenceList.findIndex((item) => item.id === song.id);
+      const findIndex = playList.findIndex((item) => item.id === song.id);
       if (findIndex === -1) {
-        state.playList.push(song);
-        state.sequenceList.push(song);
+        playList.push(song);
+        // state.playList.push(song);
+        state.playList = playList;
+        // if (sFindIndex === -1) {
+        //   sequenceList.push(song);
+        //   state.sequenceList = sequenceList;
+        // }
         Toast("添加成功");
       } else {
         Toast("已存在该歌曲");
@@ -344,7 +354,7 @@ export default createStore({
     },
     // 删除一首歌曲
     delSong({ state, commit }, song) {
-      debugger;
+      //  debugger;
       // 这里先拷贝一份, 不要直接修改, 直接修改会出问题, 直接修改会导致currentSong的变化
       const playList = state.playList.slice();
       const sequenceList = state.sequenceList.slice();

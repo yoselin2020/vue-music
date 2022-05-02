@@ -219,6 +219,7 @@ export default {
       // });
     },
     songClickHandle(song, index) {
+      console.log(song, "song...");
       // console.log(song, "song");
       // debugger;
       this.playSongCurrentIndex = index;
@@ -280,6 +281,7 @@ export default {
       @include f-center;
       flex: 1;
       height: 100%;
+      font-size: 14px;
     }
   }
   .random-play {
@@ -362,7 +364,10 @@ export default {
           border: 0 !important;
           height: 100%;
         }
-
+        ::v-deep(.van-button--danger) {
+          box-sizing: border-box;
+          border: 0 !important;
+        }
         ::v-deep(.van-swipe-cell) {
           padding-left: 10px;
           &.active2 {

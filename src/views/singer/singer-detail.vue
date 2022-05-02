@@ -1,31 +1,40 @@
 <template>
   <div class="singer-detail">
     <music-list
-      :songs="songs"
-      :pic="pic"
-      :title="title"
-      @selectSong="selectMusic"
+        :songs="songs"
+        :pic="pic"
+        :title="title"
+        @selectSong="selectMusic"
     ></music-list>
   </div>
 </template>
 
 <script>
-import { getSingerDetail } from "@/service/singer";
-import { processSongs } from "@/service/song";
-// import store from "storejs";
-import { mapMutations, mapActions } from "vuex";
-import MusicList from "@/components/music-list/music-list";
+import { getSingerDetail } from '@/service/singer'
+import { processSongs } from '@/service/song'
+import { mapMutations, mapActions } from 'vuex'
+import MusicList from '@/components/music-list/music-list'
+
 export default {
-  name: "singer-detail",
+  name: 'singer-detail',
   data() {
     return {
-      songs: [],
-    };
+      songs: []
+    }
   },
   props: {
-    pic: String,
-    title: String,
-    id: String,
+    pic: {
+      type: String,
+      default: ''
+    },
+    title: {
+      type: String,
+      default: ''
+    },
+    id: {
+      type: String,
+      default: ''
+    }
   },
   components: { MusicList },
   async created() {
@@ -35,26 +44,28 @@ export default {
     //   });
     // }
     // const mid = this.$route.query.mid;
-    const mid = this.$route.params.id;
+    const mid = this.$route.params.id
     try {
-      const result = await getSingerDetail({ mid });
+      const result = await getSingerDetail({ mid })
       //    debugger;
-      let songs = await processSongs(result.songs);
-      this.songs = songs;
+      let songs = await processSongs(result.songs)
+      this.songs = songs
       //console.log(this.songs, "this.songs.......");
     } catch (err) {}
   },
-  mounted() {},
-  methods: {
-    ...mapMutations(["setPlayList", "setSequenceList"]),
-    ...mapActions(["selectSong"]),
-    selectMusic(song) {
-      this.setPlayList(this.songs);
-      this.setSequenceList(this.songs);
-      this.selectSong(song);
-    },
+  mounted() {
+    // console.log('mounted')
   },
-};
+  methods: {
+    ...mapMutations(['setPlayList', 'setSequenceList']),
+    ...mapActions(['selectSong']),
+    selectMusic(song) {
+      this.setPlayList(this.songs)
+      this.setSequenceList(this.songs)
+      this.selectSong(song)
+    }
+  }
+}
 </script>
 
 <style lang="scss" scoped>

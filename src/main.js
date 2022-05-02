@@ -88,22 +88,20 @@ import { processSongs } from "@/service/song";
 //   console.log(arr, "arrb");
 //   storage.set(FAVORITE_SONG_KEY, arr);
 // });
-
 import {
+  Button,
+  Search,
+  SwipeCell,
+  Circle,
   Swipe,
   SwipeItem,
   Progress,
-  Circle,
-  SwipeCell,
-  Search,
-  Button,
 } from "vant";
-const vantCom = [Swipe, SwipeItem, Progress, Circle, SwipeCell, Search, Button];
-
+const vantCom = [Button, Search, SwipeCell, Circle, Swipe, SwipeItem, Progress];
 const app = createApp(App);
-vantCom.forEach((item) => app.use(item));
+vantCom.forEach((com) => app.use(com));
 app.use(store).use(router);
-// app.use(Vant)
+// app.use(Vant);
 app.mixin(noFullScreen);
 
 app.use(lazyPlugin, {

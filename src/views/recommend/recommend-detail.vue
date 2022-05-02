@@ -1,36 +1,48 @@
 <template>
   <div class="recommend-detail">
     <music-list
-      :pic="pic"
-      :title="title"
-      :songs="songs"
-      @selectSong="selectSong"
+        :pic="pic"
+        :title="title"
+        :songs="songs"
+        @selectSong="selectSong"
     ></music-list>
   </div>
 </template>
 
 <script>
-import MusicList from "@/components/music-list/music-list";
+import MusicList from '@/components/music-list/music-list'
+
 export default {
-  name: "recommend-detail",
+  name: 'recommend-detail',
   components: { MusicList },
   data() {
-    return {};
+    return {}
   },
   props: {
-    pic: String,
-    title: String,
-    songs: Array,
+    pic: {
+      type: String,
+      default: ''
+    },
+    title: {
+      type: String,
+      default: ''
+    },
+    songs: {
+      type: Array,
+      default: () => []
+    }
   },
   watch: {
     songs: {
       handler(newVal) {
-        console.log(newVal, "newVal");
-      },
-    },
+        console.log(newVal, 'newVal')
+      }
+    }
   },
   async mounted() {
-    // console.log(this.songs, "this.songsthis.songsthis.songsthis.songs");
+    console.log(this.songs, 'this.songsthis.songsthis.songsthis.songs')
+    // console.log('mounted')
+    // console.log(this.pic, 'this.pic')
     // console.log(this.id, "iddi");
     // if (!this.pic) {
     //   //   console.log(this.$route.matched);
@@ -46,12 +58,12 @@ export default {
   methods: {
     selectSong(song) {
       // 选择歌曲进行播放
-      this.$store.commit("setPlayList", this.songs);
-      this.$store.commit("setSequenceList", this.songs);
-      this.$store.dispatch("selectSong", song);
-    },
-  },
-};
+      this.$store.commit('setPlayList', this.songs)
+      this.$store.commit('setSequenceList', this.songs)
+      this.$store.dispatch('selectSong', song)
+    }
+  }
+}
 </script>
 
 <style scoped lang="scss">
