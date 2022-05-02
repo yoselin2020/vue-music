@@ -365,7 +365,8 @@ async function cdSectionSwiperChange(event) {
     scrollWrapper.value.refresh()
     let lineNum = currentLyricNum.value
     //console.log(scrollRef.value, "scrollRef.value-handler");
-    const childrens = scrollRef.value.querySelector('.lyric-wrapper').querySelectorAll('.lyric-text')
+    const childrens = scrollRef.value.querySelector('.lyric-wrapper').
+        querySelectorAll('.lyric-text')
     const scrollWrapperValue = scrollWrapper.value
     console.log(scrollWrapperValue, 'scrollWrapperValue')
     if (scrollWrapperValue) {
@@ -385,7 +386,8 @@ async function cdSectionSwiperChange(event) {
     if (activeIndex === 1) {
       await nextTick()
       let lineNum = currentLyricNum.value
-      const childrens = scrollRef.value.querySelector('.lyric-wrapper').querySelectorAll('.lyric-text')
+      const childrens = scrollRef.value.querySelector('.lyric-wrapper').
+          querySelectorAll('.lyric-text')
       const scrollWrapperValue = scrollWrapper.value
       if (scrollWrapperValue) {
         if (lineNum > 5) {
@@ -741,9 +743,10 @@ async function handler({ lineNum, txt }) {
   try {
     await nextTick()
     //console.log(scrollRef.value, "scrollRef.value-handler");
-    const childrens = scrollRef.value.querySelector('.lyric-wrapper').querySelectorAll('.lyric-text')
+    const childrens = scrollRef.value.querySelector('.lyric-wrapper').
+        querySelectorAll('.lyric-text')
     const scrollWrapperValue = scrollWrapper.value
-    console.log(scrollWrapperValue, 'scrollWrapperValue')
+    // console.log(scrollWrapperValue, 'scrollWrapperValue')
     if (scrollWrapperValue) {
       if (lineNum > 5) {
         lineNum -= 5
@@ -797,7 +800,8 @@ watch(fullScreen, async (newVal) => {
     console.log(scrollRef.value, 'fullScreen')
     if (scrollRef.value && cdSwiperActiveIndex.value === 1) {
       let lineNum = currentLyricNum.value
-      const childrens = scrollRef.value.querySelector('.lyric-wrapper').querySelectorAll('.lyric-text')
+      const childrens = scrollRef.value.querySelector('.lyric-wrapper').
+          querySelectorAll('.lyric-text')
       const scrollWrapperValue = scrollWrapper.value
       console.log(scrollWrapperValue, 'scrollWrapperValue')
       if (scrollWrapperValue) {
@@ -992,7 +996,8 @@ watch(
             miniImgWrapperRef.value.style.transform =
                 miniImgWrapperStyleTransform === 'none'
                     ? miniImgStyleTransform
-                    : miniImgWrapperStyleTransform.concat(' ', miniImgStyleTransform)
+                    : miniImgWrapperStyleTransform.concat(' ',
+                        miniImgStyleTransform)
             //    console.log(miniImgStyleTransform, "miniImgStyleTransform");
             //     console.log(
             //       miniImgWrapperStyleTransform,

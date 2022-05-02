@@ -75,7 +75,7 @@ import { SINGER_KEY } from '@/assets/js/constant'
 import BScroll from 'better-scroll'
 import { useStore } from 'vuex'
 import storage from 'storejs'
-import tools from '@/components/tools/tools'
+import { useRoute } from 'vue-router'
 
 const emits = defineEmits(['selectSong'])
 const scrollInstance = ref(null)
@@ -214,6 +214,7 @@ onUnmounted(() => {
   })
   scrollInstance.value = null
 })
+
 onMounted(async () => {
   // console.log(props, "onMounted");
   headerHeight.value = headerRef.value.clientHeight
