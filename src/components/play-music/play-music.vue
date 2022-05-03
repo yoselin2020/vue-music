@@ -2,7 +2,7 @@
   <transition name="popdown">
     <div class="top-title" v-show="fullScreen">
       <header class="header">
-        <i class="iconfont icon-back" @click="noFullScreen"></i>
+        <i class="iconfont icon-back" @click.stop="noFullScreen"></i>
         <span class="song-name">{{ currentSong.name }}</span>
         <span class="singer-name">
           {{ currentSong.singer }}
@@ -108,12 +108,12 @@
       <span class="play-mode-icon-wrapper">
         <i :class="['iconfont', playModeIcon]" @click.stop="togglePlayMode"></i>
       </span>
-      <i class="iconfont icon-prev" @click="prevSong" :style="disableStyle"></i>
-      <span class="is-playing" @click="toggleSongPlay" :style="disableStyle">
+      <i class="iconfont icon-prev" @click.stop="prevSong" :style="disableStyle"></i>
+      <span class="is-playing" @click.stop="toggleSongPlay" :style="disableStyle">
         <!--播放时候显示的按钮-->
         <i class="iconfont" :class="isPlaying ? 'icon-pause' : 'icon-play'"></i>
       </span>
-      <i class="iconfont icon-next" @click="nextSong" :style="disableStyle"></i>
+      <i class="iconfont icon-next" @click.stop="nextSong" :style="disableStyle"></i>
       <i
           class="iconfont"
           @click.stop="favoriteIconClick(currentSong)"
@@ -729,7 +729,9 @@ const disableStyle = computed(() => {
       opacity: 0.3
     }
   }
-  return {}
+  return {
+    opacity: 1
+  }
 })
 
 const fullScreen = computed(() => {
@@ -834,22 +836,16 @@ watch(fullScreen, async (newVal) => {
 watch(playMode, (mode) => {
   audioRef.value.loop = mode === PLAY_MODE.loop
 })
-// onMounted(() => {
-//   document.addEventListener("click", () => {
-//     //console.log("document-click");
-//     try {
-//       audioRef.value.play();
-//     } catch (err) {}
-//   });
-// });
+
 // 歌曲缓冲完毕
 async function canplay() {
-  //audioRef.value.play();
+  stopLyric()
+  console.log('canplay')
   cdMovePageX = 0
   stopCreateSnowHandle()
   audioRef.value.loop = playMode.value === PLAY_MODE.loop
-  console.log('canplay方法执行了!!!!!')
-  console.log(isPlaying.value, 'isPlaying.value')
+  //console.log('canplay方法执行了!!!!!')
+  //console.log(isPlaying.value, 'isPlaying.value')
   songReady.value = true
   if (isPlaying.value) {
     audioRef.value.play()
@@ -902,7 +898,6 @@ watch(currentSong, async (newSong) => {
   currentTime.value = 0
   cdMovePageX = 0
   lyricSectionClientHeight.value = []
-
   await nextTick()
   scrollWrapper.value = new BScroll(scrollRef.value, {
     observeDOM: true,
@@ -913,7 +908,6 @@ watch(currentSong, async (newSong) => {
   scrollToCurrentSongSection()
   currentLyricText.value = ''
   currentLyricNum.value = 0
-
   try {
     songReady.value = false
     if (!newSong.lyric) {
@@ -931,6 +925,9 @@ watch(currentSong, async (newSong) => {
     if (audioRef.value && newSong.url) {
       await nextTick()
       audioRef.value.src = newSong.url
+      // 开始播放歌词
+      // playLyric()
+      //audioRef.value.load()
     }
     if (songReady.value) {
       //playLyric();
@@ -954,29 +951,28 @@ const miniImgRef = ref(null)
 watch(
     isPlaying,
     async (newVal) => {
+      stopLyric()
+      songReady.value = true
       stopCreateSnowHandle()
       // 歌曲播放的时候也是需要 给一个 src
       //console.log("isPlaying - watch");
       if (!currentSong.value.url) {
         return
       }
-      try {
-        //audioRef.value.src = currentSong.value.url;
-      } catch (err) {
-        console.log('load err')
-        // 播放下一首歌曲
-        nextSong()
-        audioRef.value.currentTime = 0
+      if (newVal) {
+        audioRef.value.play()
+        // 开始播放歌词
+        playLyric()
+      } else {
+        audioRef.value.pause()
+        // 暂停播放歌词
+        stopLyric()
       }
       // 避免暂停后再次播放从头开始播放
       audioRef.value.currentTime = currentTime.value
-      stopLyric()
       if (newVal && fullScreen.value) {
         createSnowHandle()
-        //  playLyric()
       } else {
-        // 暂停播放歌词
-        stopLyric()
         stopCreateSnowHandle()
         if (!fullScreen.value) {
           if (miniImgRef.value && miniImgWrapperRef.value) {
@@ -998,20 +994,9 @@ watch(
                     ? miniImgStyleTransform
                     : miniImgWrapperStyleTransform.concat(' ',
                         miniImgStyleTransform)
-            //    console.log(miniImgStyleTransform, "miniImgStyleTransform");
-            //     console.log(
-            //       miniImgWrapperStyleTransform,
-            //       "miniImgWrapperStyleTransform"
-            //     );
-            //     console.log(
-            //       miniImgWrapperStyleTransform.concat(" ", miniImgStyleTransform),
-            //       'miniImgWrapperStyleTransform.concat(" ", miniImgStyleTransform)'
-            //     );
           }
           return
         }
-        // 暂停播放歌词
-        stopLyric()
         // 播放暂停了
         //miniImgWrapperRef
         // miniImgRef
@@ -1027,9 +1012,6 @@ watch(
       songNameSwipe.value.resize()
       //console.log(songNameSwipe.value, "songNameSwipe.value");
       songNameSwipe.value.swipeTo(currentSongIndex.value)
-    },
-    {
-      immediate: false
     }
 )
 //  currentTime值发生了变化
@@ -1085,7 +1067,7 @@ function fullScreenHandle() {
 
 // 迷你播放器按钮点击事件
 function miniPlay() {
-  console.log('miniPlay事件触发了')
+  // console.log('miniPlay事件触发了')
   store.commit('setFullScreen', false)
   store.commit('setPlaying', !isPlaying.value)
 }
@@ -1279,7 +1261,7 @@ function nextSong() {
     // 如果越界了就播放到第一手歌曲进行播放
     index = 0
   }
-  console.log(index, 'index....结束了')
+  //console.log(index, 'index....结束了')
   // 获取当前所在歌曲的索引
   store.commit('setCurrentIndex', index)
   store.commit('setPlaying', true)
@@ -1565,6 +1547,7 @@ defineExpose({
       border-radius: 50%;
 
       img {
+        border-radius: 50%;
         width: 100%;
         height: 100%;
       }

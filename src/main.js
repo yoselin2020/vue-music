@@ -1,18 +1,20 @@
-import { createApp } from "vue";
-import App from "./App.vue";
-import router from "./router";
-import store from "./store";
+import { createApp } from 'vue'
+//console.dir(createApp)
+//console.dir(nextTick)
+import App from './App.vue'
+import router from './router'
+import store from './store'
 // import Vant from "vant";
 // import "vant/lib/index.css";
-import "@/assets/scss/index.scss";
-import lazyPlugin from "vue3-lazy";
-import noFullScreen from "@/mixins/noFullScreen";
-import storage from "storejs";
-import { FAVORITE_SONG_KEY, recentlyPlayListKEY } from "@/assets/js/constant";
+import '@/assets/scss/index.scss'
+import lazyPlugin from 'vue3-lazy'
+import noFullScreen from '@/mixins/noFullScreen'
+import storage from 'storejs'
+import { FAVORITE_SONG_KEY, recentlyPlayListKEY } from '@/assets/js/constant'
 
-import { myProcessSongs } from "@/api/song";
+import { myProcessSongs } from '@/api/song'
 
-import { processSongs } from "@/service/song";
+import { processSongs } from '@/service/song'
 // 处理歌曲url地址过期问题
 // let recentlyPlayListSong1 = [],
 //   recentlyPlayListSong2 = [];
@@ -95,17 +97,18 @@ import {
   Circle,
   Swipe,
   SwipeItem,
-  Progress,
-} from "vant";
-const vantCom = [Button, Search, SwipeCell, Circle, Swipe, SwipeItem, Progress];
-const app = createApp(App);
-vantCom.forEach((com) => app.use(com));
-app.use(store).use(router);
+  Progress
+} from 'vant'
+
+const vantCom = [Button, Search, SwipeCell, Circle, Swipe, SwipeItem, Progress]
+const app = createApp(App)
+vantCom.forEach((com) => app.use(com))
+app.use(store).use(router)
 // app.use(Vant);
-app.mixin(noFullScreen);
+app.mixin(noFullScreen)
 
 app.use(lazyPlugin, {
-  loading: require("@/assets/images/xhboy.png"),
+  loading: require('@/assets/images/xhboy.png')
   //error: "error.png",
-});
-app.mount("#app");
+})
+app.mount('#app')
