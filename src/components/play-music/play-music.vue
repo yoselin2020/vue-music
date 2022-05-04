@@ -886,7 +886,7 @@ async function canplayHandle() {
 
 // 歌曲缓冲完毕
 async function canplay() {
-  await canplayHandle();
+  // await canplayHandle();
 }
 
 const lyricSectionClientHeight = ref([]);
@@ -1206,11 +1206,11 @@ function touchend(event) {
     currentSong.value.duration
   );
   // console.log(currentTime.value, "currentTime.value");
+  audioRef.value.currentTime = currentTime.value;
+  value *= 100;
   if (!isPlaying.value) {
     store.commit("setPlaying", true);
   }
-  audioRef.value.currentTime = currentTime.value;
-  value *= 100;
   // console.log(currentSong.value.duration, "currentSong.value.duration");
   //console.log(currentTime, "currentTime////33");
   progressBarWidth.value = value;

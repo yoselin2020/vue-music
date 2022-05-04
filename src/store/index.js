@@ -51,10 +51,14 @@ export default createStore({
     // 添加一首歌曲到列表后面
     addToPlayListQueue(state, song) {
       // debugger;
-      const playList = state.playList;
-      // const sequenceList = state.sequenceList;
-      // const sFindIndex = sequenceList.findIndex((item) => item.id === song.id);
+      const playList = state.playList.slice();
+      const sequenceList = state.sequenceList.slice();
+      const sFindIndex = sequenceList.findIndex((item) => item.id === song.id);
       const findIndex = playList.findIndex((item) => item.id === song.id);
+      if (sFindIndex === -1) {
+        sequenceList.push(song);
+        state.sequenceList = sequenceList;
+      }
       if (findIndex === -1) {
         playList.push(song);
         // state.playList.push(song);
