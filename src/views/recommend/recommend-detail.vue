@@ -1,69 +1,64 @@
 <template>
   <div class="recommend-detail">
-    <music-list
-        :pic="pic"
-        :title="title"
-        :songs="songs"
-        @selectSong="selectSong"
-    ></music-list>
+    <music-list @selectSong="selectSong"></music-list>
+    <!-- :pic="pic"
+      :title="title"
+      :songs="songs"  -->
   </div>
 </template>
 
 <script>
-import MusicList from '@/components/music-list/music-list'
+import MusicList from "@/components/music-list/music-list";
+import storage from "storejs";
+import { SINGER_KEY } from "../../assets/js/constant.js";
 
 export default {
-  name: 'recommend-detail',
+  name: "recommend-detail",
   components: { MusicList },
   data() {
-    return {}
+    return {};
   },
   props: {
     pic: {
       type: String,
-      default: ''
+      default: "",
     },
     title: {
       type: String,
-      default: ''
+      default: "",
     },
     songs: {
       type: Array,
-      default: () => []
-    }
+      default: () => [],
+    },
   },
   watch: {
     songs: {
       handler(newVal) {
-        console.log(newVal, 'newVal')
-      }
+        console.log(newVal, "newVal");
+      },
+    },
+  },
+  created() {
+    if (this.songs.length && this.pic && this.title) {
+      const cacheData = {
+        songs: this.songs,
+        pic: this.pic,
+        title: this.title,
+      };
+      storage.set(SINGER_KEY, cacheData);
     }
   },
-  async mounted() {
-    console.log(this.songs, 'this.songsthis.songsthis.songsthis.songs')
-    // console.log('mounted')
-    // console.log(this.pic, 'this.pic')
-    // console.log(this.id, "iddi");
-    // if (!this.pic) {
-    //   //   console.log(this.$route.matched);
-    //   // this.$router.push({
-    //   //   path: this.$route.matched[1].path,
-    //   // });
-    //
-    //   this.$router.push({
-    //     path: "/recommend",
-    //   });
-    // }
-  },
+  async mounted() {},
   methods: {
     selectSong(song) {
       // 选择歌曲进行播放
-      this.$store.commit('setPlayList', this.songs)
-      this.$store.commit('setSequenceList', this.songs)
-      this.$store.dispatch('selectSong', song)
-    }
-  }
-}
+      this.$store.commit("setPlayList", this.songs);
+      this.$store.commit("setSequenceList", this.songs);
+      this.$store.dispatch("selectSong", song);
+    },
+  },
+};
 </script>
 
 <style scoped lang="scss">

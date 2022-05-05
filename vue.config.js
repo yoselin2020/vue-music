@@ -6,8 +6,8 @@ const BundleAnalyzerPlugin =
 module.exports = defineConfig({
   transpileDependencies: true,
   productionSourceMap: false,
-  publicPath: "./",
-  // publicPath: process.env.NODE_ENV === "production" ? "/music/" : "/",
+  //publicPath: "./",
+  publicPath: process.env.NODE_ENV === "production" ? "/music/" : "/",
   css: {
     loaderOptions: {
       sass: {
@@ -31,18 +31,20 @@ module.exports = defineConfig({
   //   },
   // },
   configureWebpack: (config) => {
+    const BundleAnalyzerPlugin =
+      require("webpack-bundle-analyzer").BundleAnalyzerPlugin;
+    config.plugins.push(new BundleAnalyzerPlugin());
+    config.externals = {
+      vue: "Vue",
+      axios: "axios",
+      "vue-router": "VueRouter",
+      "better-scroll": "BetterScroll",
+      vuex: "Vuex",
+      vant: "vant",
+      nprogress: "NProgress",
+    };
     if (process.env.NODE_ENV === "production") {
       // 为生产环境修改配置...
-      const BundleAnalyzerPlugin =
-        require("webpack-bundle-analyzer").BundleAnalyzerPlugin;
-      config.plugins.push(new BundleAnalyzerPlugin());
-      config.externals = {
-        vue: "Vue",
-        axios: "axios",
-        "vue-router": "VueRouter",
-        "better-scroll": "BetterScroll",
-        vuex: "Vuex",
-      };
     } else {
       // 为开发环境修改配置...
     }

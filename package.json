@@ -11,6 +11,7 @@
     "better-scroll": "^2.4.2",
     "core-js": "^3.8.3",
     "lyric-parser": "^1.0.1",
+    "nprogress": "^0.2.0",
     "storejs": "^2.0.1",
     "swiper": "^8.1.4",
     "throttle-debounce": "^4.0.1",

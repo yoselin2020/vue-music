@@ -27,7 +27,7 @@
     </div>
     <router-view v-slot="{ Component }">
       <transition name="move">
-        <component :pic="pic" :title="title" :is="Component" />
+        <component :pic="pic" :title="title" :is="Component" :songs="songs" />
       </transition>
     </router-view>
   </div>
@@ -39,15 +39,17 @@ export default {
 };
 </script>
 <script setup>
-import { getTopList } from "@/service/top-list";
+import { getTopDetail, getTopList } from "@/service/top-list";
 import { onActivated, nextTick, onMounted, ref } from "vue";
 import BScroll from "better-scroll";
 
 import { useRouter } from "vue-router";
+import { processSongs } from "../../service/song.js";
 
 const router = useRouter();
 const pic = ref("");
 const title = ref("");
+const songs = ref([]);
 const topList = ref([]);
 
 const scrollRef = ref(null);
@@ -60,17 +62,23 @@ onActivated(async () => {
   }
   // console.log("top-list-activated");
 });
-function toTopListDetail(top) {
+async function toTopListDetail(top) {
   //console.log(top);
   //  debugger;
   let id = top.id;
   let period = top.period;
   title.value = top.name;
   pic.value = top.pic;
+
+  const result = await getTopDetail({
+    id,
+    period,
+  });
+  songs.value = await processSongs(result.songs);
   //console.log(id, "id");
   //  console.log(`/top-list/${id}`, "`/top-list/${id}`");
   router.push({
-    path: `/top-list/${id}?period=${period}`,
+    path: `/top-list/${id}`,
   });
 }
 

@@ -45,7 +45,7 @@
           <swiper-slide class="slide">
             <div class="_wrapper">
               <div class="scroll-wrapper" ref="scrollRef">
-                <div>
+                <div @touchend="scrollEnd">
                   <div class="lyric-wrapper" v-if="currentLyric">
                     <p
                       class="lyric-text"
@@ -54,14 +54,10 @@
                         color: currentLyricNum === index ? '#ffcd32' : '',
                       }"
                       :key="index"
-                      @touchend.stop="lyricTextClick(line, index)"
                     >
-                      <!--                      <span-->
-                      <!--                        class="lyric-active"-->
-                      <!--                        v-if="currentLyricNum === index && scrollIng"-->
-                      <!--                        >{{ formatDuration(Math.floor(currentTime)) }}</span-->
-                      <!--                      >-->
-                      <span>{{ line.txt }}</span>
+                      <span @click.stop="lyricTextClick(line, index)">{{
+                        line.txt
+                      }}</span>
                     </p>
                   </div>
                 </div>
@@ -772,24 +768,44 @@ onUnmounted(() => {
 
 const currentSongIndex = computed(() => store.state.currentIndex);
 const scrollY = ref(0);
-let time1 = null;
+let time1 = ref(null);
 async function scrollIngFun(pos) {
   stopLyric();
+  //console.log("scrollIngFun");
   //console.log("scrollIng");
-  clearTimeout(time1);
+  clearTimeout(time1.value);
   scrollIng.value = true;
 }
-
-// 滚动结束了
-function scrollEndFun(pos) {
-  stopLyric();
+function scrollEnd(event) {
+  const tagName = event.target.tagName.toLowerCase();
   scrollIng.value = false;
-  //  playLyric();
-  //;
-  time1 = setTimeout(() => {
+  if (tagName === "span") {
     stopLyric();
+    // 直接点击了歌词
+    playLyric();
+    return;
+  }
+  stopLyric();
+  time1.value = setTimeout(() => {
+    // stopLyric();
     playLyric();
   }, 1000);
+  //stopLyric();
+  //  console.log(event.target.tagName.toLowerCase(), "tagName");
+  // stopLyric();
+  // console.log("scrollEnd");
+
+  // playLyric();
+}
+// 滚动结束了
+function scrollEndFun(pos) {
+  // console.log("scrollEndFun");
+  //  playLyric();
+  //;
+  // time1 = setTimeout(() => {
+  //   stopLyric();
+  //   playLyric();
+  // }, 1000);
   // 结束后让歌词播放到具体的位置
   // console.log("滚动结束了");
 }
@@ -918,11 +934,12 @@ watch(currentSong, async (newSong) => {
   lyricSectionClientHeight.value = [];
   await nextTick();
   scrollWrapper.value = new BScroll(scrollRef.value, {
+    click: true,
     observeDOM: true,
     probeType: 2,
   });
   scrollWrapper.value.on("scroll", scrollIngFun);
-  scrollWrapper.value.on("scrollEnd", scrollEndFun);
+  // scrollWrapper.value.on("scrollCancel", scrollEndFun);
   scrollToCurrentSongSection();
   currentLyricText.value = "";
   currentLyricNum.value = 0;

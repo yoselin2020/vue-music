@@ -6,12 +6,12 @@
       :style="[{ zIndex: headerZIndex }, headerBgColor]"
     >
       <i class="iconfont icon-back" @click="$router.back()"></i>
-      <span class="title">{{ props.title }}</span>
+      <span class="title">{{ title }}</span>
     </header>
     <div
       class="img-wrapper"
       ref="imgWrapperRef"
-      :style="[{ backgroundImage: `url(${props.pic})` }, imgWrapperScale]"
+      :style="[{ backgroundImage: `url(${pic})` }, imgWrapperScale]"
     >
       <div class="filter" :style="filterStyle"></div>
       <div class="random-play-all" @click.stop="randomPlay">
@@ -29,7 +29,7 @@
           <div class="list-content" :style="isPaddingBottom">
             <div
               class="list-item"
-              v-for="(song, index) of props.songs"
+              v-for="(song, index) of songs"
               :key="song.id"
               @click="selectSong(song)"
             >
@@ -73,9 +73,9 @@ import {
 } from "vue";
 import { SINGER_KEY } from "@/assets/js/constant";
 import BScroll from "better-scroll";
+import { useRoute, useRouter } from "vue-router";
 import { useStore } from "vuex";
 import storage from "storejs";
-import { useRoute } from "vue-router";
 
 const emits = defineEmits(["selectSong"]);
 const scrollInstance = ref(null);
@@ -91,37 +91,39 @@ const headerHeight = ref(0);
 const headerZIndex = ref(1);
 const imgWrapperScale = ref({});
 const filterStyle = ref({});
-const headerBgColor = computed(() => {
-  return headerZIndex.value > 1
-    ? {
-        backgroundColor: `#222222`,
-        transition: `all .3s`,
-      }
-    : {
-        backgroundColor: `transparent`,
-        transition: `all .3s`,
-      };
-});
+const router = useRouter();
+const route = useRoute();
+
+const headerBgColor = ref({});
+// const headerBgColor = computed(() => {
+//   return headerZIndex.value > 1
+//     ? {
+//         backgroundColor: `#222222`,
+//         transition: `all .3s`,
+//       }
+//     : {
+//         backgroundColor: `transparent`,
+//         transition: `all .3s`,
+//       };
+// });
 
 const fullScreen = computed(() => store.state.fullScreen);
 
 // scroll 滚动的距离
 const scrollY = ref(0);
 const store = useStore();
-const props = defineProps({
-  pic: {
-    type: String,
-    default: "",
-  },
-  title: {
-    type: String,
-    default: "",
-  },
-  songs: {
-    type: Array,
-    default: () => [],
-  },
-});
+
+const cacheData = storage.get(SINGER_KEY);
+//console.log(cacheData, "cacheData++++");
+// if (cacheData && cacheData.pic && cacheData.title && cacheData.songs.length) {
+//   pic.value = cacheData.pic;
+//   title.value = cacheData.title;
+//   songs.value = cacheData.songs;
+// }
+
+const pic = ref("");
+const title = ref("");
+const songs = ref([]);
 
 // 添加到下一首歌曲
 function nextPlay(song) {
@@ -136,6 +138,7 @@ watch(fullScreen, async (newFullScreen) => {
 });
 
 watch(scrollY, (newScrollY) => {
+  // console.log("滚动了");
   //console.log(newScrollY, "newScrollY");
   let scrollY = 0;
   let imgWrapperHeightValue = imgWrapperHeight.value;
@@ -152,11 +155,22 @@ watch(scrollY, (newScrollY) => {
     // console.log(blur, "blurblurblurblur");
     if (value <= 0) {
       scrollY = Math.abs(scrollY - imgWrapperHeightValue);
+      // console.log(scrollY, "scrollY");
+      // console.log(headerHeight.value, "headerHeight.value");
       if (scrollY <= headerHeight.value) {
+        //   console.log(scrollY, "小于header的高度");
         // 那么就让头部层级变高
         headerZIndex.value = 10;
+        headerBgColor.value = {
+          backgroundColor: `#222222`,
+          transition: `all .3s`,
+        };
       } else {
         headerZIndex.value = 1;
+        headerBgColor.value = {
+          backgroundColor: `transparent`,
+          transition: `all .3s`,
+        };
         //filterStyle.value = {};
       }
     }
@@ -178,7 +192,7 @@ watch(scrollY, (newScrollY) => {
     };
   }
 });
-watch(props.songs, async (newSongs) => {
+watch(songs, async (newSongs) => {
   if (newSongs && newSongs.length > 0) {
     await nextTick();
     scrollInstance.value.refresh();
@@ -187,10 +201,10 @@ watch(props.songs, async (newSongs) => {
 
 // 随机播放全部
 function randomPlay() {
-  store.commit("setPlayList", props.songs);
-  store.commit("setSequenceList", props.songs);
+  store.commit("setPlayList", songs.value);
+  store.commit("setSequenceList", songs.value);
   store.dispatch("randomPlay", {
-    list: props.songs,
+    list: songs.value,
   });
 }
 
@@ -203,6 +217,7 @@ function selectSong(song) {
 
 //scroll 滚动事件回调函数
 function scrollHandle(pos) {
+  // console.log("scroll了", pos.y);
   scrollY.value = pos.y;
   //console.log(pos.y, "pos.y");
   //console.log(pos, "possss");
@@ -211,24 +226,35 @@ function scrollHandle(pos) {
 onUnmounted(() => {
   // console.log(props, "props....");
   // console.log("onUnmounted执行了");
-  storage.set(SINGER_KEY, {
-    songs: props.songs,
-    pic: props.pic,
-    title: props.title,
-  });
   scrollInstance.value = null;
 });
 
 onMounted(async () => {
-  // console.log(props, "onMounted");
+  // console.log(route, "useRoute");
+  await nextTick();
+  const cacheData = storage.get(SINGER_KEY);
+  // console.log(cacheData, "cacheData333");
+  if (cacheData && cacheData.pic && cacheData.title && cacheData.songs.length) {
+    pic.value = cacheData.pic;
+    title.value = cacheData.title;
+    songs.value = cacheData.songs;
+  } else {
+    const path = route.matched[0].path;
+    //console.log(path, "ppp");
+    router.replace({
+      path,
+    });
+    return;
+  }
+  await nextTick();
   headerHeight.value = headerRef.value.clientHeight;
+  //console.log(headerHeight.value, "headerHeight.valueheaderHeight.value");
   // 获取图片区域的高度
   let imgClientHeight = imgWrapperRef.value.clientHeight;
   // console.log(imgClientHeight, "imgClientHeightimgClientHeight");
   imgWrapperHeight.value = imgClientHeight;
   playListTop.value = imgClientHeight;
   scrollWrapperHeight.value = musicListRef.value.clientHeight - imgClientHeight;
-  await nextTick();
   scrollInstance.value = new BScroll(scrollRef.value, {
     observeDOM: true,
     click: true,

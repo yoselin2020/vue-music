@@ -16,13 +16,11 @@ export default {
 </script>
 
 <script setup>
+import storage from "storejs";
 import { defineProps, onMounted, ref, onActivated } from "vue";
-import { useRoute, useRouter } from "vue-router";
-import { getTopDetail } from "@/service/top-list";
-import { processSongs } from "@/service/song";
 import MusicList from "@/components/music-list/music-list";
 import { useStore } from "vuex";
-const router = useRouter();
+import { SINGER_KEY } from "../../assets/js/constant.js";
 const store = useStore();
 const songs = ref([]);
 const props = defineProps({
@@ -31,9 +29,15 @@ const props = defineProps({
   },
   pic: {
     type: String,
+    default: "",
   },
   title: {
     type: String,
+    default: "",
+  },
+  songs: {
+    type: Array,
+    default: () => [],
   },
 });
 
@@ -55,14 +59,24 @@ onMounted(async () => {
   //     //route.matched[1].path,
   //   });
   // }
-  const period = useRoute().query.period;
-  const id = props.id;
+  // const period = useRoute().query.period;
+  // const id = props.id;
   try {
-    const result = await getTopDetail({
-      id,
-      period,
-    });
-    songs.value = await processSongs(result.songs);
+    // const result = await getTopDetail({
+    //   id,
+    //   period,
+    // });
+    // songs.value = await processSongs(result.songs);
+    //console.log(props, "props@@@@@");
+    if (props.songs.length && props.pic && props.title) {
+      const cacheData = {
+        songs: props.songs,
+        pic: props.pic,
+        title: props.title,
+      };
+      storage.set(SINGER_KEY, cacheData);
+    }
+
     //store.commit("setSequenceList", songs.value);
     //console.log(songs, "songs.value");
   } catch (err) {}

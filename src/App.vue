@@ -33,12 +33,23 @@ export default {
 };
 </script>
 
+<style>
+#nprogress .bar {
+  background: #ffcd32 !important;
+}
+</style>
+
 <style lang="scss" scoped>
 .app {
   height: 100%;
   display: flex;
   flex-direction: column;
 }
+//:deep(#nprogress .bar) {
+//  background: $color-theme !important;
+//}
+
+//#nprogress
 
 .scroll-wrapper {
   flex: 1;

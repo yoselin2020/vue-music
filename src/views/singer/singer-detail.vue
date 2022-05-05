@@ -1,71 +1,76 @@
 <template>
   <div class="singer-detail">
-    <music-list
-        :songs="songs"
-        :pic="pic"
-        :title="title"
-        @selectSong="selectMusic"
-    ></music-list>
+    <!--:songs="songs"
+      :pic="pic"
+      :title="title"-->
+    <music-list @selectSong="selectMusic"></music-list>
   </div>
 </template>
 
 <script>
-import { getSingerDetail } from '@/service/singer'
-import { processSongs } from '@/service/song'
-import { mapMutations, mapActions } from 'vuex'
-import MusicList from '@/components/music-list/music-list'
+import { getSingerDetail } from "@/service/singer";
+import { processSongs } from "@/service/song";
+import storage from "storejs";
+import { mapMutations, mapActions } from "vuex";
+import MusicList from "@/components/music-list/music-list";
+import { SINGER_KEY } from "../../assets/js/constant.js";
 
 export default {
-  name: 'singer-detail',
+  name: "singer-detail",
   data() {
-    return {
-      songs: []
-    }
+    return {};
   },
   props: {
     pic: {
       type: String,
-      default: ''
+      default: "",
     },
     title: {
       type: String,
-      default: ''
+      default: "",
+    },
+    songs: {
+      type: Array,
+      default: () => [],
     },
     id: {
       type: String,
-      default: ''
-    }
+      default: "",
+    },
   },
   components: { MusicList },
   async created() {
-    // if (!this.pic) {
-    //   this.$router.push({
-    //     path: "/singer",
-    //   });
-    // }
-    // const mid = this.$route.query.mid;
-    const mid = this.$route.params.id
-    try {
-      const result = await getSingerDetail({ mid })
-      //    debugger;
-      let songs = await processSongs(result.songs)
-      this.songs = songs
-      //console.log(this.songs, "this.songs.......");
-    } catch (err) {}
+    //console.log(this.songs, "songs");
+    if (this.songs.length && this.pic && this.title) {
+      const cacheData = {
+        songs: this.songs,
+        pic: this.pic,
+        title: this.title,
+      };
+      storage.set(SINGER_KEY, cacheData);
+    }
+    //const mid = this.$route.params.id;
+    //  try {
+    // const result = await getSingerDetail({ mid });
+    //    debugger;
+    // let songs = await processSongs(result.songs);
+    //   this.songs = songs;
+    //console.log(this.songs, "this.songs.......");
+    // } catch (err) {}
   },
   mounted() {
     // console.log('mounted')
   },
   methods: {
-    ...mapMutations(['setPlayList', 'setSequenceList']),
-    ...mapActions(['selectSong']),
+    ...mapMutations(["setPlayList", "setSequenceList"]),
+    ...mapActions(["selectSong"]),
     selectMusic(song) {
-      this.setPlayList(this.songs)
-      this.setSequenceList(this.songs)
-      this.selectSong(song)
-    }
-  }
-}
+      this.setPlayList(this.songs);
+      this.setSequenceList(this.songs);
+      this.selectSong(song);
+    },
+  },
+};
 </script>
 
 <style lang="scss" scoped>
