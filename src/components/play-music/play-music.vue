@@ -54,7 +54,7 @@
                         color: currentLyricNum === index ? '#ffcd32' : '',
                       }"
                       :key="index"
-                      @touchend="lyricTextClick(line, index)"
+                      @touchend.stop="lyricTextClick(line, index)"
                     >
                       <!--                      <span-->
                       <!--                        class="lyric-active"-->
@@ -310,31 +310,18 @@
 </template>
 
 <script setup>
-import {
-  ref,
-  computed,
-  watch,
-  defineExpose,
-  nextTick,
-  onMounted,
-  reactive,
-  onUnmounted,
-} from "vue";
+import { ref, computed, watch, defineExpose, nextTick, onUnmounted } from "vue";
 
 import { formatDuration, createSnow } from "@/assets/js/util";
 import { Pagination } from "swiper";
 import { Swiper, SwiperSlide } from "swiper/vue";
 import "swiper/css";
 import "swiper/css/pagination";
-
-import confirm from "@/components/confirm/confirm";
 import { useStore } from "vuex";
 import { PLAY_MODE } from "@/assets/js/constant";
 import { getLyric } from "@/service/song";
 import Lyric from "lyric-parser";
 import BScroll from "better-scroll";
-import storage from "storejs";
-import { Dialog, Toast } from "vant";
 import AddSong from "@/components/add-song/add-song";
 import { myProcessSongs } from "@/api/song";
 import { processSongs } from "@/service/song";
@@ -785,14 +772,24 @@ onUnmounted(() => {
 
 const currentSongIndex = computed(() => store.state.currentIndex);
 const scrollY = ref(0);
-
+let time1 = null;
 async function scrollIngFun(pos) {
+  stopLyric();
+  //console.log("scrollIng");
+  clearTimeout(time1);
   scrollIng.value = true;
 }
 
 // 滚动结束了
 function scrollEndFun(pos) {
+  stopLyric();
   scrollIng.value = false;
+  //  playLyric();
+  //;
+  time1 = setTimeout(() => {
+    stopLyric();
+    playLyric();
+  }, 1000);
   // 结束后让歌词播放到具体的位置
   // console.log("滚动结束了");
 }
@@ -857,8 +854,8 @@ async function canplayHandle() {
   stopLyric();
   console.log("canplay");
   cdMovePageX = 0;
-  stopCreateSnowHandle();
-  audioRef.value.loop = playMode.value === PLAY_MODE.loop;
+  //stopCreateSnowHandle();
+  // audioRef.value.loop = playMode.value === PLAY_MODE.loop;
   //console.log('canplay方法执行了!!!!!')
   //console.log(isPlaying.value, 'isPlaying.value')
   songReady.value = true;
@@ -916,6 +913,7 @@ async function getLyricSectionClientHeight() {
 watch(currentSong, async (newSong) => {
   stopLyric();
   currentTime.value = 0;
+  scrollWrapper.value = null;
   cdMovePageX = 0;
   lyricSectionClientHeight.value = [];
   await nextTick();
@@ -943,9 +941,9 @@ watch(currentSong, async (newSong) => {
     }
     currentLyric.value = new Lyric(newSong.lyric, handler);
     if (audioRef.value && newSong.url) {
-      await nextTick();
       audioRef.value.src = newSong.url;
-      audioRef.value.load();
+      // await nextTick();
+      //audioRef.value.load();
       // 开始播放歌词
       // playLyric()
       //audioRef.value.load()
@@ -970,15 +968,16 @@ const miniImgWrapperRef = ref(null);
 const miniImgRef = ref(null);
 // 监视音乐是否播放状态
 watch(isPlaying, async (newVal) => {
+  console.log("isPlaying");
   stopLyric();
   songReady.value = true;
   stopCreateSnowHandle();
   // 歌曲播放的时候也是需要 给一个 src
   //console.log("isPlaying - watch");
-  if (!currentSong.value.url) {
-    return;
-  }
+  // 避免暂停后再次播放从头开始播放
+  audioRef.value.currentTime = currentTime.value;
   if (newVal) {
+    stopLyric();
     audioRef.value.play();
     // 开始播放歌词
     playLyric();
@@ -987,8 +986,10 @@ watch(isPlaying, async (newVal) => {
     // 暂停播放歌词
     stopLyric();
   }
-  // 避免暂停后再次播放从头开始播放
-  audioRef.value.currentTime = currentTime.value;
+  if (!currentSong.value.url) {
+    return;
+  }
+
   if (newVal && fullScreen.value) {
     createSnowHandle();
   } else {
@@ -1036,8 +1037,8 @@ watch(currentTime, async (newTime) => {
   if (fullScreen.value && !isPlaying.value) {
     store.commit("setPlaying", true);
   }
-  playLyric();
-  stopLyric();
+  // playLyric();
+  // stopLyric();
   progressBarWidth.value = (newTime / currentSong.value.duration) * 100;
 });
 
@@ -1100,10 +1101,11 @@ function lyricTextClick(line, index) {
   if (scrollIng.value) {
     return;
   }
-  console.log(line, "line");
-  currentLyricNum.value = index;
   const time = line.time / 1000;
   audioRef.value.currentTime = currentTime.value = time;
+  currentLyricNum.value = index;
+  stopLyric();
+  playLyric();
 }
 
 // 切换播放的模式
@@ -1159,6 +1161,7 @@ let pageX, rect;
 
 // 手指触摸开始
 function touchstart(event) {
+  stopLyric();
   //console.log(event, "touchstart");
   pageX = event.touches[0].pageX;
   rect = event.target.getBoundingClientRect();
@@ -1179,6 +1182,7 @@ function touchmove(event) {
     currentSong.value.duration
   );
   value *= 100;
+  stopLyric();
   playLyric();
   stopLyric();
   // console.log(currentSong.value.duration, "currentSong.value.duration");
@@ -1214,7 +1218,9 @@ function touchend(event) {
   // console.log(currentSong.value.duration, "currentSong.value.duration");
   //console.log(currentTime, "currentTime////33");
   progressBarWidth.value = value;
-  //playLyric()
+  // ;
+  stopLyric();
+  playLyric();
 }
 
 const playListScrollRef = ref(null);
@@ -1234,9 +1240,10 @@ function timeupdate(event) {
 
 // audio 暂停事件
 function pause() {
+  stopLyric();
   // console.log(currentSong.value);
   // console.log(currentTime.value);
-  //console.log("pause事件执行了");
+  console.log("pause事件执行了");
   if (currentSongIndex.value === playList.value.length) {
     store.commit("setPlaying", true);
     // store.commit("setCurrentIndex", 0);
@@ -1257,6 +1264,7 @@ function pause() {
 
 // 上一首
 function prevSong() {
+  stopLyric();
   // progressBarWidth.value = 0;
   // currentTime.value = 0;
   let index = currentIndex.value;
@@ -1272,6 +1280,7 @@ function prevSong() {
 
 //下一首
 function nextSong() {
+  stopLyric();
   //  progressBarWidth.value = 0;
   //currentTime.value = 0;
   let index = currentIndex.value;
@@ -1287,6 +1296,7 @@ function nextSong() {
 }
 
 function durationchange(event) {
+  console.log("durationchange");
   canplayHandle();
   // console.log(event, "event...");
 }
