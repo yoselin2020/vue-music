@@ -91,7 +91,8 @@ async function toTopListDetail(top) {
       pic: pic.value,
       title: title.value,
     };
-    storage.set(SINGER_KEY, cacheData);
+    sessionStorage.setItem(SINGER_KEY, JSON.stringify(cacheData));
+    //  storage.set(SINGER_KEY, cacheData);
   }
   //console.log(id, "id");
   //  console.log(`/top-list/${id}`, "`/top-list/${id}`");

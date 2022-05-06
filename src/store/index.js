@@ -34,7 +34,7 @@ export default createStore({
     // 搜索历史
     //searchHistoryList: storage.get(SearchHistoryListKEY) || [],
     searchHistoryList: storage.get(SearchHistoryListKEY) || [],
-    currentSingerInfo: storage.get(SINGER_KEY) || {},
+    currentSingerInfo: JSON.parse(sessionStorage.getItem(SINGER_KEY)) || {},
   },
   getters: {
     playList: (state) => state.playList,

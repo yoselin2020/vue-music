@@ -154,7 +154,7 @@
             :duration="200"
             ref="songNameSwipe"
           >
-            <template v-for="(song, index) of playList" :key="index">
+            <template v-for="song of playList" :key="song.id">
               <van-swipe-item class="van-swipe-item">
                 <span class="song-name">{{ song.name }}</span>
                 <span class="singer-name">{{ song.singer }}</span>
@@ -178,6 +178,7 @@
               :src="
                 require(`@/assets/images/${isPlaying ? 'pause2' : 'play'}.png`)
               "
+              alt=""
             />
             <!--            <i-->
             <!--              class="iconfont control-play"-->
@@ -256,10 +257,10 @@
           </transition-group>
         </div>
       </div>
-      <div class="add-song" @click.stop="showAddSongSection">
-        <div>
+      <div class="add-song">
+        <div @click.stop="showAddSongSection">
+          <!--@click.stop="addToPlayListQueue(song)"-->
           <svg
-            @click.stop="addToPlayListQueue(song)"
             t="1650811025936"
             class="icon"
             viewBox="0 0 1025 1024"
@@ -307,7 +308,6 @@
 
 <script setup>
 import { ref, computed, watch, defineExpose, nextTick, onUnmounted } from "vue";
-
 import { formatDuration, createSnow } from "@/assets/js/util";
 import { Pagination } from "swiper";
 import { Swiper, SwiperSlide } from "swiper/vue";

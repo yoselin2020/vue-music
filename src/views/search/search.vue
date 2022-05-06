@@ -222,7 +222,7 @@ export default {
     } catch (e) {}
   },
   async mounted() {
-    console.log("mounted");
+    // console.log("mounted");
     const height =
       this.$refs.searchRef.clientHeight -
       this.$refs.vanSearchCom.$el.clientHeight;

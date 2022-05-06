@@ -17,6 +17,7 @@ axios.interceptors.request.use(
     // 在发送请求之前做些什么
     Toast.loading({
       message: "加载中...",
+      loadingType: "spinner",
       forbidClick: true,
     });
     return config;

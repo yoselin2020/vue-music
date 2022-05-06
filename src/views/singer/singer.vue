@@ -237,7 +237,8 @@ export default {
             pic: this.pic,
             title: this.title,
           };
-          storage.set(SINGER_KEY, cacheData);
+          sessionStorage.setItem(SINGER_KEY, JSON.stringify(cacheData));
+          //  storage.set(SINGER_KEY, cacheData);
         }
 
         // await nextTick();
