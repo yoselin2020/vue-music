@@ -87,25 +87,25 @@ import noFullScreen from "@/mixins/noFullScreen";
 //   storage.set(FAVORITE_SONG_KEY, arr);
 // });
 
-// import {
-//   Button,
-//   Search,
-//   SwipeCell,
-//   Circle,
-//   Swipe,
-//   SwipeItem,
-//   Progress,
-// } from "vant";
+import {
+  Button,
+  Search,
+  SwipeCell,
+  Circle,
+  Swipe,
+  SwipeItem,
+  Progress,
+} from "vant";
 
 //console.log("main");
 
-import vant from "vant";
-// const vantCom = [Button, Search, SwipeCell, Circle, Swipe, SwipeItem, Progress];
+// import vant from "vant";
+const vantCom = [Button, Search, SwipeCell, Circle, Swipe, SwipeItem, Progress];
 
 const app = createApp(App);
 
-app.use(vant);
-// vantCom.forEach((com) => app.use(com));
+// app.use(vant);
+vantCom.forEach((com) => app.use(com));
 
 app.use(store).use(router);
 

@@ -16,7 +16,7 @@ export default {
 </script>
 
 <script setup>
-import { defineProps, onMounted, ref, onActivated } from "vue";
+import { defineProps, onMounted, ref, onActivated, computed } from "vue";
 import MusicList from "@/components/music-list/music-list";
 import { useStore } from "vuex";
 const store = useStore();
@@ -38,12 +38,21 @@ const props = defineProps({
   },
 });
 
+const currentSingerInfo = computed(() => {
+  return store.state.currentSingerInfo;
+});
+
 function selectSong(song) {
+  if (props.songs.length > 0) {
+    store.commit("setPlayList", props.songs);
+    store.commit("setSequenceList", props.songs);
+  } else {
+    store.commit("setPlayList", currentSingerInfo.value.songs);
+    store.commit("setSequenceList", currentSingerInfo.value.songs);
+  }
   // console.log(song);
   //debugger;
   // 选择歌曲进行播放
-  store.commit("setPlayList", props.songs);
-  store.commit("setSequenceList", props.songs);
   store.dispatch("selectSong", song);
 }
 //period

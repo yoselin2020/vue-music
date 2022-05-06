@@ -11,6 +11,7 @@
 
 <script>
 import MusicList from "@/components/music-list/music-list";
+import { mapState } from "vuex";
 import storage from "storejs";
 import { SINGER_KEY } from "../../assets/js/constant.js";
 
@@ -41,13 +42,21 @@ export default {
       },
     },
   },
+  computed: {
+    ...mapState(["currentSingerInfo"]),
+  },
   created() {},
   async mounted() {},
   methods: {
     selectSong(song) {
       // 选择歌曲进行播放
-      this.$store.commit("setPlayList", this.songs);
-      this.$store.commit("setSequenceList", this.songs);
+      if (this.songs.length > 0) {
+        this.$store.commit("setPlayList", this.songs);
+        this.$store.commit("setSequenceList", this.songs);
+      } else {
+        this.$store.commit("setPlayList", this.currentSingerInfo.songs);
+        this.$store.commit("setSequenceList", this.currentSingerInfo.songs);
+      }
       this.$store.dispatch("selectSong", song);
     },
   },

@@ -13,7 +13,7 @@
 import { getSingerDetail } from "@/service/singer";
 import { processSongs } from "@/service/song";
 import storage from "storejs";
-import { mapMutations, mapActions } from "vuex";
+import { mapMutations, mapActions, mapState } from "vuex";
 import MusicList from "@/components/music-list/music-list";
 import { SINGER_KEY } from "../../assets/js/constant.js";
 
@@ -45,12 +45,20 @@ export default {
   mounted() {
     // console.log('mounted')
   },
+  computed: {
+    ...mapState(["currentSingerInfo"]),
+  },
   methods: {
     ...mapMutations(["setPlayList", "setSequenceList"]),
     ...mapActions(["selectSong"]),
     selectMusic(song) {
-      this.setPlayList(this.songs);
-      this.setSequenceList(this.songs);
+      if (this.songs.length > 0) {
+        this.setPlayList(this.songs);
+        this.setSequenceList(this.songs);
+      } else {
+        this.setPlayList(this.currentSingerInfo.songs);
+        this.setSequenceList(this.currentSingerInfo.songs);
+      }
       this.selectSong(song);
     },
   },
