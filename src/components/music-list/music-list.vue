@@ -6,15 +6,12 @@
       :style="[{ zIndex: headerZIndex }, headerBgColor]"
     >
       <i class="iconfont icon-back" @click="$router.back()"></i>
-      <span class="title">{{ currentSingerInfo.title }}</span>
+      <span class="title">{{ title }}</span>
     </header>
     <div
       class="img-wrapper"
       ref="imgWrapperRef"
-      :style="[
-        { backgroundImage: `url(${currentSingerInfo.pic})` },
-        imgWrapperScale,
-      ]"
+      :style="[{ backgroundImage: `url(${pic})` }, imgWrapperScale]"
     >
       <div class="filter" :style="filterStyle"></div>
       <div class="random-play-all" @click.stop="randomPlay">
@@ -32,7 +29,7 @@
           <div class="list-content" :style="isPaddingBottom">
             <div
               class="list-item"
-              v-for="(song, index) of currentSingerInfo.songs"
+              v-for="(song, index) of songs"
               :key="song.id"
               @click="selectSong(song)"
             >

@@ -15,9 +15,10 @@ export default createStore({
   plugins: debug ? [createLogger()] : [],
   state: {
     // 播放器列表
-    playList: [],
+    playList: (storage.get(SINGER_KEY) && storage.get(SINGER_KEY).songs) || [],
     // 顺序播放列表
-    sequenceList: [],
+    sequenceList:
+      (storage.get(SINGER_KEY) && storage.get(SINGER_KEY).songs) || [],
     // 播放器是否全屏状态
     fullScreen: false,
     // 播放模式
