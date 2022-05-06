@@ -97,6 +97,8 @@ import noFullScreen from "@/mixins/noFullScreen";
 //   Progress,
 // } from "vant";
 
+//console.log("main");
+
 import vant from "vant";
 // const vantCom = [Button, Search, SwipeCell, Circle, Swipe, SwipeItem, Progress];
 

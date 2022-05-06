@@ -40,12 +40,15 @@ export default {
 </script>
 <script setup>
 import { getTopDetail, getTopList } from "@/service/top-list";
+import storage from "storejs";
 import { onActivated, nextTick, onMounted, ref } from "vue";
 import BScroll from "better-scroll";
 
 import { useRouter } from "vue-router";
+import { SINGER_KEY } from "../../assets/js/constant.js";
 import { processSongs } from "../../service/song.js";
-
+import { useStore } from "vuex";
+const store = useStore();
 const router = useRouter();
 const pic = ref("");
 const title = ref("");
@@ -75,6 +78,21 @@ async function toTopListDetail(top) {
     period,
   });
   songs.value = await processSongs(result.songs);
+
+  store.commit("setCurrentSingerInfo", {
+    title: title.value,
+    pic: pic.value,
+    songs: songs.value,
+  });
+
+  if (songs.value.length && pic.value && title.value) {
+    const cacheData = {
+      songs: songs.value,
+      pic: pic.value,
+      title: title.value,
+    };
+    storage.set(SINGER_KEY, cacheData);
+  }
   //console.log(id, "id");
   //  console.log(`/top-list/${id}`, "`/top-list/${id}`");
   router.push({

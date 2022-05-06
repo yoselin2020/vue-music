@@ -6,12 +6,15 @@
       :style="[{ zIndex: headerZIndex }, headerBgColor]"
     >
       <i class="iconfont icon-back" @click="$router.back()"></i>
-      <span class="title">{{ title }}</span>
+      <span class="title">{{ currentSingerInfo.title }}</span>
     </header>
     <div
       class="img-wrapper"
       ref="imgWrapperRef"
-      :style="[{ backgroundImage: `url(${pic})` }, imgWrapperScale]"
+      :style="[
+        { backgroundImage: `url(${currentSingerInfo.pic})` },
+        imgWrapperScale,
+      ]"
     >
       <div class="filter" :style="filterStyle"></div>
       <div class="random-play-all" @click.stop="randomPlay">
@@ -29,7 +32,7 @@
           <div class="list-content" :style="isPaddingBottom">
             <div
               class="list-item"
-              v-for="(song, index) of songs"
+              v-for="(song, index) of currentSingerInfo.songs"
               :key="song.id"
               @click="selectSong(song)"
             >
@@ -95,6 +98,44 @@ const router = useRouter();
 const route = useRoute();
 
 const headerBgColor = ref({});
+
+const props = defineProps({
+  pic: {
+    type: String,
+    default: "",
+  },
+  title: {
+    type: String,
+    default: "",
+  },
+  songs: {
+    type: Array,
+    default: () => [],
+  },
+});
+
+const currentSingerInfo = computed(() => {
+  return store.state.currentSingerInfo;
+});
+
+console.log(currentSingerInfo, "currentSingerInfo-store");
+
+const singerInfo = computed(() => {
+  const cacheData = storage.get(SINGER_KEY);
+  console.log(cacheData, "cacheData-singerInfo");
+  let res = {};
+  if (props.title) {
+    res.title = props.title || cacheData.title;
+  }
+  if (props.pic) {
+    res.pic = props.pic || cacheData.pic;
+  }
+  if (props.songs && props.songs.length > 0) {
+    res.songs = props.songs || cacheData.songs;
+  }
+  return res;
+});
+
 // const headerBgColor = computed(() => {
 //   return headerZIndex.value > 1
 //     ? {
@@ -121,9 +162,9 @@ const cacheData = storage.get(SINGER_KEY);
 //   songs.value = cacheData.songs;
 // }
 
-const pic = ref("");
-const title = ref("");
-const songs = ref([]);
+// const pic = ref("");
+// const title = ref("");
+// const songs = ref([]);
 
 // 添加到下一首歌曲
 function nextPlay(song) {
@@ -192,7 +233,7 @@ watch(scrollY, (newScrollY) => {
     };
   }
 });
-watch(songs, async (newSongs) => {
+watch(props.songs, async (newSongs) => {
   if (newSongs && newSongs.length > 0) {
     await nextTick();
     scrollInstance.value.refresh();
@@ -201,10 +242,10 @@ watch(songs, async (newSongs) => {
 
 // 随机播放全部
 function randomPlay() {
-  store.commit("setPlayList", songs.value);
-  store.commit("setSequenceList", songs.value);
+  store.commit("setPlayList", props.songs);
+  store.commit("setSequenceList", props.songs);
   store.dispatch("randomPlay", {
-    list: songs.value,
+    list: props.songs,
   });
 }
 
@@ -234,18 +275,18 @@ onMounted(async () => {
   await nextTick();
   const cacheData = storage.get(SINGER_KEY);
   // console.log(cacheData, "cacheData333");
-  if (cacheData && cacheData.pic && cacheData.title && cacheData.songs.length) {
-    pic.value = cacheData.pic;
-    title.value = cacheData.title;
-    songs.value = cacheData.songs;
-  } else {
-    const path = route.matched[0].path;
-    //console.log(path, "ppp");
-    router.replace({
-      path,
-    });
-    return;
-  }
+  // if (cacheData && cacheData.pic && cacheData.title && cacheData.songs.length) {
+  //   pic.value = cacheData.pic;
+  //   title.value = cacheData.title;
+  //   songs.value = cacheData.songs;
+  // } else {
+  //   const path = route.matched[0].path;
+  //   //console.log(path, "ppp");
+  //   router.replace({
+  //     path,
+  //   });
+  //   return;
+  // }
   await nextTick();
   headerHeight.value = headerRef.value.clientHeight;
   //console.log(headerHeight.value, "headerHeight.valueheaderHeight.value");

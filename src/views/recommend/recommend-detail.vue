@@ -1,9 +1,11 @@
 <template>
   <div class="recommend-detail">
-    <music-list @selectSong="selectSong"></music-list>
-    <!-- :pic="pic"
+    <music-list
+      @selectSong="selectSong"
+      :pic="pic"
       :title="title"
-      :songs="songs"  -->
+      :songs="songs"
+    ></music-list>
   </div>
 </template>
 
@@ -39,16 +41,7 @@ export default {
       },
     },
   },
-  created() {
-    if (this.songs.length && this.pic && this.title) {
-      const cacheData = {
-        songs: this.songs,
-        pic: this.pic,
-        title: this.title,
-      };
-      storage.set(SINGER_KEY, cacheData);
-    }
-  },
+  created() {},
   async mounted() {},
   methods: {
     selectSong(song) {

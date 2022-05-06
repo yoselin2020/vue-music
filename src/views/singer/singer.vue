@@ -63,9 +63,11 @@
 <script>
 import { getSingerDetail, getSingerList } from "@/service/singer";
 import scroll from "@/components/scroll/scroll";
+import storage from "storejs";
 import xss from "xss";
 import { nextTick } from "vue";
 import BScroll from "better-scroll";
+import { SINGER_KEY } from "../../assets/js/constant.js";
 import { processSongs } from "../../service/song.js";
 export default {
   name: "Singer",
@@ -224,6 +226,20 @@ export default {
         const result = await getSingerDetail({ mid });
         //    debugger;
         this.songs = await processSongs(result.songs);
+        this.$store.commit("setCurrentSingerInfo", {
+          title: this.title,
+          pic: this.pic,
+          songs: this.songs,
+        });
+        if (this.songs.length && this.pic && this.title) {
+          const cacheData = {
+            songs: this.songs,
+            pic: this.pic,
+            title: this.title,
+          };
+          storage.set(SINGER_KEY, cacheData);
+        }
+
         // await nextTick();
         this.$router.push(`/singer/${mid}`);
         // this.$router.push("/singer-detail?mid=" + innerSinger.mid);

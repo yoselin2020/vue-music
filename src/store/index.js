@@ -3,6 +3,7 @@ import {
   FAVORITE_SONG_KEY,
   recentlyPlayListKEY,
   SearchHistoryListKEY,
+  SINGER_KEY,
 } from "@/assets/js/constant";
 import storage from "storejs";
 import { PLAY_MODE } from "@/assets/js/constant";
@@ -32,6 +33,7 @@ export default createStore({
     // 搜索历史
     //searchHistoryList: storage.get(SearchHistoryListKEY) || [],
     searchHistoryList: storage.get(SearchHistoryListKEY) || [],
+    currentSingerInfo: storage.get(SINGER_KEY) || {},
   },
   getters: {
     playList: (state) => state.playList,
@@ -48,6 +50,9 @@ export default createStore({
     //喜欢的歌曲
   },
   mutations: {
+    setCurrentSingerInfo(state, singer) {
+      state.currentSingerInfo = singer;
+    },
     // 添加一首歌曲到列表后面
     addToPlayListQueue(state, song) {
       // debugger;

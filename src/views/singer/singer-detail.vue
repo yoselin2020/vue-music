@@ -1,9 +1,11 @@
 <template>
   <div class="singer-detail">
-    <!--:songs="songs"
+    <music-list
+      @selectSong="selectMusic"
+      :songs="songs"
       :pic="pic"
-      :title="title"-->
-    <music-list @selectSong="selectMusic"></music-list>
+      :title="title"
+    ></music-list>
   </div>
 </template>
 
@@ -39,25 +41,7 @@ export default {
     },
   },
   components: { MusicList },
-  async created() {
-    //console.log(this.songs, "songs");
-    if (this.songs.length && this.pic && this.title) {
-      const cacheData = {
-        songs: this.songs,
-        pic: this.pic,
-        title: this.title,
-      };
-      storage.set(SINGER_KEY, cacheData);
-    }
-    //const mid = this.$route.params.id;
-    //  try {
-    // const result = await getSingerDetail({ mid });
-    //    debugger;
-    // let songs = await processSongs(result.songs);
-    //   this.songs = songs;
-    //console.log(this.songs, "this.songs.......");
-    // } catch (err) {}
-  },
+  async created() {},
   mounted() {
     // console.log('mounted')
   },

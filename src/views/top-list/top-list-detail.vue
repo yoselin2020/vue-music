@@ -16,13 +16,10 @@ export default {
 </script>
 
 <script setup>
-import storage from "storejs";
 import { defineProps, onMounted, ref, onActivated } from "vue";
 import MusicList from "@/components/music-list/music-list";
 import { useStore } from "vuex";
-import { SINGER_KEY } from "../../assets/js/constant.js";
 const store = useStore();
-const songs = ref([]);
 const props = defineProps({
   id: {
     type: [Number, String],
@@ -45,8 +42,8 @@ function selectSong(song) {
   // console.log(song);
   //debugger;
   // 选择歌曲进行播放
-  store.commit("setPlayList", songs.value);
-  store.commit("setSequenceList", songs.value);
+  store.commit("setPlayList", props.songs);
+  store.commit("setSequenceList", props.songs);
   store.dispatch("selectSong", song);
 }
 //period
@@ -68,15 +65,6 @@ onMounted(async () => {
     // });
     // songs.value = await processSongs(result.songs);
     //console.log(props, "props@@@@@");
-    if (props.songs.length && props.pic && props.title) {
-      const cacheData = {
-        songs: props.songs,
-        pic: props.pic,
-        title: props.title,
-      };
-      storage.set(SINGER_KEY, cacheData);
-    }
-
     //store.commit("setSequenceList", songs.value);
     //console.log(songs, "songs.value");
   } catch (err) {}
