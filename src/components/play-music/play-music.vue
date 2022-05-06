@@ -20,6 +20,51 @@
         @touchend="cdTouchend"
         ref="cdSwiperWrapperRef"
       >
+        <!--        <van-swipe-->
+        <!--          ref="cdSwiperRef"-->
+        <!--          class="my-swipe"-->
+        <!--          :initial-swipe="0"-->
+        <!--          @change="mySwiperChange"-->
+        <!--          indicator-color="white"-->
+        <!--        >-->
+        <!--          <van-swipe-item class="slide" ref="cdSwiperSlideRef">-->
+        <!--            <div class="singer-pic-wrapper">-->
+        <!--              <div class="pic-box" ref="picBoxRef">-->
+        <!--                <img-->
+        <!--                  ref="picBoxImgRef"-->
+        <!--                  :class="isPlaying ? 'turn' : ''"-->
+        <!--                  :src="currentSong.pic"-->
+        <!--                  alt=""-->
+        <!--                />-->
+        <!--              </div>-->
+        <!--            </div>-->
+        <!--            <div class="currentLyric-wrapper">-->
+        <!--              <span class="text">{{ currentLyricText }}</span>-->
+        <!--            </div></van-swipe-item-->
+        <!--          >-->
+        <!--          <van-swipe-item class="slide">-->
+        <!--            <div class="_wrapper">-->
+        <!--              <div class="scroll-wrapper" ref="scrollRef">-->
+        <!--                <div @touchend="scrollEnd">-->
+        <!--                  <div class="lyric-wrapper" v-if="currentLyric">-->
+        <!--                    <p-->
+        <!--                      class="lyric-text"-->
+        <!--                      v-for="(line, index) of currentLyric.lines"-->
+        <!--                      :style="{-->
+        <!--                        color: currentLyricNum === index ? '#ffcd32' : '',-->
+        <!--                      }"-->
+        <!--                      :key="index"-->
+        <!--                    >-->
+        <!--                      <span @click.stop="lyricTextClick(line, index)">{{-->
+        <!--                        line.txt-->
+        <!--                      }}</span>-->
+        <!--                    </p>-->
+        <!--                  </div>-->
+        <!--                </div>-->
+        <!--              </div>-->
+        <!--            </div>-->
+        <!--          </van-swipe-item>-->
+        <!--        </van-swipe>-->
         <swiper
           ref="cdSwiperRef"
           class="my-swipe"
@@ -321,6 +366,8 @@ import BScroll from "better-scroll";
 import AddSong from "@/components/add-song/add-song";
 import { myProcessSongs } from "@/api/song";
 import { processSongs } from "@/service/song";
+import confirm from "@/components/confirm/confirm.vue";
+
 // 音乐标签对应ref
 const audioRef = ref(null);
 const modules = [Pagination];
@@ -334,6 +381,10 @@ const isShowAddSongSection = ref(false);
 
 function showAddSongSection() {
   isShowAddSongSection.value = true;
+}
+
+function mySwiperChange(index) {
+  console.log(index, "indexdddd");
 }
 
 // 控制雪花创建的定时器

@@ -80,6 +80,8 @@ import { useRoute, useRouter } from "vue-router";
 import { useStore } from "vuex";
 import storage from "storejs";
 
+import tools from "@/components/tools/tools.vue";
+
 const emits = defineEmits(["selectSong"]);
 const scrollInstance = ref(null);
 const scrollRef = ref(null);
@@ -134,6 +136,12 @@ const singerInfo = computed(() => {
     res.songs = props.songs || cacheData.songs;
   }
   return res;
+});
+
+onUnmounted(() => {
+  console.log("onUnmounted");
+  // 页面离开的时候清除掉
+  //sessionStorage.removeItem(SINGER_KEY);
 });
 
 // const headerBgColor = computed(() => {

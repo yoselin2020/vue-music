@@ -143,38 +143,35 @@ export default createStore({
     // 删除一首歌曲到最近播放
     delRecentlyPlaySong(state, song) {
       //debugger;
+      // 获取到当前正在播放的音乐索引
       let currentSongIndex = state.currentIndex;
+      // 获取到该歌曲在最近播放列表中的索引
       let index = state.recentlyPlayList.findIndex(
         (item) => item.id === song.id
       );
+      // 如果存在就删除掉
       if (index > -1) {
         state.recentlyPlayList.splice(index, 1);
         // state.sequenceList.splice(index, 1);
         storage.set(recentlyPlayListKEY, state.recentlyPlayList);
       }
-      let seqIndex = state.sequenceList.findIndex(
-        (item) => item.id === song.id
-      );
-      if (seqIndex > -1) {
-        state.sequenceList.splice(seqIndex, 1);
-      }
-      let playIndex = state.playList.findIndex((item) => item.id === song.id);
-      if (playIndex > -1) {
-        state.playList.splice(playIndex, 1);
-        if (state.playList.length === 0) {
-          //  debugger;
-          Toast("歌曲列表为空,请添加歌曲!");
-          state.isPlaying = false;
-          state.currentIndex = -1;
-          return;
+      const playList = state.playList.slice();
+      let playIndex = playList.findIndex((item) => item.id === song.id);
+      if (playIndex > -1 && playIndex === currentSongIndex) {
+        currentSongIndex--;
+        if (currentSongIndex === -1) {
+          state.currentIndex = playList.length - 1;
+        } else {
+          state.currentIndex = currentSongIndex;
         }
-        if (
-          playIndex < currentSongIndex ||
-          state.playList.length === currentSongIndex
-        ) {
-          state.currentIndex = --currentSongIndex;
-          state.isPlaying = true;
-        }
+        state.isPlaying = true;
+        // if (
+        //   playIndex < currentSongIndex ||
+        //   state.playList.length === currentSongIndex
+        // ) {
+        //   state.currentIndex = --currentSongIndex;
+        //   state.isPlaying = true;
+        // }
       }
     },
     // 是否正在播放
@@ -250,7 +247,7 @@ export default createStore({
     },
     //将歌曲添加到下一首播放
     addSongNextPlay(state, song) {
-      // debugger;
+      //debugger;
       const playList = state.playList.slice();
       const sequenceList = state.sequenceList.slice();
       //当前正在播放歌曲的索引

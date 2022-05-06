@@ -130,7 +130,7 @@ export default {
           }
           await nextTick();
           // 如果切换到了我喜欢的tab,让他滚动到可视区
-          console.log(this.$refs.playlistScrollRef);
+          // console.log(this.$refs.playlistScrollRef);
           const idx = this.songList.findIndex(
             (item) => item.id === this.currentSong.id
           );
@@ -219,7 +219,7 @@ export default {
       // });
     },
     songClickHandle(song, index) {
-      console.log(song, "song...");
+      //console.log(song, "song...");
       // console.log(song, "song");
       // debugger;
       this.playSongCurrentIndex = index;
