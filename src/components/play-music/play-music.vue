@@ -1056,7 +1056,15 @@ watch(currentTime, async (newTime) => {
   }
   // playLyric();
   // stopLyric();
-  progressBarWidth.value = (newTime / currentSong.value.duration) * 100;
+  // console.log("currentTime--------");
+  if (isMove.value) {
+    return;
+  }
+  progressBarWidth.value =
+    Math.min(
+      Math.max(0, newTime / currentSong.value.duration),
+      currentSong.value.duration
+    ) * 100;
 });
 
 const removeING = ref(false);
@@ -1204,7 +1212,9 @@ function touchmove(event) {
   stopLyric();
   // console.log(currentSong.value.duration, "currentSong.value.duration");
   //console.log(currentTime, "currentTime////33");
-  progressBarWidth.value = value;
+  let v = Math.min(Math.max(value, 0), currentSong.value.duration);
+  // console.log(v, "vvvv");
+  progressBarWidth.value = v;
 }
 
 // 手指触摸离开
