@@ -120,11 +120,11 @@ const currentSingerInfo = computed(() => {
   return store.state.currentSingerInfo;
 });
 
-console.log(currentSingerInfo, "currentSingerInfo-store");
+//console.log(currentSingerInfo, "currentSingerInfo-store");
 
 const singerInfo = computed(() => {
   const cacheData = storage.get(SINGER_KEY);
-  console.log(cacheData, "cacheData-singerInfo");
+  // console.log(cacheData, "cacheData-singerInfo");
   let res = {};
   if (props.title) {
     res.title = props.title || cacheData.title;
@@ -139,7 +139,7 @@ const singerInfo = computed(() => {
 });
 
 onUnmounted(() => {
-  console.log("onUnmounted");
+  // console.log("onUnmounted");
   // 页面离开的时候清除掉
   //sessionStorage.removeItem(SINGER_KEY);
 });

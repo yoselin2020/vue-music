@@ -114,7 +114,11 @@
     </div>
   </transition>
   <!--  歌曲播放时长区域   -->
-  <transition name="move">
+  <transition
+    enter-active-class="animate__animated animate__fadeInBottomLeft"
+    leave-active-class="animate__animated animate__fadeOutBottomLeft"
+    :style="{ transition: `all .6s` }"
+  >
     <div
       v-show="fullScreen"
       :style="{ transition: `all .6s` }"
@@ -144,7 +148,11 @@
     </div>
   </transition>
   <!--控制按钮区域-->
-  <transition name="slide" :style="{ transition: `all 1s` }">
+  <transition
+    enter-active-class="animate__animated animate__fadeInBottomLeft"
+    leave-active-class="animate__animated animate__fadeOutBottomLeft"
+    :style="{ transition: `all 1s` }"
+  >
     <div v-show="fullScreen" class="play-control-wrapper">
       <span class="play-mode-icon-wrapper">
         <i :class="['iconfont', playModeIcon]" @click.stop="togglePlayMode"></i>
@@ -982,6 +990,9 @@ watch(currentSong, async (newSong) => {
   currentTime.value = 0;
   scrollWrapper.value = null;
   cdMovePageX = 0;
+  progressBarWidth.value = 0;
+  currentTime.value = 0;
+  audioRef.value.currentTime = 0;
   lyricSectionClientHeight.value = [];
   await nextTick();
   scrollWrapper.value = new BScroll(scrollRef.value, {
@@ -1024,7 +1035,6 @@ watch(currentSong, async (newSong) => {
     }
     await nextTick();
     getLyricSectionClientHeight();
-    audioRef.value.currentTime = 0;
     songNameSwipe.value.resize();
     // console.log(songNameSwipe.value, "songNameSwipe.value");
     songNameSwipe.value.swipeTo(currentSongIndex.value);
@@ -1674,7 +1684,7 @@ defineExpose({
       text-overflow: ellipsis;
       white-space: nowrap;
       font-size: 14px;
-      color: $color-text-d;
+      color: $color-theme;
     }
   }
 }

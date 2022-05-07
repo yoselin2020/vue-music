@@ -293,15 +293,15 @@ export default createStore({
         ) {
           --currentPlaySongIndex;
         }
-        //state.currentIndex = currentPlaySongIndex;
-        state.playList = playList;
-        console.log(state.playList, "state.playListstate.playList");
+        //console.log(state.playList, "state.playListstate.playList");
       } else {
         // 不存在歌曲列表中
         playList.splice(currentPlaySongIndex + 1, 0, song);
         Toast("已添加至播放队列");
         state.playList = playList;
       }
+      state.currentIndex = currentPlaySongIndex;
+      state.playList = playList;
       state.sequenceList = sequenceList;
       //Toast("请添加歌曲至播放列表");
     },

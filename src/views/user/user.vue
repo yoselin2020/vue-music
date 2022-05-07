@@ -23,53 +23,68 @@
       <i class="iconfont icon-play"></i>
       <span>随机播放一首歌曲</span>
     </div>
-    <div class="no-result" v-show="songList.length === 0">
-      <img :src="require('@/assets/images/no-result@2x.7f236bd8.png')" alt="" />
-      <span class="text">{{
-        currentIndex === 0 ? "暂无收藏歌曲" : "你还没有听过歌曲"
-      }}</span>
-    </div>
-    <div class="tab-panel" :style="isPaddingBottom">
-      <div
-        class="playlist-wrapper"
-        ref="playlistScrollRef"
-        :style="[
-          { height: playlistScrollSectionHeight + 'px' },
-          isPaddingBottom,
-        ]"
+    <div class="tab-panel-wrapper">
+      <transition
+        enter-active-class="animate__animated animate__fadeIn"
+        leave-active-class="animate__animated animate__fadeOut"
+        :style="songList.length === 0 ? { 'animation-delay': 0.5 + 's' } : {}"
       >
-        <div class="wrapper-box">
-          <div class="temp-box" :style="isPaddingBottom">
-            <transition-group name="list">
-              <div
-                :class="['playlist-item']"
-                ref="playlistItemRef"
-                v-for="(song, index) of songList"
-                :key="song.id"
-                @click.stop="songClickHandle(song, index)"
+        <div class="no-result" v-show="songList.length === 0">
+          <img
+            :src="require('@/assets/images/no-result@2x.7f236bd8.png')"
+            alt=""
+          />
+          <span class="text">{{
+            currentIndex === 0 ? "暂无收藏歌曲" : "你还没有听过歌曲"
+          }}</span>
+        </div>
+      </transition>
+      <div class="tab-panel" :style="isPaddingBottom">
+        <div
+          class="playlist-wrapper"
+          ref="playlistScrollRef"
+          :style="[
+            { height: playlistScrollSectionHeight + 'px' },
+            isPaddingBottom,
+          ]"
+        >
+          <div class="wrapper-box">
+            <div class="temp-box" :style="isPaddingBottom">
+              <!--name="list"-->
+              <transition-group
+                enter-active-class="animate__animated animate__slideInRight"
+                leave-active-class="animate__animated animate__slideOutRight"
               >
-                <van-swipe-cell
-                  @open="swiperCellOpen"
-                  @click="swiperCellClick($event, song)"
-                  :class="currentSong.id === song.id ? 'active2' : ''"
+                <div
+                  :class="['playlist-item']"
+                  ref="playlistItemRef"
+                  v-for="(song, index) of songList"
+                  :key="song.id"
+                  @click.stop="songClickHandle(song, index)"
                 >
-                  <p class="song-name">
-                    <span>{{ song.name }}</span>
-                  </p>
-                  <p class="song-singer">
-                    <span>{{ song.singer }}</span>
-                  </p>
-                  <template #right>
-                    <van-button
-                      square
-                      text="删除"
-                      type="danger"
-                      class="delete-button"
-                    />
-                  </template>
-                </van-swipe-cell>
-              </div>
-            </transition-group>
+                  <van-swipe-cell
+                    @open="swiperCellOpen"
+                    @click="swiperCellClick($event, song)"
+                    :class="currentSong.id === song.id ? 'active2' : ''"
+                  >
+                    <p class="song-name">
+                      <span>{{ song.name }}</span>
+                    </p>
+                    <p class="song-singer">
+                      <span>{{ song.singer }}</span>
+                    </p>
+                    <template #right>
+                      <van-button
+                        square
+                        text="删除"
+                        type="danger"
+                        class="delete-button"
+                      />
+                    </template>
+                  </van-swipe-cell>
+                </div>
+              </transition-group>
+            </div>
           </div>
         </div>
       </div>
@@ -306,24 +321,27 @@ export default {
       margin-left: 5px;
     }
   }
-  .no-result {
-    position: fixed;
-    width: 100%;
-    top: 40%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    flex-direction: column;
-    > img {
-      margin-bottom: 20px;
-      width: 100px;
-      height: 100px;
-    }
-    .text {
-      font-size: $font-size-medium;
-      color: $color-text-d;
+  .tab-panel-wrapper {
+    position: relative;
+    .no-result {
+      position: absolute;
+      width: 100%;
+      top: 40%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-direction: column;
+      > img {
+        margin-bottom: 20px;
+        width: 100px;
+        height: 100px;
+      }
+      .text {
+        font-size: $font-size-medium;
+        color: $color-text-d;
+      }
     }
   }
 
