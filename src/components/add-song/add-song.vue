@@ -22,6 +22,13 @@
       ></switch-tab>
       <!--最近播放区域-->
       <div class="recently-playList-section" v-show="currentIndex === 0">
+        <div class="no-result" v-show="recentlyPlayList.length === 0">
+          <img
+            :src="require('@/assets/images/no-result@2x.7f236bd8.png')"
+            alt=""
+          />
+          <span class="text">你还没有听过歌曲</span>
+        </div>
         <div class="scroll-ele" ref="recentlyPlayListSectionRef">
           <!--:class="song.id === currentSong.id ? 'active' : ''"-->
           <div class="playlist-wrapper">
@@ -71,6 +78,13 @@
       </div>
       <!--搜索历史区域-->
       <div class="search-record-section" v-show="currentIndex === 1">
+        <div class="no-result" v-show="searchHistoryList.length === 0">
+          <img
+            :src="require('@/assets/images/no-result@2x.7f236bd8.png')"
+            alt=""
+          />
+          <span class="text">暂无搜索历史</span>
+        </div>
         <div class="search-record-section-wrapper" ref="searchRecordSectionRef">
           <div>
             <transition-group name="leave">
@@ -214,11 +228,11 @@ export default {
     songs: {
       async handler() {
         await nextTick();
-        console.log("songs变化了");
-        console.log(
-          this.recentlyPlayListSectionScrollInstance,
-          "this.recentlyPlayListSectionScrollInstance"
-        );
+        // console.log("songs变化了");
+        // console.log(
+        //   this.recentlyPlayListSectionScrollInstance,
+        //   "this.recentlyPlayListSectionScrollInstance"
+        // );
         if (this.recentlyPlayListSectionScrollInstance) {
           this.recentlyPlayListSectionScrollInstance.refresh();
         }
@@ -382,6 +396,26 @@ export default {
   display: flex;
   flex-direction: column;
 
+  .no-result {
+    position: absolute;
+    width: 100%;
+    top: 40%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-direction: column;
+    > img {
+      margin-bottom: 20px;
+      width: 100px;
+      height: 100px;
+    }
+    .text {
+      font-size: $font-size-medium;
+      color: $color-text-d;
+    }
+  }
   .switch-wrapper {
   }
 
@@ -478,6 +512,7 @@ export default {
   }
 
   .search-record-section {
+    position: relative;
     padding: 10px 40px;
 
     .search-record-section-wrapper {
@@ -509,6 +544,7 @@ export default {
   }
 
   .recently-playList-section {
+    position: relative;
     flex: 1;
     height: 500px;
     overflow: hidden;

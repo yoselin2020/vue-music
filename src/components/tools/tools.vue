@@ -17,7 +17,7 @@
           fill="#ffcd32"
         ></path>
       </svg>
-      <!--      <img :src="require('@/assets/images/next3.png')" alt="" />-->
+      <!--      <images :src="require('@/assets/images/next3.png')" alt="" />-->
     </span>
   </div>
 </template>

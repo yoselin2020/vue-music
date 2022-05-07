@@ -20,14 +20,60 @@
         @touchend="cdTouchend"
         ref="cdSwiperWrapperRef"
       >
-        <!--        <van-swipe-->
+        <!-- Slider main container -->
+        <div class="my-swipe" ref="cdSwiperRef">
+          <!-- Additional required wrapper -->
+          <div class="swiper-wrapper">
+            <!-- Slides -->
+            <div class="swiper-slide slide" ref="cdSwiperSlideRef">
+              <div class="singer-pic-wrapper">
+                <div class="pic-box" ref="picBoxRef">
+                  <img
+                    ref="picBoxImgRef"
+                    :class="isPlaying ? 'turn' : ''"
+                    :src="currentSong.pic"
+                    alt=""
+                  />
+                </div>
+              </div>
+              <div class="currentLyric-wrapper">
+                <span class="text">{{ currentLyricText }}</span>
+              </div>
+            </div>
+            <div class="swiper-slide slide">
+              <div class="_wrapper">
+                <div class="scroll-wrapper" ref="scrollRef">
+                  <div @touchend="scrollEnd">
+                    <div class="lyric-wrapper" v-if="currentLyric">
+                      <p
+                        class="lyric-text"
+                        v-for="(line, index) of currentLyric.lines"
+                        :style="{
+                          color: currentLyricNum === index ? '#ffcd32' : '',
+                        }"
+                        :key="index"
+                      >
+                        <span @click.stop="lyricTextClick(line, index)">{{
+                          line.txt
+                        }}</span>
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <!-- If we need pagination -->
+          <div class="swiper-pagination"></div>
+        </div>
+        <!--        <swiper-->
         <!--          ref="cdSwiperRef"-->
         <!--          class="my-swipe"-->
-        <!--          :initial-swipe="0"-->
-        <!--          @change="mySwiperChange"-->
-        <!--          indicator-color="white"-->
+        <!--          :modules="modules"-->
+        <!--          :pagination="{ clickable: true }"-->
+        <!--          @slideChange="cdSectionSwiperChange"-->
         <!--        >-->
-        <!--          <van-swipe-item class="slide" ref="cdSwiperSlideRef">-->
+        <!--          <swiper-slide class="slide" ref="cdSwiperSlideRef">-->
         <!--            <div class="singer-pic-wrapper">-->
         <!--              <div class="pic-box" ref="picBoxRef">-->
         <!--                <img-->
@@ -40,9 +86,9 @@
         <!--            </div>-->
         <!--            <div class="currentLyric-wrapper">-->
         <!--              <span class="text">{{ currentLyricText }}</span>-->
-        <!--            </div></van-swipe-item-->
-        <!--          >-->
-        <!--          <van-swipe-item class="slide">-->
+        <!--            </div>-->
+        <!--          </swiper-slide>-->
+        <!--          <swiper-slide class="slide">-->
         <!--            <div class="_wrapper">-->
         <!--              <div class="scroll-wrapper" ref="scrollRef">-->
         <!--                <div @touchend="scrollEnd">-->
@@ -63,60 +109,15 @@
         <!--                </div>-->
         <!--              </div>-->
         <!--            </div>-->
-        <!--          </van-swipe-item>-->
-        <!--        </van-swipe>-->
-        <swiper
-          ref="cdSwiperRef"
-          class="my-swipe"
-          :modules="modules"
-          :pagination="{ clickable: true }"
-          @slideChange="cdSectionSwiperChange"
-        >
-          <swiper-slide class="slide" ref="cdSwiperSlideRef">
-            <div class="singer-pic-wrapper">
-              <div class="pic-box" ref="picBoxRef">
-                <img
-                  ref="picBoxImgRef"
-                  :class="isPlaying ? 'turn' : ''"
-                  :src="currentSong.pic"
-                  alt=""
-                />
-              </div>
-            </div>
-            <div class="currentLyric-wrapper">
-              <span class="text">{{ currentLyricText }}</span>
-            </div>
-          </swiper-slide>
-          <swiper-slide class="slide">
-            <div class="_wrapper">
-              <div class="scroll-wrapper" ref="scrollRef">
-                <div @touchend="scrollEnd">
-                  <div class="lyric-wrapper" v-if="currentLyric">
-                    <p
-                      class="lyric-text"
-                      v-for="(line, index) of currentLyric.lines"
-                      :style="{
-                        color: currentLyricNum === index ? '#ffcd32' : '',
-                      }"
-                      :key="index"
-                    >
-                      <span @click.stop="lyricTextClick(line, index)">{{
-                        line.txt
-                      }}</span>
-                    </p>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </swiper-slide>
-        </swiper>
+        <!--          </swiper-slide>-->
+        <!--        </swiper>-->
       </div>
     </div>
   </transition>
   <!--  歌曲播放时长区域   -->
   <transition
-    enter-active-class="animate__animated animate__fadeInBottomLeft"
-    leave-active-class="animate__animated animate__fadeOutBottomLeft"
+    enter-active-class="animate__animated animate__fadeInBottomRight"
+    leave-active-class="animate__animated animate__fadeOutBottomRight"
     :style="{ transition: `all .6s` }"
   >
     <div
@@ -149,8 +150,8 @@
   </transition>
   <!--控制按钮区域-->
   <transition
-    enter-active-class="animate__animated animate__fadeInBottomLeft"
-    leave-active-class="animate__animated animate__fadeOutBottomLeft"
+    enter-active-class="animate__animated animate__fadeInBottomRight"
+    leave-active-class="animate__animated animate__fadeOutBottomRight"
     :style="{ transition: `all 1s` }"
   >
     <div v-show="fullScreen" class="play-control-wrapper">
@@ -360,12 +361,20 @@
 </template>
 
 <script setup>
-import { ref, computed, watch, defineExpose, nextTick, onUnmounted } from "vue";
+import {
+  ref,
+  computed,
+  watch,
+  defineExpose,
+  nextTick,
+  onUnmounted,
+  onMounted,
+} from "vue";
 import { formatDuration, createSnow } from "@/assets/js/util";
-import { Pagination } from "swiper";
-import { Swiper, SwiperSlide } from "swiper/vue";
-import "swiper/css";
-import "swiper/css/pagination";
+// import { Pagination } from "swiper";
+// import { Swiper, SwiperSlide } from "swiper/vue";
+// import "swiper/css";
+// import "swiper/css/pagination";
 import { useStore } from "vuex";
 import { PLAY_MODE } from "@/assets/js/constant";
 import { getLyric } from "@/service/song";
@@ -378,7 +387,7 @@ import confirm from "@/components/confirm/confirm.vue";
 
 // 音乐标签对应ref
 const audioRef = ref(null);
-const modules = [Pagination];
+// const modules = [Pagination];
 const cdSwiperWrapperRef = ref(null);
 // vuex store
 const store = useStore();
@@ -413,24 +422,28 @@ const cdTimer = ref(null);
 
 // cd 唱片部分swiper切换
 async function cdSectionSwiperChange(event) {
+  console.log(event.activeIndex, "event.activeIndex");
+  //console.log(event, "event");
   //console.log(scrollWrapper.value, "aaaa");
-  if (scrollWrapper.value) {
-    await nextTick();
-    scrollWrapper.value.refresh();
-    let lineNum = currentLyricNum.value;
-    //console.log(scrollRef.value, "scrollRef.value-handler");
-    const childrens = scrollRef.value
-      .querySelector(".lyric-wrapper")
-      .querySelectorAll(".lyric-text");
-    const scrollWrapperValue = scrollWrapper.value;
-    console.log(scrollWrapperValue, "scrollWrapperValue");
-    if (scrollWrapperValue) {
-      if (lineNum > 5) {
-        lineNum -= 5;
+  try {
+    if (scrollWrapper.value) {
+      await nextTick();
+      scrollWrapper.value.refresh();
+      let lineNum = currentLyricNum.value;
+      //console.log(scrollRef.value, "scrollRef.value-handler");
+      const childrens = scrollRef.value
+        .querySelector(".lyric-wrapper")
+        .querySelectorAll(".lyric-text");
+      const scrollWrapperValue = scrollWrapper.value;
+      //  console.log(scrollWrapperValue, "scrollWrapperValue");
+      if (scrollWrapperValue) {
+        if (lineNum > 5) {
+          lineNum -= 5;
+        }
+        scrollWrapperValue.scrollToElement(childrens[lineNum], 300);
       }
-      scrollWrapperValue.scrollToElement(childrens[lineNum], 300);
     }
-  }
+  } catch (err) {}
   cdMovePageX = 0;
   clearTimeout(cdTimer.value);
   // debugger;
@@ -641,6 +654,8 @@ const scrollWrapper = ref(null);
 let currentLyric = ref(null);
 let currentLyricText = ref("");
 
+const swiperInstance = ref(null);
+
 const currentLyricNum = ref(0);
 
 const picBoxRef = ref(null);
@@ -672,6 +687,18 @@ const currentIndex = computed(() => {
   return store.getters.currentIndex;
 });
 
+onMounted(async () => {
+  // 初始化Swiper
+  swiperInstance.value = new window.Swiper(".my-swipe", {
+    pagination: {
+      el: ".swiper-pagination",
+      // 分页器可以点击
+      clickable: true,
+    },
+  });
+  // 监听滑块的切换
+  swiperInstance.value.on("slideChange", cdSectionSwiperChange);
+});
 // mask 点击播放歌曲
 function playingSong(song) {
   let i = playList.value.findIndex((item) => item.id === song.id);
@@ -838,13 +865,16 @@ async function scrollIngFun(pos) {
 function scrollEnd(event) {
   const tagName = event.target.tagName.toLowerCase();
   scrollIng.value = false;
-  if (tagName === "span") {
-    stopLyric();
-    // 直接点击了歌词
-    playLyric();
+  // if (tagName === "span") {
+  //   stopLyric();
+  //   // 直接点击了歌词
+  //   playLyric();
+  //   return;
+  // }
+  stopLyric();
+  if (!isPlaying.value) {
     return;
   }
-  stopLyric();
   time1.value = setTimeout(() => {
     // stopLyric();
     playLyric();
@@ -879,6 +909,8 @@ watch(currentLyric, async () => {
 });
 
 watch(fullScreen, async (newVal) => {
+  // stopLyric();
+  // playLyric();
   //scrollWrapper.value = null;
   await nextTick();
   //stopLyric();
@@ -886,20 +918,24 @@ watch(fullScreen, async (newVal) => {
   if (newVal) {
     await nextTick();
     //console.log(scrollRef.value, "scrollRef.value-handler");
-    console.log(scrollRef.value, "fullScreen");
-    if (scrollRef.value && cdSwiperActiveIndex.value === 1) {
-      let lineNum = currentLyricNum.value;
-      const childrens = scrollRef.value
-        .querySelector(".lyric-wrapper")
-        .querySelectorAll(".lyric-text");
-      const scrollWrapperValue = scrollWrapper.value;
-      console.log(scrollWrapperValue, "scrollWrapperValue");
-      if (scrollWrapperValue) {
-        if (lineNum > 5) {
-          lineNum -= 5;
+    //console.log(scrollRef.value, "fullScreen");
+    try {
+      if (scrollRef.value) {
+        let lineNum = currentLyricNum.value;
+        const childrens = scrollRef.value
+          .querySelector(".lyric-wrapper")
+          .querySelectorAll(".lyric-text");
+        const scrollWrapperValue = scrollWrapper.value;
+        console.log(scrollWrapperValue, "scrollWrapperValue");
+        if (scrollWrapperValue) {
+          if (lineNum > 5) {
+            lineNum -= 5;
+          }
+          scrollWrapperValue.scrollToElement(childrens[lineNum], 300);
         }
-        scrollWrapperValue.scrollToElement(childrens[lineNum], 300);
       }
+    } catch (err) {
+      console.log(err, "err");
     }
     createSnowHandle();
   } else {
@@ -1368,6 +1404,7 @@ function prevSong() {
 
 //下一首
 function nextSong() {
+  console.log("nextSong");
   stopLyric();
   //  progressBarWidth.value = 0;
   //currentTime.value = 0;
@@ -1376,6 +1413,16 @@ function nextSong() {
   if (index === songsLength.value) {
     // 如果越界了就播放到第一手歌曲进行播放
     index = 0;
+  }
+  // 只有一首歌曲的话,就循环播放
+  if (songsLength.value === 1) {
+    //   console.log(songsLength, "songsLength");
+    // await nextTick();
+    currentTime.value = 0;
+    audioRef.value.loop = true;
+    audioRef.value.play();
+    stopLyric();
+    playLyric();
   }
   //console.log(index, 'index....结束了')
   // 获取当前所在歌曲的索引
@@ -1556,6 +1603,15 @@ defineExpose({
   bottom: 40px;
   color: $color-theme;
   font-size: 30px;
+  .play-mode-icon-wrapper {
+    @include f-center;
+  }
+  .is-playing {
+    @include f-center;
+    i {
+      font-size: 38px;
+    }
+  }
 }
 
 .play-music {

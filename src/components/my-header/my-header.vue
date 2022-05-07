@@ -1,6 +1,6 @@
 <template>
   <div class="my-header">
-    <!--		<img class="img" src="./logo2.png" alt="" />-->
+    <!--		<images class="images" src="./logo2.png" alt="" />-->
     <img class="img" src="./boy2.png" alt="" />
     <!--    <span class="text">Chicken Music</span>-->
     <span class="text">旺仔小光头、</span>

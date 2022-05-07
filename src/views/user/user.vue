@@ -49,42 +49,87 @@
           ]"
         >
           <div class="wrapper-box">
-            <div class="temp-box" :style="isPaddingBottom">
-              <!--name="list"-->
-              <transition-group
-                enter-active-class="animate__animated animate__slideInRight"
-                leave-active-class="animate__animated animate__slideOutRight"
+            <transition name="slide">
+              <div
+                v-if="currentIndex === 0"
+                class="temp-box"
+                :key="0"
+                :ref="'tempBoxRef' + currentIndex"
+                :style="[isPaddingBottom]"
               >
-                <div
-                  :class="['playlist-item']"
-                  ref="playlistItemRef"
-                  v-for="(song, index) of songList"
-                  :key="song.id"
-                  @click.stop="songClickHandle(song, index)"
-                >
-                  <van-swipe-cell
-                    @open="swiperCellOpen"
-                    @click="swiperCellClick($event, song)"
-                    :class="currentSong.id === song.id ? 'active2' : ''"
+                <transition-group name="list">
+                  <div
+                    :class="['playlist-item']"
+                    ref="playlistItemRef"
+                    v-for="(song, index) of songList"
+                    :key="song.id"
+                    @click.stop="songClickHandle(song, index)"
                   >
-                    <p class="song-name">
-                      <span>{{ song.name }}</span>
-                    </p>
-                    <p class="song-singer">
-                      <span>{{ song.singer }}</span>
-                    </p>
-                    <template #right>
-                      <van-button
-                        square
-                        text="删除"
-                        type="danger"
-                        class="delete-button"
-                      />
-                    </template>
-                  </van-swipe-cell>
-                </div>
-              </transition-group>
-            </div>
+                    <van-swipe-cell
+                      @open="swiperCellOpen"
+                      @click="swiperCellClick($event, song)"
+                      :class="currentSong.id === song.id ? 'active2' : ''"
+                    >
+                      <p class="song-name">
+                        <span>{{ song.name }}</span>
+                      </p>
+                      <p class="song-singer">
+                        <span>{{ song.singer }}</span>
+                      </p>
+                      <template #right>
+                        <van-button
+                          square
+                          text="删除"
+                          type="danger"
+                          class="delete-button"
+                        />
+                      </template>
+                    </van-swipe-cell>
+                  </div>
+                </transition-group>
+              </div>
+            </transition>
+
+            <transition name="slide">
+              <div
+                class="temp-box"
+                :key="1"
+                :ref="'tempBoxRef' + currentIndex"
+                v-if="currentIndex === 1"
+                :style="[isPaddingBottom]"
+              >
+                <transition-group name="list">
+                  <div
+                    :class="['playlist-item']"
+                    ref="playlistItemRef"
+                    v-for="(song, index) of songList"
+                    :key="song.id"
+                    @click.stop="songClickHandle(song, index)"
+                  >
+                    <van-swipe-cell
+                      @open="swiperCellOpen"
+                      @click="swiperCellClick($event, song)"
+                      :class="currentSong.id === song.id ? 'active2' : ''"
+                    >
+                      <p class="song-name">
+                        <span>{{ song.name }}</span>
+                      </p>
+                      <p class="song-singer">
+                        <span>{{ song.singer }}</span>
+                      </p>
+                      <template #right>
+                        <van-button
+                          square
+                          text="删除"
+                          type="danger"
+                          class="delete-button"
+                        />
+                      </template>
+                    </van-swipe-cell>
+                  </div>
+                </transition-group>
+              </div>
+            </transition>
           </div>
         </div>
       </div>
@@ -132,8 +177,10 @@ export default {
     },
   },
   watch: {
-    async songList() {
+    async songList(newVal) {
       await nextTick();
+      console.log(newVal, "songList");
+      console.log(this.playlistScrollInstance, "this.playlistScrollInstance");
       this.playlistScrollInstance.refresh();
       // console.log(this.$refs.playlistItemRef[0], "this.$refs.playlistItemRef");
     },
@@ -143,18 +190,18 @@ export default {
           if (!this.isPlaying) {
             return;
           }
-          await nextTick();
-          // 如果切换到了我喜欢的tab,让他滚动到可视区
-          // console.log(this.$refs.playlistScrollRef);
-          const idx = this.songList.findIndex(
-            (item) => item.id === this.currentSong.id
-          );
-          if (idx > -1) {
-            const children =
-              this.$refs.playlistScrollRef.querySelectorAll(".playlist-item");
-            //console.log(children, "childrenchildrenchildren");
-            this.playlistScrollInstance.scrollToElement(children[idx], 300);
-          }
+          // await nextTick();
+          // // 如果切换到了我喜欢的tab,让他滚动到可视区
+          // // console.log(this.$refs.playlistScrollRef);
+          // const idx = this.songList.findIndex(
+          //   (item) => item.id === this.currentSong.id
+          // );
+          // if (idx > -1) {
+          //   const children =
+          //     this.$refs.playlistScrollRef.querySelectorAll(".playlist-item");
+          //   //console.log(children, "childrenchildrenchildren");
+          //   this.playlistScrollInstance.scrollToElement(children[idx], 300);
+          // }
         }
         await nextTick();
         this.playlistScrollInstance.refresh();
@@ -196,6 +243,41 @@ export default {
       "delOneSongFromFavorite",
     ]),
     ...mapMutations(["delRecentlyPlaySong"]),
+    // 动画开始
+    async animationStartHandle(id) {
+      id = id === 0 ? 1 : 0;
+      if (this.$refs["tempBoxRef" + id]) {
+        this.$refs["tempBoxRef" + id].style.position = "absolute";
+        this.$refs["tempBoxRef" + id].style.zIndex = 10;
+      }
+      // console.log("animationStartHandle");
+    },
+    // 动画完成事件
+    async animationEndHandle(id) {
+      // if (id === 0) {
+      //   await nextTick();
+      //   // 如果切换到了我喜欢的tab,让他滚动到可视区
+      //   // console.log(this.$refs.playlistScrollRef);
+      //   const idx = this.songList.findIndex(
+      //     (item) => item.id === this.currentSong.id
+      //   );
+      //   if (idx > -1) {
+      //     const children =
+      //       this.$refs.playlistScrollRef.querySelectorAll(".playlist-item");
+      //     //console.log(children, "childrenchildrenchildren");
+      //     this.playlistScrollInstance.scrollToElement(children[idx], 500);
+      //   }
+      // }
+      //  console.log(this.$refs, "this.$refs");
+      //id = id === 0 ? 1 : 0;
+      if (this.$refs["tempBoxRef" + id]) {
+        this.$refs["tempBoxRef" + id].style.position = "relative";
+      }
+      await nextTick();
+      this.playlistScrollInstance.refresh();
+      // console.log(this.$refs.tempBoxRef, "1111111");
+      // console.log("transitionEnd");
+    },
     // 滑动单元格打开的状态
     swiperCellOpen(event) {
       // console.log(event, "event-open");
@@ -351,7 +433,9 @@ export default {
     padding: 10px 40px;
 
     .temp-box {
-      position: relative;
+      //position: absolute;
+      //left: 0;
+      //top: 0;
     }
     .slide-block {
       position: absolute;
@@ -368,6 +452,7 @@ export default {
       overflow: hidden;
 
       .wrapper-box {
+        position: relative;
         // background-color: pink;
       }
       .playlist-item {

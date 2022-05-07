@@ -61,6 +61,8 @@ export function createSnow(parentElement) {
     y: Math.random() * window.innerHeight,
     scale: Math.random() * 1.2,
   };
+  // 生成一个随机数
+  const num = getRandom(0, 8);
   // 创建一个 div元素
   const div = document.createElement("div");
   div.style.position = "absolute";
@@ -73,11 +75,18 @@ export function createSnow(parentElement) {
   div.style.pointerEvents = "none";
   div.className = "snow-wrapper";
   let img = document.createElement("img");
-  let src = require("@/assets/images/snow2.png");
+  let src = require(`@/assets/js/images/snow${num}.png`);
   img.src = src;
+  img.style.width = 12 + "px";
+  img.style.height = 12 + "px";
   div.style.transform = `translate3d(${start.x}px,${start.y}px,0) scale(${start.scale})`;
-  div.appendChild(img);
-  //div.innerHTML = `<img :src='' alt=''>`;
+  //div.appendChild(img);
+  const rgb = randomRgbColor();
+  div.innerHTML = `<i class='iconfont2 icon-xuehua' style="color: ${rgb};font-size: 10px"></i>`;
+
+  // div.style.fontSize = 10 + "px";
+
+  // div.innerHTML = `<images :src='' alt=''>`;
   parentElement.appendChild(div);
   // 结束坐标
   const end = {
@@ -97,4 +106,13 @@ export function createSnow(parentElement) {
 // 生成一个随机数
 export function getRandom(min = 0, max) {
   return Math.floor(Math.random() * (max - min) + min);
+}
+
+// 生成rgb 颜色
+export function randomRgbColor() {
+  //随机生成RGB颜色
+  let r = Math.floor(Math.random() * 256); //随机生成256以内r值
+  let g = Math.floor(Math.random() * 256); //随机生成256以内g值
+  let b = Math.floor(Math.random() * 256); //随机生成256以内b值
+  return `rgb(${r},${g},${b})`; //返回rgb(r,g,b)格式颜色
 }

@@ -2,24 +2,15 @@ import { createApp } from "vue";
 import App from "./App.vue";
 import router from "./router";
 import store from "./store";
-import "@/assets/scss/index.scss";
 import lazyPlugin from "vue3-lazy";
 import noFullScreen from "@/mixins/noFullScreen";
-import {
-  Button,
-  Search,
-  SwipeCell,
-  Circle,
-  Swipe,
-  SwipeItem,
-  Progress,
-} from "vant";
+import "@/assets/scss/index.scss";
 
-const vantCom = [Button, Search, SwipeCell, Circle, Swipe, SwipeItem, Progress];
+import Vant from "vant";
 
 const app = createApp(App);
 
-vantCom.forEach((com) => app.use(com));
+app.use(Vant);
 
 app.use(store).use(router);
 

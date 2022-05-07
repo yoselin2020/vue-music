@@ -101,7 +101,6 @@
       </div>
     </transition>
   </div>
-
   <confirm
     v-model:visible="visible"
     v-if="visible"

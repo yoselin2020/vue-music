@@ -8,13 +8,14 @@ module.exports = {
   presets: ["@vue/cli-plugin-babel/preset"],
   plugins: [
     ...plugins,
-    [
-      "import",
-      {
-        libraryName: "vant",
-        libraryDirectory: "es",
-        style: true,
-      },
-    ],
+    // externals 和 cdn 加速后,这里的按需引入需要注释掉不然会出问题
+    // [
+    //   "import",
+    //   {
+    //     libraryName: "vant",
+    //     libraryDirectory: "es",
+    //     style: true,
+    //   },
+    // ],
   ],
 };

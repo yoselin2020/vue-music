@@ -80,6 +80,8 @@ import { useRoute, useRouter } from "vue-router";
 import { useStore } from "vuex";
 import storage from "storejs";
 
+import { throttle } from "throttle-debounce";
+
 import tools from "@/components/tools/tools.vue";
 
 const emits = defineEmits(["selectSong"]);
@@ -186,7 +188,7 @@ watch(fullScreen, async (newFullScreen) => {
   scrollInstance.value.refresh();
 });
 
-watch(scrollY, (newScrollY) => {
+const scrollWatchHandle = (newScrollY) => {
   // console.log("滚动了");
   //console.log(newScrollY, "newScrollY");
   let scrollY = 0;
@@ -240,7 +242,9 @@ watch(scrollY, (newScrollY) => {
       transform: `scale(${1 + val}) translateZ(0px)`,
     };
   }
-});
+};
+
+watch(scrollY, scrollWatchHandle);
 watch(props.songs, async (newSongs) => {
   if (newSongs && newSongs.length > 0) {
     await nextTick();
@@ -395,8 +399,7 @@ onMounted(async () => {
         .list-content {
           //  box-sizing: border-box;
           background-color: #222222;
-          padding: 15px 40px;
-
+          padding: 15px 30px 15px 30px;
           .list-item {
             display: flex;
 
