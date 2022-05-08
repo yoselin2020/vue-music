@@ -34,7 +34,7 @@ export default createStore({
     // 搜索历史
     //searchHistoryList: storage.get(SearchHistoryListKEY) || [],
     searchHistoryList: storage.get(SearchHistoryListKEY) || [],
-    currentSingerInfo: JSON.parse(sessionStorage.getItem(SINGER_KEY)) || {},
+    currentSingerInfo: JSON.parse(localStorage.getItem(SINGER_KEY)) || {},
   },
   getters: {
     playList: (state) => state.playList,
@@ -157,6 +157,14 @@ export default createStore({
       }
       const playList = state.playList.slice();
       let playIndex = playList.findIndex((item) => item.id === song.id);
+
+      if (playIndex > -1 && playList.length === 1) {
+        state.currentIndex = -1;
+        state.isPlaying = false;
+        // console.log("-1");
+        return;
+      }
+      //  console.log("-2");
       if (playIndex > -1 && playIndex === currentSongIndex) {
         currentSongIndex--;
         if (currentSongIndex === -1) {
@@ -165,6 +173,7 @@ export default createStore({
           state.currentIndex = currentSongIndex;
         }
         state.isPlaying = true;
+        this.commit("addRecentlyPlaySong", playList[state.currentIndex]);
         // if (
         //   playIndex < currentSongIndex ||
         //   state.playList.length === currentSongIndex

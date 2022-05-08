@@ -91,7 +91,7 @@ async function toTopListDetail(top) {
       pic: pic.value,
       title: title.value,
     };
-    sessionStorage.setItem(SINGER_KEY, JSON.stringify(cacheData));
+    localStorage.setItem(SINGER_KEY, JSON.stringify(cacheData));
     //  storage.set(SINGER_KEY, cacheData);
   }
   //console.log(id, "id");

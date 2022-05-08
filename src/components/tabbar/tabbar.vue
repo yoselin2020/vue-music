@@ -2,9 +2,15 @@
   <div class="tabbar">
     <template v-for="(tabbarItem, index) of tabbarList" :key="tabbarItem.text">
       <div class="tabbar-item" @click.stop="tabbarToggle(tabbarItem.pagePath)">
-        <span :class="$route.path === tabbarItem.pagePath ? 'active' : ''">{{
-          tabbarItem.text
-        }}</span>
+        <span
+          :class="
+            $route.path === tabbarItem.pagePath ||
+            $route.path.includes(tabbarItem.pagePath)
+              ? 'active'
+              : ''
+          "
+          >{{ tabbarItem.text }}</span
+        >
       </div>
     </template>
   </div>

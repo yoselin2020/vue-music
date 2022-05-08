@@ -1,6 +1,6 @@
 <template>
   <transition name="popdown">
-    <div class="top-title" v-show="fullScreen">
+    <div class="top-title" v-show="fullScreen" ref="topTitleRef">
       <header class="header">
         <i class="iconfont icon-back" @click.stop="noFullScreen"></i>
         <span class="song-name">{{ currentSong.name }}</span>
@@ -19,13 +19,14 @@
         @touchmove="cdTouchmove"
         @touchend="cdTouchend"
         ref="cdSwiperWrapperRef"
+        :style="{ height: cdWrapperHeight + 'px' }"
       >
         <!-- Slider main container -->
         <div class="my-swipe" ref="cdSwiperRef">
           <!-- Additional required wrapper -->
           <div class="swiper-wrapper">
             <!-- Slides -->
-            <div class="swiper-slide slide" ref="cdSwiperSlideRef">
+            <div class="swiper-slide slide slide1" ref="cdSwiperSlideRef">
               <div class="singer-pic-wrapper">
                 <div class="pic-box" ref="picBoxRef">
                   <img
@@ -42,7 +43,11 @@
             </div>
             <div class="swiper-slide slide">
               <div class="_wrapper">
-                <div class="scroll-wrapper" ref="scrollRef">
+                <div
+                  class="scroll-wrapper"
+                  ref="scrollRef"
+                  :style="{ height: cdWrapperHeight - 60 + 'px' }"
+                >
                   <div @touchend="scrollEnd">
                     <div class="lyric-wrapper" v-if="currentLyric">
                       <p
@@ -124,6 +129,7 @@
       v-show="fullScreen"
       :style="{ transition: `all .6s` }"
       class="song-play-time-wrapper"
+      ref="songPlayTimeWrapperRef"
     >
       <span class="play-time">{{
         formatDuration(Math.floor(currentTime))
@@ -423,6 +429,11 @@ const cdTimer = ref(null);
 // cd 唱片部分swiper切换
 async function cdSectionSwiperChange(event) {
   console.log(event.activeIndex, "event.activeIndex");
+  //let height = this.cdWrapperHeight;
+  // if (event.activeIndex === 0) {
+  //   this.cdWrapperHeight = 420;
+  // } else {
+  // }
   //console.log(event, "event");
   //console.log(scrollWrapper.value, "aaaa");
   try {
@@ -508,9 +519,9 @@ function cdTouchend(event) {
     return;
   }
   let value = Math.floor(cdMovePageX) - Math.floor(cdStartPageX);
-  console.log("value=" + value);
-  console.log(cdSwiperActiveIndex.value, "cdSwiperActiveIndex");
-  if (Math.abs(value) < 100) {
+  // console.log("value=" + value);
+  // console.log(cdSwiperActiveIndex.value, "cdSwiperActiveIndex");
+  if (Math.abs(value) < OFFSET) {
     return;
   }
   if (cdSwiperActiveIndex.value === 1 && value < 0 && cdMovePageX > 0) {
@@ -686,8 +697,11 @@ const songsLength = computed(() => {
 const currentIndex = computed(() => {
   return store.getters.currentIndex;
 });
-
+const songPlayTimeWrapperRef = ref(null);
 onMounted(async () => {
+  // console.log(songPlayTimeWrapperRef.value, "songPlayTimeWrapperRef");
+  //const clientHeight = getComputedStyle(songPlayTimeWrapperRef.value).height;
+  //  console.log(clientHeight, "clientHeight");
   // 初始化Swiper
   swiperInstance.value = new window.Swiper(".my-swipe", {
     pagination: {
@@ -907,12 +921,41 @@ watch(currentLyric, async () => {
     }
   }
 });
-
+const cdWrapperHeight = ref(0);
+const topTitleRef = ref(null);
 watch(fullScreen, async (newVal) => {
   // stopLyric();
   // playLyric();
   //scrollWrapper.value = null;
   await nextTick();
+  // 播放时长区域的高度
+  const songPlayTimeWrapperClientHeight =
+    getComputedStyle(songPlayTimeWrapperRef.value).height.replace("px", "") * 1;
+  // console.log(
+  //   songPlayTimeWrapperClientHeight,
+  //   "songPlayTimeWrapperClientHeight"
+  // );
+  const topTitleClientHeight =
+    getComputedStyle(topTitleRef.value).height.replace("px", "") * 1;
+  const rect = songPlayTimeWrapperRef.value.getBoundingClientRect();
+  // console.log(window.innerHeight, "window.innerHeight");
+  let bottom = window.innerHeight - rect.bottom;
+  // console.log(bottom, "bottom");
+  //  console.log(
+  //    songPlayTimeWrapperClientHeight,
+  //    "songPlayTimeWrapperClientHeight"
+  //  );
+  let height =
+    window.innerHeight -
+    bottom -
+    songPlayTimeWrapperClientHeight * 2 -
+    topTitleClientHeight;
+  cdWrapperHeight.value = height;
+  // console.log(height, "height");
+  // cdSwiperWrapperRef.value.style.height = cdWrapperHeight + "px";
+  //console.log(cdWrapperHeight, "cdWrapperHeight");
+  //console.log(rect, "rect");
+  // console.log(topTitleClientHeight, "topTitleClientHeight");
   //stopLyric();
   stopCreateSnowHandle();
   if (newVal) {
@@ -1223,11 +1266,14 @@ function lyricTextClick(line, index) {
   if (scrollIng.value) {
     return;
   }
+  if (cdMovePageX > 0) {
+    return;
+  }
   const time = line.time / 1000;
   audioRef.value.currentTime = currentTime.value = time;
-  currentLyricNum.value = index;
-  stopLyric();
   playLyric();
+  stopLyric();
+  currentLyricNum.value = index;
 }
 
 // 切换播放的模式
@@ -1640,14 +1686,21 @@ defineExpose({
     padding-top: 20px;
     padding-bottom: 40px;
 
+    .swiper-wrapper {
+      position: relative;
+    }
+
     ::v-deep(.swiper-pagination) {
       .swiper-pagination-bullet {
         background-color: #fff;
+        width: 6px;
+        height: 6px;
+        border: 1px solid transparent !important;
       }
-
       .swiper-pagination-bullet-active {
-        width: 15px;
-        border-radius: 4px;
+        width: 16px;
+        border-radius: 5px;
+        border: 1px solid transparent !important;
       }
     }
 
@@ -1659,7 +1712,6 @@ defineExpose({
     //  }
     //}
     .scroll-wrapper {
-      height: 420px;
       overflow: hidden;
       //  background-color: pink;
       .lyric-wrapper {

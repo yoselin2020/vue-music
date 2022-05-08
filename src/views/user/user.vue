@@ -316,7 +316,7 @@ export default {
       // });
     },
     songClickHandle(song, index) {
-      //console.log(song, "song...");
+      console.log(song, "song...");
       // console.log(song, "song");
       // debugger;
       this.playSongCurrentIndex = index;

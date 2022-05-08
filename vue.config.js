@@ -1,5 +1,7 @@
 const registerRouter = require("./backend/router");
 const { defineConfig } = require("@vue/cli-service");
+const TerserPlugin = require("terser-webpack-plugin");
+
 module.exports = defineConfig({
   transpileDependencies: true,
   productionSourceMap: false,
@@ -40,7 +42,7 @@ module.exports = defineConfig({
       // 为生产环境修改配置...
       const BundleAnalyzerPlugin =
         require("webpack-bundle-analyzer").BundleAnalyzerPlugin;
-      config.plugins.push(new BundleAnalyzerPlugin());
+      config.plugins.push(new BundleAnalyzerPlugin(), new TerserPlugin());
       config.externals = {
         vue: "Vue",
         axios: "axios",
