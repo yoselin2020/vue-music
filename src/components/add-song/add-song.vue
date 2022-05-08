@@ -111,40 +111,41 @@
     >
       <div class="scroll-wrapper" ref="searchResultWrapperRef">
         <div>
-          <div
-            class="song-item-wrapper"
-            v-for="(song, index) of songs"
-            :key="song.id"
-            @click.stop="selectSong(song)"
-          >
-            <div class="img-wrapper">
-              <img
-                :src="require('@/assets/images/music-logo-big.png')"
-                alt=""
-              />
-            </div>
-            <div class="song-info">
-              <span class="song-name">{{ song.name }}</span>
-              <span class="song-singer">{{ song.singer }}</span>
-              <svg
-                @click.stop="addToPlayListQueue(song)"
-                t="1650811025936"
-                class="icon2"
-                viewBox="0 0 1025 1024"
-                version="1.1"
-                xmlns="http://www.w3.org/2000/svg"
-                p-id="45618"
-                width="18"
-                height="18"
-              >
-                <path
-                  d="M512 1024c-282.787759 0-512-229.248343-512-512C0 229.212241 229.212241 0 512 0 794.751657 0 1024.036102 229.212241 1024.036102 512 1024.036102 794.787759 794.751657 1024 512 1024zM768.036102 460.80722l-204.80722 0L563.228882 256 460.843323 256l0 204.80722L256 460.80722l0 102.385559 204.80722 0 0 204.80722 102.385559 0 0-204.80722 204.80722 0L768 460.80722z"
-                  p-id="45619"
-                  fill="#ffcd32"
-                ></path>
-              </svg>
-            </div>
-          </div>
+          <search-songs :songs="songs" showTools @selectSong="selectSong" />
+          <!--          <div-->
+          <!--            class="song-item-wrapper"-->
+          <!--            v-for="(song, index) of songs"-->
+          <!--            :key="song.id"-->
+          <!--            @click.stop="selectSong(song)"-->
+          <!--          >-->
+          <!--            <div class="img-wrapper">-->
+          <!--              <img-->
+          <!--                :src="require('@/assets/images/music-logo-big.png')"-->
+          <!--                alt=""-->
+          <!--              />-->
+          <!--            </div>-->
+          <!--            <div class="song-info">-->
+          <!--              <span class="song-name">{{ song.name }}</span>-->
+          <!--              <span class="song-singer">{{ song.singer }}</span>-->
+          <!--              <svg-->
+          <!--                @click.stop="addToPlayListQueue(song)"-->
+          <!--                t="1650811025936"-->
+          <!--                class="icon2"-->
+          <!--                viewBox="0 0 1025 1024"-->
+          <!--                version="1.1"-->
+          <!--                xmlns="http://www.w3.org/2000/svg"-->
+          <!--                p-id="45618"-->
+          <!--                width="18"-->
+          <!--                height="18"-->
+          <!--              >-->
+          <!--                <path-->
+          <!--                  d="M512 1024c-282.787759 0-512-229.248343-512-512C0 229.212241 229.212241 0 512 0 794.751657 0 1024.036102 229.212241 1024.036102 512 1024.036102 794.787759 794.751657 1024 512 1024zM768.036102 460.80722l-204.80722 0L563.228882 256 460.843323 256l0 204.80722L256 460.80722l0 102.385559 204.80722 0 0 204.80722 102.385559 0 0-204.80722 204.80722 0L768 460.80722z"-->
+          <!--                  p-id="45619"-->
+          <!--                  fill="#ffcd32"-->
+          <!--                ></path>-->
+          <!--              </svg>-->
+          <!--            </div>-->
+          <!--          </div>-->
 
           <!--          <div-->
           <!--            class="song-item"-->
@@ -172,10 +173,11 @@ import { debounce } from "throttle-debounce";
 import { nextTick } from "vue";
 import { myProcessSongs, searchSong } from "@/api/song";
 import xss from "xss";
+import SearchSongs from "../search-songs/search-songs.vue";
 
 export default {
   name: "add-song",
-  components: { SwitchTab },
+  components: { SwitchTab, SearchSongs },
   data() {
     return {
       keyword: "",
@@ -197,7 +199,7 @@ export default {
     this.initScroll();
     this.$watch("keyword", debounce(500, this.searchHandle));
   },
-  beforeUnmount() {
+  unmounted() {
     // 清除bs实例对象
     this.recentlyPlayListSectionScrollInstance.destroy();
     this.searchResultWrapperScrollInstance.destroy();
@@ -579,9 +581,13 @@ export default {
           transform: translateY(-50%);
         }
 
-        ::v-deep(.van-swipe-cell) {
+        :deep(.van-swipe-cell) {
           position: relative;
           padding-left: 10px;
+
+          .van-swipe-cell__right {
+            right: -1px;
+          }
 
           &.active2 {
             .van-swipe-cell__wrapper {

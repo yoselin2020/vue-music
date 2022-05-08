@@ -24,21 +24,21 @@
       <span>随机播放一首歌曲</span>
     </div>
     <div class="tab-panel-wrapper">
-      <transition
-        enter-active-class="animate__animated animate__fadeIn"
-        leave-active-class="animate__animated animate__fadeOut"
-        :style="songList.length === 0 ? { 'animation-delay': 0.5 + 's' } : {}"
-      >
-        <div class="no-result" v-show="songList.length === 0">
-          <img
-            :src="require('@/assets/images/no-result@2x.7f236bd8.png')"
-            alt=""
-          />
-          <span class="text">{{
-            currentIndex === 0 ? "暂无收藏歌曲" : "你还没有听过歌曲"
-          }}</span>
-        </div>
-      </transition>
+      <!--      <transition-->
+      <!--        enter-active-class="animate__animated animate__fadeIn"-->
+      <!--        leave-active-class="animate__animated animate__fadeOut"-->
+      <!--        :style="songList.length === 0 ? { 'animation-delay': 0.5 + 's' } : {}"-->
+      <!--      >-->
+      <div class="no-result" v-show="songList.length === 0">
+        <img
+          :src="require('@/assets/images/no-result@2x.7f236bd8.png')"
+          alt=""
+        />
+        <span class="text">{{
+          currentIndex === 0 ? "暂无收藏歌曲" : "你还没有听过歌曲"
+        }}</span>
+      </div>
+      <!--      </transition>-->
       <div class="tab-panel" :style="isPaddingBottom">
         <div
           class="playlist-wrapper"
@@ -49,87 +49,87 @@
           ]"
         >
           <div class="wrapper-box">
-            <transition name="slide">
-              <div
-                v-if="currentIndex === 0"
-                class="temp-box"
-                :key="0"
-                :ref="'tempBoxRef' + currentIndex"
-                :style="[isPaddingBottom]"
-              >
-                <transition-group name="list">
-                  <div
-                    :class="['playlist-item']"
-                    ref="playlistItemRef"
-                    v-for="(song, index) of songList"
-                    :key="song.id"
-                    @click.stop="songClickHandle(song, index)"
+            <!--            <transition name="slide">-->
+            <div
+              v-if="currentIndex === 0"
+              class="temp-box"
+              :key="0"
+              :ref="'tempBoxRef' + currentIndex"
+              :style="[isPaddingBottom]"
+            >
+              <transition-group name="list">
+                <div
+                  :class="['playlist-item']"
+                  ref="playlistItemRef"
+                  v-for="(song, index) of songList"
+                  :key="song.id"
+                  @click.stop="songClickHandle(song, index)"
+                >
+                  <van-swipe-cell
+                    @open="swiperCellOpen"
+                    @click="swiperCellClick($event, song)"
+                    :class="currentSong.id === song.id ? 'active2' : ''"
                   >
-                    <van-swipe-cell
-                      @open="swiperCellOpen"
-                      @click="swiperCellClick($event, song)"
-                      :class="currentSong.id === song.id ? 'active2' : ''"
-                    >
-                      <p class="song-name">
-                        <span>{{ song.name }}</span>
-                      </p>
-                      <p class="song-singer">
-                        <span>{{ song.singer }}</span>
-                      </p>
-                      <template #right>
-                        <van-button
-                          square
-                          text="删除"
-                          type="danger"
-                          class="delete-button"
-                        />
-                      </template>
-                    </van-swipe-cell>
-                  </div>
-                </transition-group>
-              </div>
-            </transition>
+                    <p class="song-name">
+                      <span>{{ song.name }}</span>
+                    </p>
+                    <p class="song-singer">
+                      <span>{{ song.singer }}</span>
+                    </p>
+                    <template #right>
+                      <van-button
+                        square
+                        text="删除"
+                        type="danger"
+                        class="delete-button"
+                      />
+                    </template>
+                  </van-swipe-cell>
+                </div>
+              </transition-group>
+            </div>
+            <!--            </transition>-->
 
-            <transition name="slide">
-              <div
-                class="temp-box"
-                :key="1"
-                :ref="'tempBoxRef' + currentIndex"
-                v-if="currentIndex === 1"
-                :style="[isPaddingBottom]"
-              >
-                <transition-group name="list">
-                  <div
-                    :class="['playlist-item']"
-                    ref="playlistItemRef"
-                    v-for="(song, index) of songList"
-                    :key="song.id"
-                    @click.stop="songClickHandle(song, index)"
+            <!--            <transition name="slide">-->
+            <div
+              class="temp-box"
+              :key="1"
+              :ref="'tempBoxRef' + currentIndex"
+              v-if="currentIndex === 1"
+              :style="[isPaddingBottom]"
+            >
+              <transition-group name="list">
+                <div
+                  :class="['playlist-item']"
+                  ref="playlistItemRef"
+                  v-for="(song, index) of songList"
+                  :key="song.id"
+                  @click.stop="songClickHandle(song, index)"
+                >
+                  <van-swipe-cell
+                    @open="swiperCellOpen"
+                    @click="swiperCellClick($event, song)"
+                    :class="currentSong.id === song.id ? 'active2' : ''"
                   >
-                    <van-swipe-cell
-                      @open="swiperCellOpen"
-                      @click="swiperCellClick($event, song)"
-                      :class="currentSong.id === song.id ? 'active2' : ''"
-                    >
-                      <p class="song-name">
-                        <span>{{ song.name }}</span>
-                      </p>
-                      <p class="song-singer">
-                        <span>{{ song.singer }}</span>
-                      </p>
-                      <template #right>
-                        <van-button
-                          square
-                          text="删除"
-                          type="danger"
-                          class="delete-button"
-                        />
-                      </template>
-                    </van-swipe-cell>
-                  </div>
-                </transition-group>
-              </div>
-            </transition>
+                    <p class="song-name">
+                      <span>{{ song.name }}</span>
+                    </p>
+                    <p class="song-singer">
+                      <span>{{ song.singer }}</span>
+                    </p>
+                    <template #right>
+                      <van-button
+                        square
+                        text="删除"
+                        type="danger"
+                        class="delete-button"
+                      />
+                    </template>
+                  </van-swipe-cell>
+                </div>
+              </transition-group>
+            </div>
+            <!--            </transition>-->
           </div>
         </div>
       </div>
@@ -161,7 +161,7 @@ export default {
     ...mapState([
       "favoriteSongList",
       "recentlyPlayList",
-      "currentIndex",
+      // "currentIndex",
       "isPlaying",
     ]),
     ...mapGetters(["currentSong"]),
@@ -179,8 +179,8 @@ export default {
   watch: {
     async songList(newVal) {
       await nextTick();
-      console.log(newVal, "songList");
-      console.log(this.playlistScrollInstance, "this.playlistScrollInstance");
+      // console.log(newVal, "songList");
+      // console.log(this.playlistScrollInstance, "this.playlistScrollInstance");
       this.playlistScrollInstance.refresh();
       // console.log(this.$refs.playlistItemRef[0], "this.$refs.playlistItemRef");
     },
@@ -339,6 +339,11 @@ export default {
 };
 </script>
 
+<style scoped>
+.van-button {
+  border: 0 !important;
+}
+</style>
 <style lang="scss" scoped>
 .user {
   position: fixed;
@@ -429,7 +434,7 @@ export default {
 
   .tab-panel {
     position: relative;
-    box-sizing: border-box;
+    // box-sizing: border-box;
     padding: 10px 40px;
 
     .temp-box {
@@ -463,15 +468,16 @@ export default {
         height: 35px;
         flex-direction: column;
         justify-content: space-between;
+        overflow: hidden;
         .delete-button {
           border: 0 !important;
           height: 100%;
         }
-        ::v-deep(.van-button--danger) {
+        :deep(.van-button--danger) {
           box-sizing: border-box;
           border: 0 !important;
         }
-        ::v-deep(.van-swipe-cell) {
+        :deep(.van-swipe-cell) {
           padding-left: 10px;
           &.active2 {
             .van-swipe-cell__wrapper {
@@ -487,7 +493,15 @@ export default {
               }
             }
           }
-          .van-button--danger {
+          :deep(.van-button) {
+            border: 0 !important;
+          }
+
+          .van-swipe-cell__right {
+            right: -1px;
+          }
+
+          :deep(.van-button--danger) {
             box-sizing: border-box;
             border: 0 !important;
           }

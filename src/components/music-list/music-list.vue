@@ -29,7 +29,8 @@
           ref="scrollRef"
           :style="[{ height: scrollWrapperHeight + 'px' }]"
         >
-          <div class="list-content" :style="isPaddingBottom">
+          <!--:style="isPaddingBottom"-->
+          <div class="list-content" :style="[isPaddingBottom]">
             <div
               class="list-item"
               v-for="(song, index) of currentSingerInfo.songs"
@@ -397,7 +398,7 @@ onMounted(async () => {
         height: 100%;
 
         .list-content {
-          //  box-sizing: border-box;
+          box-sizing: border-box;
           background-color: #222222;
           padding: 15px 30px 15px 30px;
           .list-item {

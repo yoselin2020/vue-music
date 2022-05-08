@@ -45,7 +45,8 @@
             },
           ]"
         >
-          <div class="search-history-wrapper" :style="isPaddingBottom">
+          <!--:style="isPaddingBottom"-->
+          <div class="search-history-wrapper">
             <div class="search-history-content">
               <transition-group name="leave">
                 <div
@@ -78,24 +79,25 @@
           :style="{ height: searchShowSectionHeight + 'px' }"
         >
           <div>
-            <div
-              class="song-item-wrapper"
-              v-for="(song, index) of songs"
-              :key="song.id"
-              @click.stop="selectSong(song)"
-            >
-              <div class="img-wrapper">
-                <img
-                  :src="require('@/assets/images/music-logo-big.png')"
-                  alt=""
-                />
-              </div>
-              <div class="song-info">
-                <span class="song-name">{{ song.name }}</span>
-                <span class="operator">-</span>
-                <span class="song-singer">{{ song.singer }}</span>
-              </div>
-            </div>
+            <search-songs :songs="songs" @selectSong="selectSong" />
+            <!--            <div-->
+            <!--              class="song-item-wrapper"-->
+            <!--              v-for="(song, index) of songs"-->
+            <!--              :key="song.id"-->
+            <!--              @click.stop="selectSong(song)"-->
+            <!--            >-->
+            <!--              <div class="img-wrapper">-->
+            <!--                <img-->
+            <!--                  :src="require('@/assets/images/music-logo-big.png')"-->
+            <!--                  alt=""-->
+            <!--                />-->
+            <!--              </div>-->
+            <!--              <div class="song-info">-->
+            <!--                <span class="song-name">{{ song.name }}</span>-->
+            <!--                <span class="operator">-</span>-->
+            <!--                <span class="song-singer">{{ song.singer }}</span>-->
+            <!--              </div>-->
+            <!--            </div>-->
           </div>
         </div>
       </div>
@@ -120,6 +122,7 @@ import request from "@/request";
 import xss from "xss";
 import { mapActions, mapMutations, mapState } from "vuex";
 import confirm from "@/components/confirm/confirm";
+import SearchSongs from "../../components/search-songs/search-songs.vue";
 
 export default {
   name: "Search",
@@ -146,6 +149,7 @@ export default {
     ...mapState(["searchHistoryList", "fullScreen"]),
   },
   components: {
+    SearchSongs,
     confirm,
   },
   async created() {
@@ -373,7 +377,7 @@ export default {
   flex-direction: column;
   padding: 10px;
 
-  ::v-deep(.van-search__content) {
+  :deep(.van-search__content) {
     background-color: #333333;
 
     .van-field__control {

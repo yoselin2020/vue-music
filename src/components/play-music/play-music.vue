@@ -560,6 +560,7 @@ function stopCreateSnowHandle() {
 
 // 播放器 报错了
 async function error(event) {
+  // debugger;
   console.log("error了");
   // debugger;
   // 歌曲播放出错,有可能是歌曲url地址过期了
@@ -573,11 +574,15 @@ async function error(event) {
         try {
           audioRef.value.src = songObj.url;
           currentSong.value.url = songObj.url;
+          songReady.value = true;
+          store.commit("setPlaying", true);
           if (songObj.url) {
             store.commit("addRecentlyPlaySong", currentSong.value);
           }
         } catch (err) {
           nextSong();
+          // console.log(err, "err");
+          //  store.commit("setPlaying", false);
         }
       }
       // debugger;
@@ -588,30 +593,32 @@ async function error(event) {
         try {
           audioRef.value.src = songObj.url;
           currentSong.value.url = songObj.url;
+          store.commit("setPlaying", true);
+          songReady.value = true;
           if (songObj.url) {
             store.commit("addRecentlyPlaySong", currentSong.value);
           }
         } catch (err) {
           nextSong();
+          console.log(err, "err");
+          // store.commit("setPlaying", false);
         }
       }
       //  debugger;
     }
   } catch (err) {
-    console.log("error", "播放器报错了");
+    // console.log("error", "播放器报错了");
     // debugger;
     stopCreateSnowHandle();
-    store.commit("setPlaying", true);
+    store.commit("setPlaying", false);
     // 切换到下一首歌曲
-    nextSong();
-    return;
+    // nextSong();
   }
-  store.commit("setPlaying", true);
 }
 
 // 迷你播放器 滑动切歌
 function switchSong(index) {
-  console.log(index, "switchSong", "执行了。。。");
+  // console.log(index, "switchSong", "执行了。。。");
   // //获取到当前的歌曲
   //  console.log(index);
   store.commit("setCurrentIndex", index);
@@ -639,6 +646,7 @@ function hideMask() {
 const visible = ref(false);
 
 async function confirmHandle() {
+  isShowMask.value = false;
   // 清空播放列表
   // 让歌曲暂停掉
   store.commit("setPlaying", false);
@@ -668,6 +676,7 @@ let currentLyricText = ref("");
 const swiperInstance = ref(null);
 
 const currentLyricNum = ref(0);
+let time1 = ref(null);
 
 const picBoxRef = ref(null);
 const picBoxImgRef = ref(null);
@@ -868,7 +877,7 @@ onUnmounted(() => {
 
 const currentSongIndex = computed(() => store.state.currentIndex);
 const scrollY = ref(0);
-let time1 = ref(null);
+
 async function scrollIngFun(pos) {
   stopLyric();
   //console.log("scrollIngFun");
@@ -892,7 +901,7 @@ function scrollEnd(event) {
   time1.value = setTimeout(() => {
     // stopLyric();
     playLyric();
-  }, 1000);
+  }, 2000);
   //stopLyric();
   //  console.log(event.target.tagName.toLowerCase(), "tagName");
   // stopLyric();
@@ -962,24 +971,24 @@ watch(fullScreen, async (newVal) => {
     await nextTick();
     //console.log(scrollRef.value, "scrollRef.value-handler");
     //console.log(scrollRef.value, "fullScreen");
-    try {
-      if (scrollRef.value) {
-        let lineNum = currentLyricNum.value;
-        const childrens = scrollRef.value
-          .querySelector(".lyric-wrapper")
-          .querySelectorAll(".lyric-text");
-        const scrollWrapperValue = scrollWrapper.value;
-        console.log(scrollWrapperValue, "scrollWrapperValue");
-        if (scrollWrapperValue) {
-          if (lineNum > 5) {
-            lineNum -= 5;
-          }
-          scrollWrapperValue.scrollToElement(childrens[lineNum], 300);
-        }
-      }
-    } catch (err) {
-      console.log(err, "err");
-    }
+    // try {
+    //   if (scrollRef.value) {
+    //     let lineNum = currentLyricNum.value;
+    //     const childrens = scrollRef.value
+    //       .querySelector(".lyric-wrapper")
+    //       .querySelectorAll(".lyric-text");
+    //     const scrollWrapperValue = scrollWrapper.value;
+    //     console.log(scrollWrapperValue, "scrollWrapperValue");
+    //     if (scrollWrapperValue) {
+    //       if (lineNum > 5) {
+    //         lineNum -= 5;
+    //       }
+    //       scrollWrapperValue.scrollToElement(childrens[lineNum], 300);
+    //     }
+    //   }
+    // } catch (err) {
+    //   console.log(err, "err");
+    // }
     createSnowHandle();
   } else {
     // 把其他的删除掉
@@ -1065,8 +1074,9 @@ async function getLyricSectionClientHeight() {
 
 // 监听当前歌曲的变化
 watch(currentSong, async (newSong) => {
+  console.log("currentSong-change");
+  clearTimeout(time1.value);
   stopLyric();
-  currentTime.value = 0;
   scrollWrapper.value = null;
   cdMovePageX = 0;
   progressBarWidth.value = 0;
@@ -1301,14 +1311,16 @@ function stopLyric() {
 
 // 歌曲播放结束
 async function ended() {
+  console.log("ended");
   // debugger;
-  currentTime.value = 0;
-  audioRef.value.currentTime = 0;
+  //currentTime.value = 0;
+  //audioRef.value.currentTime = 0;
+  songReady.value = true;
   //console.log("歌曲播放结束了");
-  console.log(playMode.value, "playMode.valueplayMode.valueplayMode.value");
+  // console.log(playMode.value, "playMode.valueplayMode.valueplayMode.value");
   if (playMode.value === PLAY_MODE.loop) {
     currentTime.value = 0;
-    audioRef.value.currentTime = 0;
+    //audioRef.value.currentTime = 0;
     // debugger;
     //如果是单曲循环
     // 设置audio loop循环播放
@@ -1413,22 +1425,22 @@ function pause() {
   stopLyric();
   // console.log(currentSong.value);
   // console.log(currentTime.value);
-  console.log("pause事件执行了");
-  if (currentSongIndex.value === playList.value.length) {
-    store.commit("setPlaying", true);
-    // store.commit("setCurrentIndex", 0);
-    nextSong();
-    return;
-  }
+  // console.log("pause事件执行了");
+  //  if (currentSongIndex.value === playList.value.length) {
+  //    store.commit("setPlaying", true);
+  //    // store.commit("setCurrentIndex", 0);
+  //    nextSong();
+  //    return;
+  //  }
   // 歌曲自然播放完毕结束了
-  if (
-    Math.floor(currentTime.value) === Math.floor(currentSong.value.duration)
-  ) {
-    store.commit("setPlaying", true);
-    // store.commit("setCurrentIndex", 0);
-    nextSong();
-    return;
-  }
+  // if (
+  //   Math.floor(currentTime.value) === Math.floor(currentSong.value.duration)
+  // ) {
+  //   store.commit("setPlaying", true);
+  //   // store.commit("setCurrentIndex", 0);
+  //   nextSong();
+  //   return;
+  // }
   store.commit("setPlaying", false);
 }
 
