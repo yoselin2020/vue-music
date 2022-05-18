@@ -515,7 +515,7 @@ function stopCreateSnowHandle() {
 // 播放器 报错了
 async function error(event) {
   // debugger;
-  console.log("error了");
+  // console.log("error了");
   // debugger;
   // 歌曲播放出错,有可能是歌曲url地址过期了
   // 拿到歌曲我们直接去获取一个url
@@ -541,7 +541,7 @@ async function error(event) {
       }
       // debugger;
     } else {
-      //qq音乐接口
+      //QQ音乐接口
       let [songObj] = await processSongs([song]);
       if (songObj) {
         try {
