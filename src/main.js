@@ -6,6 +6,9 @@ import lazyPlugin from "vue3-lazy";
 import noFullScreen from "@/mixins/noFullScreen";
 import "@/assets/scss/index.scss";
 
+// 导入flexible.js
+// import "amfe-flexible";
+
 import Vant from "vant";
 
 const app = createApp(App);

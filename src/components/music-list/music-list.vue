@@ -85,7 +85,7 @@ import { throttle } from "throttle-debounce";
 
 import tools from "@/components/tools/tools.vue";
 
-const emits = defineEmits(["selectSong"]);
+const emits = defineEmits(["selectSong", "nextPlay"]);
 const scrollInstance = ref(null);
 const scrollRef = ref(null);
 const scrollWrapperHeight = ref(0);
@@ -180,6 +180,7 @@ const cacheData = storage.get(SINGER_KEY);
 // 添加到下一首歌曲
 function nextPlay(song) {
   store.commit("addSongNextPlay", song);
+  emits("nextPlay");
   //console.log(song, "next-play");
 }
 

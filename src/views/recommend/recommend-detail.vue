@@ -2,6 +2,7 @@
   <div class="recommend-detail">
     <music-list
       @selectSong="selectSong"
+      @nextPlay="nextPlay"
       :pic="pic"
       :title="title"
       :songs="songs"
@@ -48,6 +49,16 @@ export default {
   created() {},
   async mounted() {},
   methods: {
+    nextPlay() {
+      console.log(this.songs, "this.songs");
+      if (this.songs.length > 0) {
+        this.$store.commit("setPlayList", this.songs);
+        this.$store.commit("setSequenceList", this.songs);
+      } else {
+        this.$store.commit("setPlayList", this.currentSingerInfo.songs);
+        this.$store.commit("setSequenceList", this.currentSingerInfo.songs);
+      }
+    },
     selectSong(song) {
       // 选择歌曲进行播放
       if (this.songs.length > 0) {

@@ -1,6 +1,5 @@
 module.exports = {
   plugins: {
-    autoprefixer: {},
     "postcss-px-to-viewport": {
       viewportWidth: 375,
       unitPrecision: 3, // 指定`px`转换为视窗单位值的小数位数

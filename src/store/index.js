@@ -256,6 +256,7 @@ export default createStore({
     },
     //将歌曲添加到下一首播放
     addSongNextPlay(state, song) {
+      //  debugger;
       //debugger;
       const playList = state.playList.slice();
       const sequenceList = state.sequenceList.slice();
@@ -268,6 +269,7 @@ export default createStore({
       );
       // 不是播放的状态 && playListIndex === -1
       if (!state.isPlaying && playList.length === 0) {
+        //debugger;
         // 往前面插入
         playList.unshift(song);
         //state.currentIndex = 0;
@@ -301,6 +303,10 @@ export default createStore({
           playListIndex === playList.length
         ) {
           --currentPlaySongIndex;
+        }
+        if (currentPlaySongIndex === -1) {
+          currentPlaySongIndex = 0;
+          state.isPlaying = true;
         }
         //console.log(state.playList, "state.playListstate.playList");
       } else {

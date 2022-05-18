@@ -68,54 +68,8 @@
               </div>
             </div>
           </div>
-          <!-- If we need pagination -->
           <div class="swiper-pagination"></div>
         </div>
-        <!--        <swiper-->
-        <!--          ref="cdSwiperRef"-->
-        <!--          class="my-swipe"-->
-        <!--          :modules="modules"-->
-        <!--          :pagination="{ clickable: true }"-->
-        <!--          @slideChange="cdSectionSwiperChange"-->
-        <!--        >-->
-        <!--          <swiper-slide class="slide" ref="cdSwiperSlideRef">-->
-        <!--            <div class="singer-pic-wrapper">-->
-        <!--              <div class="pic-box" ref="picBoxRef">-->
-        <!--                <img-->
-        <!--                  ref="picBoxImgRef"-->
-        <!--                  :class="isPlaying ? 'turn' : ''"-->
-        <!--                  :src="currentSong.pic"-->
-        <!--                  alt=""-->
-        <!--                />-->
-        <!--              </div>-->
-        <!--            </div>-->
-        <!--            <div class="currentLyric-wrapper">-->
-        <!--              <span class="text">{{ currentLyricText }}</span>-->
-        <!--            </div>-->
-        <!--          </swiper-slide>-->
-        <!--          <swiper-slide class="slide">-->
-        <!--            <div class="_wrapper">-->
-        <!--              <div class="scroll-wrapper" ref="scrollRef">-->
-        <!--                <div @touchend="scrollEnd">-->
-        <!--                  <div class="lyric-wrapper" v-if="currentLyric">-->
-        <!--                    <p-->
-        <!--                      class="lyric-text"-->
-        <!--                      v-for="(line, index) of currentLyric.lines"-->
-        <!--                      :style="{-->
-        <!--                        color: currentLyricNum === index ? '#ffcd32' : '',-->
-        <!--                      }"-->
-        <!--                      :key="index"-->
-        <!--                    >-->
-        <!--                      <span @click.stop="lyricTextClick(line, index)">{{-->
-        <!--                        line.txt-->
-        <!--                      }}</span>-->
-        <!--                    </p>-->
-        <!--                  </div>-->
-        <!--                </div>-->
-        <!--              </div>-->
-        <!--            </div>-->
-        <!--          </swiper-slide>-->
-        <!--        </swiper>-->
       </div>
     </div>
   </transition>
@@ -1775,13 +1729,10 @@ defineExpose({
 
   .singer-pic-wrapper {
     .pic-box {
-      margin: 0 auto;
-      margin-top: 15px;
+      margin: 15px auto 0;
       width: 300px;
-      height: 300px;
       overflow: hidden;
       border: 10px solid #4e5649;
-      //background-color: pink;
       border-radius: 50%;
 
       img {
@@ -1790,6 +1741,11 @@ defineExpose({
         height: 100%;
       }
     }
+    //@media screen and (width: 768px) {
+    //  .pic-box {
+    //    width: 500px;
+    //  }
+    //}
   }
 
   .currentLyric-wrapper {
