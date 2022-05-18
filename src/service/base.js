@@ -6,8 +6,12 @@ import NProgress from "nprogress";
 NProgress.configure({ showSpinner: false });
 const ERR_OK = 0;
 
-const baseURL =
-  process.env.NODE_ENV === "production" ? "http://47.112.208.33:4000/" : "/";
+// const baseURL =
+//   process.env.NODE_ENV === "production" ? "http://47.112.208.33:4000/" : "/";
+// axios.defaults.baseURL = baseURL;
+
+const baseURL = process.env.NODE_ENV === "production" ? "/" : "/";
+
 axios.defaults.baseURL = baseURL;
 
 // 添加请求拦截器

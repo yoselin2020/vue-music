@@ -5,9 +5,7 @@ import NProgress from "nprogress";
 // 配置禁用加载小圆环
 NProgress.configure({ showSpinner: false });
 const baseURL =
-  process.env.NODE_ENV === "production"
-    ? "http://47.112.208.33:3000"
-    : "http://192.168.1.105:3000/";
+  process.env.NODE_ENV === "production" ? "" : "http://localhost:3000/";
 
 const http = axios.create({
   baseURL,

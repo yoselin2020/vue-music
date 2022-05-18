@@ -3,12 +3,13 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "serve": "vue-cli-service serve",
+    "serve": "concurrently \"node .\\NeteaseCloudMusicApi\\app.js\" \"vue-cli-service serve\"",
     "build": "vue-cli-service build"
   },
   "dependencies": {
     "axios": "^0.26.1",
     "better-scroll": "^2.4.2",
+    "concurrently": "^7.2.0",
     "core-js": "^3.8.3",
     "lyric-parser": "^1.0.1",
     "nprogress": "^0.2.0",
